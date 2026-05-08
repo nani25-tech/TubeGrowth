@@ -3,10 +3,9 @@ import { signAccessToken, verifyToken } from '../utils/tokens.js';
 import {
   buildYouTubeAuthUrl,
   exchangeYouTubeCode,
-  fetchChannelDetails,
-  fetchConnectedChannelStats,
-  getYouTubeOAuthClient,
 } from '../utils/youtube.js';
+import { encryptValue } from '../utils/crypto.js';
+import { syncSingleUserYouTubeStats } from '../services/youtubeSync.js';
 
 const buildUserPayload = (user) => ({
   id: user._id,
@@ -69,18 +68,12 @@ export const youtubeCallback = async (req, res) => {
     const { oauthClient, tokens } = await exchangeYouTubeCode(code);
     oauthClient.setCredentials(tokens);
 
-    const stats = await fetchConnectedChannelStats(oauthClient);
-
-    user.youtubeChannelId = stats.channelId;
-    user.youtubeChannelTitle = stats.channelTitle;
-    user.subscribers = stats.subscriberCount;
-    user.watchTimeHours = Number(stats.watchTimeHours.toFixed(2));
-    user.youtubeAccessToken = tokens.access_token || user.youtubeAccessToken;
-    user.youtubeRefreshToken = tokens.refresh_token || user.youtubeRefreshToken;
+    user.youtubeAccessToken = encryptValue(tokens.access_token || user.youtubeAccessToken || '');
+    user.youtubeRefreshToken = encryptValue(tokens.refresh_token || user.youtubeRefreshToken || '');
     user.youtubeTokenExpiry = tokens.expiry_date ? new Date(tokens.expiry_date) : user.youtubeTokenExpiry;
-    user.youtubeConnectedAt = new Date();
-
     await user.save();
+
+    await syncSingleUserYouTubeStats(user._id);
 
     return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard?youtube=connected`);
   } catch (error) {
@@ -95,61 +88,11 @@ export const syncYouTubeStats = async (req, res) => {
       return res.status(403).json({ message: 'Please log in to sync YouTube stats' });
     }
 
-    const user = await User.findById(req.user.userId).select(
-      '+youtubeAccessToken +youtubeRefreshToken +youtubeTokenExpiry'
-    );
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    if (!user.youtubeChannelId) {
-      return res.status(400).json({ message: 'Connect YouTube to sync watch time' });
-    }
-
-    if (!user.youtubeRefreshToken) {
-      const stats = await fetchChannelDetails(user.youtubeChannelId);
-
-      user.youtubeChannelId = stats.id;
-      user.youtubeChannelTitle = stats.name;
-      user.subscribers = stats.subscriberCount;
-
-      if (!user.youtubeConnectedAt) {
-        user.youtubeConnectedAt = new Date();
-      }
-
-      await user.save();
-
-      return res.json({
-        message: 'YouTube channel linked from channel ID',
-        user: buildUserPayload(user),
-      });
-    }
-
-    const oauthClient = getYouTubeOAuthClient();
-    oauthClient.setCredentials({
-      access_token: user.youtubeAccessToken,
-      refresh_token: user.youtubeRefreshToken,
-      expiry_date: user.youtubeTokenExpiry ? new Date(user.youtubeTokenExpiry).getTime() : undefined,
-    });
-
-    const stats = await fetchConnectedChannelStats(oauthClient);
-
-    user.youtubeChannelId = stats.channelId;
-    user.youtubeChannelTitle = stats.channelTitle;
-    user.subscribers = stats.subscriberCount;
-    user.watchTimeHours = Number(stats.watchTimeHours.toFixed(2));
-
-    const credentials = oauthClient.credentials || {};
-    user.youtubeAccessToken = credentials.access_token || user.youtubeAccessToken;
-    user.youtubeRefreshToken = credentials.refresh_token || user.youtubeRefreshToken;
-    user.youtubeTokenExpiry = credentials.expiry_date ? new Date(credentials.expiry_date) : user.youtubeTokenExpiry;
-
-    await user.save();
+    const result = await syncSingleUserYouTubeStats(req.user.userId);
 
     res.json({
-      message: 'YouTube stats synced',
-      user: buildUserPayload(user),
+      message: result.message,
+      user: result.user,
     });
   } catch (error) {
     console.error('Sync YouTube stats error:', error);

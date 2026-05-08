@@ -1,5 +1,6 @@
 import User from '../models/User.js';
 import Campaign from '../models/Campaign.js';
+import PaymentTransaction from '../models/PaymentTransaction.js';
 
 export const getUsers = async (req, res) => {
   try {
@@ -217,6 +218,34 @@ export const getSystemStats = async (req, res) => {
     });
   } catch (error) {
     console.error('Get system stats error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const getPayments = async (req, res) => {
+  try {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ message: 'Admin only' });
+    }
+
+    const { page = 1, limit = 20 } = req.query;
+
+    const transactions = await PaymentTransaction.find()
+      .populate('user', 'name email')
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .select('user orderId paymentId amountINR creditsToAdd status verifiedAt createdAt');
+
+    const total = await PaymentTransaction.countDocuments();
+
+    res.json({
+      transactions,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    console.error('Get payments error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

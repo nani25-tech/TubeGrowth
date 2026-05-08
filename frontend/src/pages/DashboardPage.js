@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { FiLogOut, FiCopy, FiCheck } from 'react-icons/fi';
+import { FiCopy, FiCheck } from 'react-icons/fi';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { userAPI } from '../utils/api';
 
@@ -13,7 +13,6 @@ export const DashboardPage = () => {
   const hasYouTubeConnection = Boolean(user?.youtubeConnected || youtubeChannelId);
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState('dashboard');
   const [dailyBonusCollected, setDailyBonusCollected] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [channelIdInput, setChannelIdInput] = useState('');

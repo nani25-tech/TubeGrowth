@@ -12,6 +12,7 @@ router.get('/referrals', authRequired, userController.getReferrals);
 router.get('/earn-history', authRequired, userController.getEarnHistory);
 router.post('/earn', authRequired, userController.recordEarnAction);
 router.get('/leaderboard', userController.getLeaderboard);
+router.get('/payments', authRequired, userController.getPaymentHistory);
 router.put('/profile', authRequired, userController.updateProfile);
 router.post('/buy', authRequired, userController.buyCredits);
 router.post('/payment/create-order', authRequired, userController.createCreditOrder);

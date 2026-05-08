@@ -15,5 +15,6 @@ router.post('/campaigns/:id/approve', adminController.approveCampaign);
 router.delete('/campaigns/:id', adminController.removeCampaign);
 router.get('/analytics', adminController.getAnalytics);
 router.get('/stats', adminController.getSystemStats);
+router.get('/payments', adminController.getPayments);
 
 export default router;

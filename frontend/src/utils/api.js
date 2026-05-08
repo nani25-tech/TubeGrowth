@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -81,6 +81,7 @@ export const userAPI = {
   getLeaderboard: () => api.get('/user/leaderboard'),
   getYouTubeAuthUrl: () => api.get('/user/youtube/auth-url'),
   syncYouTubeStats: () => api.post('/user/youtube/sync'),
+  getPaymentHistory: () => api.get('/user/payments'),
 };
 
 export const campaignAPI = {
@@ -115,6 +116,8 @@ export const adminAPI = {
   removeCampaign: (id) => api.delete(`/admin/campaigns/${id}`),
   getAnalytics: () => api.get('/admin/analytics'),
   getSystemStats: () => api.get('/admin/stats'),
+  getPayments: (page = 1, limit = 20) =>
+    api.get('/admin/payments', { params: { page, limit } }),
 };
 
 export default api;

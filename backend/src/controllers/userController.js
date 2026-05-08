@@ -38,7 +38,8 @@ export const getProfile = async (req, res) => {
           subscribers: 0,
           watchTimeHours: 0,
           youtubeConnected: false,
-          isGuest: true,
+            isGuest: true,
+            isAdmin: false,
         },
       });
     }
@@ -61,6 +62,7 @@ export const getProfile = async (req, res) => {
         youtubeChannelId: user.youtubeChannelId,
         youtubeChannelTitle: user.youtubeChannelTitle,
         youtubeConnected: !!user.youtubeChannelId,
+          isAdmin: !!user.isAdmin,
       },
     });
   } catch (error) {
@@ -81,6 +83,7 @@ export const getDashboard = async (req, res) => {
           tasksCompleted: 0,
           subscribedChannels: 0,
           referralEarnings: 0,
+            isAdmin: false,
         },
       });
     }
@@ -101,6 +104,7 @@ export const getDashboard = async (req, res) => {
         tasksCompleted: user.completedTasks.length,
         subscribedChannels: user.subscribedChannels.length,
         referralEarnings: user.referralEarnings,
+          isAdmin: !!user.isAdmin,
       },
     });
   } catch (error) {
@@ -120,6 +124,7 @@ export const getWallet = async (req, res) => {
           youtubeConnected: false,
           totalEarned: 0,
           lastUpdated: new Date(),
+            isAdmin: false,
         },
       });
     }
@@ -138,6 +143,7 @@ export const getWallet = async (req, res) => {
         youtubeConnected: !!user.youtubeChannelId,
         totalEarned: user.referralEarnings,
         lastUpdated: new Date(),
+          isAdmin: !!user.isAdmin,
       },
     });
   } catch (error) {
@@ -495,6 +501,24 @@ export const getLeaderboard = async (req, res) => {
     });
   } catch (error) {
     console.error('Get leaderboard error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const getPaymentHistory = async (req, res) => {
+  try {
+    if (req.user.isGuest) {
+      return res.json({ transactions: [] });
+    }
+
+    const transactions = await PaymentTransaction.find({ user: req.user.userId })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .select('orderId paymentId amountINR creditsToAdd status verifiedAt createdAt');
+
+    res.json({ transactions });
+  } catch (error) {
+    console.error('Get payment history error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

@@ -81,7 +81,8 @@ export const Footer = () => {
         </div>
 
         {/* Bottom */}
-        <div className="border-t border-glass pt-8 flex flex-col md:flex-row items-center justify-between text-sm text-text-secondary">
+        <div className="border-t border-glass pt-8 flex flex-col md:flex-row ite
+ms-center justify-between text-sm text-text-secondary">
           <p>&copy; 2024 TubeGrowth. All rights reserved.</p>
           <div className="flex gap-4 mt-4 md:mt-0">
             <a href="#" className="hover:text-white transition-colors">

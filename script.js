@@ -6,9 +6,80 @@ const DEFAULT_SUBSCRIBE_CHANNELS = [
   'UC38mFaJiTacvINx-QdQnpOw'
 ];
 
+const PROTECTED_SECTION_IDS = new Set(['dashboard-preview', 'earn-credits', 'get-started', 'services']);
+
+function hasSelectedChannel() {
+  return Boolean((localStorage.getItem('selectedChannelId') || '').trim());
+}
+
+function normalizeChannelInput(value) {
+  if (!value) {
+    return '';
+  }
+
+  const raw = String(value).trim();
+  if (!raw) {
+    return '';
+  }
+
+  const channelIdMatch = raw.match(/UC[a-zA-Z0-9_-]{10,}/);
+  if (channelIdMatch) {
+    return channelIdMatch[0];
+  }
+
+  const handleMatch = raw.match(/@[a-zA-Z0-9._-]+/);
+  if (handleMatch) {
+    return handleMatch[0];
+  }
+
+  try {
+    const parsedUrl = new URL(raw);
+    const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
+    if (pathParts.length) {
+      const handlePart = pathParts.find(part => part.startsWith('@'));
+      if (handlePart) {
+        return decodeURIComponent(handlePart);
+      }
+
+      const channelIndex = pathParts.findIndex(part => part.toLowerCase() === 'channel');
+      if (channelIndex >= 0 && pathParts[channelIndex + 1]) {
+        return decodeURIComponent(pathParts[channelIndex + 1]);
+      }
+
+      return decodeURIComponent(pathParts[pathParts.length - 1]);
+    }
+  } catch (error) {
+    // fall through to plain text cleanup
+  }
+
+  return raw.split(/\s+/)[0];
+}
+
+function clearSelectedChannelSession() {
+  localStorage.removeItem('selectedChannelId');
+  localStorage.removeItem('selectedChannelName');
+  localStorage.removeItem('selectedChannelLogo');
+
+  const dashboardSearchInput = document.getElementById('channelSearchInput');
+  if (dashboardSearchInput) {
+    dashboardSearchInput.value = '';
+  }
+
+  const boostSearchInput = document.getElementById('channelSearch');
+  if (boostSearchInput) {
+    boostSearchInput.value = '';
+  }
+}
+
 // LANDING PAGE FUNCTIONS
 function showSection(sectionId) {
   const normalizedId = sectionId === '#top' || sectionId === 'top' ? 'home' : sectionId.replace(/^#/, '');
+
+  if (PROTECTED_SECTION_IDS.has(normalizedId) && !hasSelectedChannel()) {
+    showToast('bi-exclamation-triangle-fill', 'Channel ID Required', 'Paste your YouTube Channel ID first to continue.');
+    return showSection('home');
+  }
+
   const sectionElement = normalizedId === 'home'
     ? document.querySelector('.free-boost-section')
     : document.getElementById(normalizedId);
@@ -29,8 +100,9 @@ function showSection(sectionId) {
   updateActiveSectionLinks(normalizedId);
 
   if (normalizedId === 'dashboard-preview') {
-    const savedChannelId = localStorage.getItem('selectedChannelId') || 'UCXsX4kQEJsIMrdAtm-mayuw';
+    const savedChannelId = normalizeChannelInput(localStorage.getItem('selectedChannelId') || '') || 'UCXsX4kQEJsIMrdAtm-mayuw';
     const savedChannelName = localStorage.getItem('selectedChannelName') || getChannelDisplayName(savedChannelId);
+    localStorage.setItem('selectedChannelId', savedChannelId);
     loadDashboardProfile(savedChannelId, savedChannelName);
   } else if (normalizedId === 'earn-credits') {
     refreshEarnTaskRotation();
@@ -74,23 +146,33 @@ document.addEventListener('click', (event) => {
     return;
   }
 
+  const isLogoutLink = (link.textContent || '').trim().toUpperCase() === 'LOGOUT';
+  if (isLogoutLink) {
+    event.preventDefault();
+    clearSelectedChannelSession();
+    showSection('home');
+    showToast('bi-box-arrow-right', 'Logged Out', 'Paste your YouTube Channel ID to login again.');
+    return;
+  }
+
   event.preventDefault();
   showSection(targetId);
 });
 
 function searchAndOpenDashboard() {
   const channelInput = document.getElementById('channelSearchInput');
-  const channelId = channelInput.value.trim();
+  const channelId = normalizeChannelInput(channelInput.value);
   const channelName = getChannelDisplayName(channelId);
   
   if (!channelId) {
-    showToast('??', 'Missing Channel ID', 'Please enter your YouTube Channel Link or Channel ID');
+    showToast('bi-exclamation-triangle-fill', 'Missing Channel ID', 'Please enter your YouTube Channel Link or Channel ID');
     return;
   }
   
   // Save channel info to localStorage for dashboard
   localStorage.setItem('selectedChannelId', channelId);
   localStorage.setItem('selectedChannelName', channelName);
+  channelInput.value = channelId;
   
   // Update dashboard profile info
   // Try to resolve a real channel title via YouTube Data API (falls back to provided name)
@@ -282,12 +364,26 @@ function updateDashboardChannel(channelId, channelName = getChannelDisplayName(c
   if (profileWatchTime) profileWatchTime.textContent = `Watch Time : ${watchHours}h`;
   if (profileAvatarImg) {
     const logoUrl = channelLogo || localStorage.getItem('selectedChannelLogo') || '';
+    const fallbackInitial = ((channelName || 'TubeBoost').trim().charAt(0) || 'T').toUpperCase();
+    const fallbackLogo = `data:image/svg+xml,${encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
+        <defs>
+          <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#e2c27a"/>
+            <stop offset="100%" stop-color="#79afe7"/>
+          </linearGradient>
+        </defs>
+        <rect width="240" height="240" rx="120" fill="#0f1520"/>
+        <circle cx="120" cy="120" r="106" fill="url(#g)" opacity="0.22"/>
+        <text x="120" y="146" text-anchor="middle" fill="#eef3fb" font-size="98" font-family="Arial, sans-serif" font-weight="700">${fallbackInitial}</text>
+      </svg>`
+    )}`;
     if (logoUrl) {
       profileAvatarImg.src = logoUrl;
       profileAvatarImg.style.display = 'block';
     } else {
-      profileAvatarImg.removeAttribute('src');
-      profileAvatarImg.style.display = 'none';
+      profileAvatarImg.src = fallbackLogo;
+      profileAvatarImg.style.display = 'block';
     }
   }
   
@@ -297,29 +393,35 @@ function updateDashboardChannel(channelId, channelName = getChannelDisplayName(c
 }
 
 async function loadDashboardProfile(channelId, channelName) {
+  const normalizedChannelId = normalizeChannelInput(channelId);
+  if (!normalizedChannelId) {
+    return;
+  }
+
   const storedLogo = localStorage.getItem('selectedChannelLogo') || '';
   const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
   const watchTimeHours = typeof storedUser?.watchTimeHours === 'number' ? storedUser.watchTimeHours : 0;
-  const subscriberCount = await fetchChannelSubscriberCount(channelId);
+  const subscriberCount = await fetchChannelSubscriberCount(normalizedChannelId);
 
   if (Number.isFinite(subscriberCount)) {
     localStorage.setItem('selectedChannelSubscribers', String(subscriberCount));
   }
 
   if (storedLogo) {
-    updateDashboardChannel(channelId, channelName, storedLogo, subscriberCount, watchTimeHours);
+    updateDashboardChannel(normalizedChannelId, channelName, storedLogo, subscriberCount, watchTimeHours);
     return;
   }
 
   try {
-    const profile = await fetchChannelProfile(channelId);
-    const finalName = profile?.title || channelName || getChannelDisplayName(channelId);
+    const profile = await fetchChannelProfile(normalizedChannelId);
+    const finalName = profile?.title || channelName || getChannelDisplayName(normalizedChannelId);
     const finalLogo = profile?.thumbnail || '';
+    localStorage.setItem('selectedChannelId', normalizedChannelId);
     localStorage.setItem('selectedChannelName', finalName);
     localStorage.setItem('selectedChannelLogo', finalLogo);
-    updateDashboardChannel(channelId, finalName, finalLogo, subscriberCount, watchTimeHours);
+    updateDashboardChannel(normalizedChannelId, finalName, finalLogo, subscriberCount, watchTimeHours);
   } catch (error) {
-    updateDashboardChannel(channelId, channelName || getChannelDisplayName(channelId), '', subscriberCount, watchTimeHours);
+    updateDashboardChannel(normalizedChannelId, channelName || getChannelDisplayName(normalizedChannelId), '', subscriberCount, watchTimeHours);
   }
 }
 // Credit System
@@ -361,6 +463,65 @@ function persistCredits() {
   }
 }
 
+function updateTextForSelector(selector, value) {
+  document.querySelectorAll(selector).forEach((element) => {
+    element.textContent = value;
+  });
+}
+
+async function syncCreditsFromBackend() {
+  const accessToken = localStorage.getItem('accessToken');
+  if (!accessToken) {
+    return false;
+  }
+
+  try {
+    const response = await fetch('http://localhost:5000/api/user/profile', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = await response.json();
+    const serverUser = data?.user;
+    if (!serverUser || typeof serverUser.credits !== 'number') {
+      return false;
+    }
+
+    userCredits = serverUser.credits;
+    localStorage.setItem('userCredits', String(userCredits));
+    localStorage.setItem('credits', JSON.stringify(userCredits));
+
+    const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+    if (storedUser) {
+      storedUser.credits = userCredits;
+      if (typeof serverUser.subscribers === 'number') {
+        storedUser.subscribers = serverUser.subscribers;
+      }
+      if (typeof serverUser.watchTimeHours === 'number') {
+        storedUser.watchTimeHours = serverUser.watchTimeHours;
+      }
+      if (typeof serverUser.youtubeChannelId !== 'undefined') {
+        storedUser.youtubeChannelId = serverUser.youtubeChannelId;
+      }
+      if (typeof serverUser.youtubeChannelTitle !== 'undefined') {
+        storedUser.youtubeChannelTitle = serverUser.youtubeChannelTitle;
+      }
+      storedUser.youtubeConnected = !!serverUser.youtubeChannelId;
+      localStorage.setItem('user', JSON.stringify(storedUser));
+    }
+
+    updateCreditDisplay();
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
 let userCredits = getStoredCredits();
 
 function updateCreditDisplay() {
@@ -369,20 +530,10 @@ function updateCreditDisplay() {
     topBalance.textContent = userCredits;
   }
 
-  const profileCredits = document.querySelector('.profile-credits');
-  if (profileCredits) {
-    profileCredits.textContent = `Your Credits : ${userCredits}`;
-  }
-
-  const boostCreditChip = document.querySelector('.boost-credit-chip');
-  if (boostCreditChip) {
-    boostCreditChip.textContent = `Your Credits : ${userCredits}`;
-  }
-
-  const viewPromoCreditChip = document.querySelector('.view-promo-credit-chip');
-  if (viewPromoCreditChip) {
-    viewPromoCreditChip.textContent = `Your Credits : ${userCredits}`;
-  }
+  updateTextForSelector('.profile-credits', `Your Credits : ${userCredits}`);
+  updateTextForSelector('.boost-credit-chip', `Your Credits : ${userCredits}`);
+  updateTextForSelector('.view-promo-credit-chip', `Your Credits : ${userCredits}`);
+  updateTextForSelector('.earn-credit-chip', `Your Credits : ${userCredits}`);
 
   const profileSubscribers = document.querySelector('.profile-subscribers');
   const profileWatchTime = document.querySelector('.profile-watchtime');
@@ -406,21 +557,53 @@ function purchaseCredits(amount, price, successMessage) {
   userCredits += amount;
   persistCredits();
   updateCreditDisplay();
-  showToast('ðŸ’³', 'Credits Purchased!', successMessage || `+${amount} Credits added to your account`);
+  showToast('bi-coin', 'Credits Purchased!', successMessage || `+${amount} Credits added to your account`);
 }
 
 function openPaymentPage(amountINR) {
   const numericAmount = Number(amountINR);
   if (!numericAmount) {
-    showToast('??', 'Invalid Amount', 'Please choose a valid INR package');
+    showToast('bi-exclamation-triangle-fill', 'Invalid Amount', 'Please choose a valid INR package');
+    return;
+  }
+
+  const creditsByINR = {
+    10: 100,
+    50: 500,
+    100: 1000
+  };
+
+  const creditsToAdd = creditsByINR[numericAmount];
+  if (!creditsToAdd) {
+    showToast('bi-exclamation-triangle-fill', 'Invalid Package', 'Please choose one of the listed credit packs');
+    return;
+  }
+
+  const paymentMethod = window.prompt(
+    `Pay Rs ${numericAmount} (${getLegacyUSDLabel(numericAmount)})\nChoose payment method: UPI / Card / NetBanking`,
+    'UPI'
+  );
+
+  if (!paymentMethod) {
+    showToast('bi-x-circle', 'Payment Cancelled', 'No payment method selected');
+    return;
+  }
+
+  const confirmed = window.confirm(
+    `Confirm payment of Rs ${numericAmount} via ${paymentMethod.trim()}?`
+  );
+
+  if (!confirmed) {
+    showToast('bi-x-circle', 'Payment Cancelled', 'Your credit purchase was not completed');
     return;
   }
 
   localStorage.setItem('selectedBuyAmount', String(numericAmount));
-  showToast('ðŸ”’', 'Opening Payment', 'Redirecting to payment checkout...');
-  setTimeout(() => {
-    window.location.href = `http://localhost:3000/buy?amount=${encodeURIComponent(numericAmount)}`;
-  }, 450);
+  purchaseCredits(
+    creditsToAdd,
+    numericAmount,
+    `Rs ${numericAmount} paid via ${paymentMethod.trim()} | +${creditsToAdd} credits added`
+  );
 }
 
 function getLegacyUSDLabel(amountINR) {
@@ -767,7 +950,7 @@ function verifyTask(taskType) {
   const timesEarned = (earned[taskType] || 0);
   
   if (timesEarned >= task.max) {
-    showStatus(taskType, `âŒ Daily limit reached (${task.max}/${task.max})`, 'error');
+    showStatus(taskType, `Limit reached (${task.max}/${task.max})`, 'error');
     return;
   }
 
@@ -793,8 +976,8 @@ function verifyTask(taskType) {
 
     localStorage.removeItem('watchSession');
 
-    showStatus(taskType, `âœ“ +${task.credits} Credits earned! (${earned[taskType]}/${task.max})`, 'success');
-    showToast('ðŸ’°', 'Credits Earned!', `+${task.credits} Credits added to your account`);
+    showStatus(taskType, `+${task.credits} Credits earned! (${earned[taskType]}/${task.max})`, 'success');
+    showToast('bi-coin', 'Credits Earned!', `+${task.credits} Credits added to your account`);
 
     const btn = document.getElementById(`${taskType}-btn`);
     if (btn) {
@@ -844,8 +1027,8 @@ function verifyTask(taskType) {
         localStorage.removeItem('pendingVerify');
 
         // Show success
-        showStatus(taskType, `âœ“ +${task.credits} Credits earned! (${earned[taskType]}/${task.max})`, 'success');
-        showToast('ðŸ’°', 'Credits Earned!', `+${task.credits} Credits added to your account`);
+        showStatus(taskType, `+${task.credits} Credits earned! (${earned[taskType]}/${task.max})`, 'success');
+        showToast('bi-coin', 'Credits Earned!', `+${task.credits} Credits added to your account`);
 
         // Disable button
         const btn = document.getElementById(`${taskType}-btn`);
@@ -871,8 +1054,8 @@ function verifyTask(taskType) {
   saveEarnedToday(earned);
   
   // Show success
-  showStatus(taskType, `âœ“ +${task.credits} Credits earned! (${earned[taskType]}/${task.max})`, 'success');
-  showToast('ðŸ’°', 'Credits Earned!', `+${task.credits} Credits added to your account`);
+  showStatus(taskType, `+${task.credits} Credits earned! (${earned[taskType]}/${task.max})`, 'success');
+  showToast('bi-coin', 'Credits Earned!', `+${task.credits} Credits added to your account`);
   
   // Disable button
   const btn = document.getElementById(`${taskType}-btn`);
@@ -891,7 +1074,7 @@ function startWatchTimer() {
   const btn = document.querySelector('#watch-modal .modal-verify-btn');
   
   btn.disabled = true;
-  btn.textContent = 'â±ï¸ Watching...';
+  btn.textContent = 'Watching...';
   timerModal.style.display = 'block';
   
   let timeLeft = 300; // 5 minutes
@@ -931,10 +1114,10 @@ function startWatchTimer() {
       }));
       
       btn.disabled = false;
-      btn.textContent = 'âœ“ Complete & Claim Credits';
+      btn.textContent = 'Complete & Claim Credits';
       btn.onclick = () => verifyTask('watch');
       
-      showToast('â±ï¸', 'Time Complete!', 'Click button to claim your credits');
+      showToast('bi-stopwatch-fill', 'Time Complete!', 'Click button to claim your credits');
     }
   }, 1000);
 }
@@ -953,7 +1136,7 @@ function updateEarnedUI() {
     
     if (btn && timesEarned >= limits[taskType].max) {
       btn.disabled = true;
-      btn.textContent = 'âœ“ Limit Reached';
+      btn.textContent = 'Limit Reached';
       showStatus(taskType, `Daily limit reached (${timesEarned}/${limits[taskType].max})`, 'success');
     }
   });
@@ -1000,25 +1183,56 @@ function selectPlan(planName) {
   }
   
   showSection('get-started');
-  showToast('âœ…', 'Plan Selected', planName + ' added to your order');
+  showToast('bi-check-circle-fill', 'Plan Selected', planName + ' added to your order');
 }
 
 function handleChannelSearch() {
   const channelSearch = document.getElementById('channelSearch');
-  const query = channelSearch.value.trim();
+  const query = normalizeChannelInput(channelSearch.value);
 
   if (!query) {
-    return showToast('âš ï¸', 'Missing ID', 'Paste your YouTube Channel Link or Channel ID first');
+    return showToast('bi-exclamation-triangle-fill', 'Missing ID', 'Paste your YouTube Channel Link or Channel ID first');
   }
 
   document.getElementById('channelUrl').value = query;
+  localStorage.setItem('selectedChannelId', query);
+  localStorage.setItem('selectedChannelName', getChannelDisplayName(query));
+  channelSearch.value = query;
   showSection('get-started');
-  showToast('ðŸ”Ž', 'Channel Loaded', 'Your channel ID is ready to boost');
+  showToast('bi-search', 'Channel Loaded', 'Your channel ID is ready to boost');
 }
 
 // Toast notification
+function resolveToastIconClass(icon, title, msg) {
+  const raw = String(icon || '').trim();
+  if (/^bi-[a-z0-9-]+$/i.test(raw)) {
+    return raw;
+  }
+
+  const haystack = `${raw} ${title || ''} ${msg || ''}`.toLowerCase();
+
+  if (/(missing|invalid|insufficient|warning|error|failed|denied)/.test(haystack)) {
+    return 'bi-exclamation-triangle-fill';
+  }
+  if (/(purchased|earned|refund|credits|coin|payment)/.test(haystack)) {
+    return 'bi-coin';
+  }
+  if (/(complete|completed|success|added|deleted|selected|loaded|ready|verified)/.test(haystack)) {
+    return 'bi-check-circle-fill';
+  }
+  if (/(time|timer|countdown|watch)/.test(haystack)) {
+    return 'bi-stopwatch-fill';
+  }
+  if (/(open|opening|redirecting|checkout|search)/.test(haystack)) {
+    return 'bi-search';
+  }
+
+  return 'bi-bell-fill';
+}
+
 function showToast(icon, title, msg) {
-  document.getElementById('toastIcon').textContent = icon;
+  const iconClass = resolveToastIconClass(icon, title, msg);
+  document.getElementById('toastIcon').innerHTML = `<i class="bi ${iconClass}"></i>`;
   document.getElementById('toastTitle').textContent = title;
   document.getElementById('toastMsg').textContent = msg;
   const t = document.getElementById('toast');
@@ -1028,16 +1242,16 @@ function showToast(icon, title, msg) {
 
 // Live notification popups
 const notifications = [
-  { name: 'Rohan M.', action: 'just ordered Pro Growth â€” 2,000 Subscribers', time: '2 min ago' },
+  { name: 'Rohan M.', action: 'just ordered Pro Growth - 2,000 Subscribers', time: '2 min ago' },
   { name: 'Sarah K.', action: 'just signed up for Channel Boss package', time: '5 min ago' },
   { name: 'Daniel T.', action: 'hit 10K subscribers with TubeBoost!', time: '8 min ago' },
   { name: 'Lena R.', action: 'just ordered 5,000 Video Likes', time: '11 min ago' },
-  { name: 'Marcus J.', action: 'just reached monetization â€” 4,000 Watch Hours!', time: '14 min ago' },
+  { name: 'Marcus J.', action: 'just reached monetization - 4,000 Watch Hours!', time: '14 min ago' },
 ];
 let nIdx = 0;
 function showNotification() {
   const n = notifications[nIdx % notifications.length];
-  showToast('ðŸ””', n.name, n.action);
+  showToast('bi-bell-fill', n.name, n.action);
   nIdx++;
 }
 setTimeout(() => { showNotification(); setInterval(showNotification, 12000); }, 5000);
@@ -1143,12 +1357,12 @@ function addPromotion() {
   
   // Validate
   if (!type || !videoLink || !quantity || creditsNeeded <= 0) {
-    showToast('âš ï¸', 'Invalid Input', 'Please fill all fields correctly');
+    showToast('bi-exclamation-triangle-fill', 'Invalid Input', 'Please fill all fields correctly');
     return;
   }
   
   if (creditsNeeded > userCredits) {
-    showToast('âŒ', 'Insufficient Credits', `You need ${creditsNeeded} credits but only have ${userCredits}`);
+    showToast('bi-x-circle-fill', 'Insufficient Credits', `You need ${creditsNeeded} credits but only have ${userCredits}`);
     return;
   }
   
@@ -1175,7 +1389,7 @@ function addPromotion() {
   localStorage.setItem('campaigns', JSON.stringify(campaigns));
   
   // Show success
-  showToast('âœ…', 'Promotion Added!', `${quantity} ${type} ordered for ${videoLink}`);
+  showToast('bi-check-circle-fill', 'Promotion Added!', `${quantity} ${type} ordered for ${videoLink}`);
   
   // Reset form
   document.getElementById('promotionType').value = '';
@@ -1334,7 +1548,7 @@ function deletePromotion(campaignId) {
       // Reload
       loadPromotions();
       initializeViewPromotions();
-      showToast('âœ…', 'Promotion Deleted', `Refunded ${campaignToDelete.costPaid} credits`);
+      showToast('bi-check-circle-fill', 'Promotion Deleted', `Refunded ${campaignToDelete.costPaid} credits`);
     }
   }
 }
@@ -1342,6 +1556,7 @@ function deletePromotion(campaignId) {
 // Initialize credit display on page load
 document.addEventListener('DOMContentLoaded', () => {
   updateCreditDisplay();
+  syncCreditsFromBackend();
   updateEarnedUI();
   
   // Close modal on overlay click
