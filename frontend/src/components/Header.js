@@ -11,52 +11,33 @@ export const Header = () => {
       <div className="container-custom py-4 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center font-bold text-white">
-            TB
-          </div>
-          <span className="text-xl font-bold text-white hidden sm:inline">
-            TubeGrowth
+          <span className="text-2xl font-bold text-white">
+            TUBE<span className="text-yellow-400">BOOST</span>
           </span>
         </Link>
 
         {/* Navigation */}
-        <nav className="hidden md:flex items-center gap-6">
-          <Link to="/" className="text-text-secondary hover:text-white transition-colors">
-            Home
-          </Link>
-          <Link
-            to="/dashboard"
-            className="text-text-secondary hover:text-white transition-colors"
-          >
-            Dashboard
-          </Link>
-          <Link
-            to="/campaigns"
-            className="text-text-secondary hover:text-white transition-colors"
-          >
-            Campaigns
-          </Link>
-          <Link
-            to="/earn"
-            className="text-text-secondary hover:text-white transition-colors"
-          >
-            Earn Credits
-          </Link>
+        <nav className="hidden md:flex items-center gap-8">
+          <a href="#services" className="text-text-secondary hover:text-white transition-colors">
+            Services
+          </a>
+          <a href="#how-it-works" className="text-text-secondary hover:text-white transition-colors">
+            How It Works
+          </a>
+          <a href="#reviews" className="text-text-secondary hover:text-white transition-colors">
+            Reviews
+          </a>
         </nav>
 
         {/* Right Section */}
         <div className="flex items-center gap-4">
-          {user && (
-            <>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-text-secondary">💰</span>
-                <span className="font-bold text-white">{balance}</span>
-              </div>
-              <div className="text-sm text-text-secondary">
-                {user.isGuest ? 'Guest' : user.name}
-              </div>
-            </>
-          )}
+          <Link to="/buy" className="btn-primary text-sm py-2 px-4">
+            Buy Credits
+          </Link>
+          <div className="flex items-center gap-2 text-sm text-yellow-400">
+            <span>💰</span>
+            <span className="font-bold">{balance} Credits</span>
+          </div>
         </div>
       </div>
     </header>
