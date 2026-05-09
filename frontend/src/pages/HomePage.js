@@ -517,7 +517,7 @@ export const HomePage = () => {
           <li><a href="#services">Services</a></li>
           <li><a href="#how-it-works">How It Works</a></li>
           <li><a href="#testimonials">Reviews</a></li>
-          <li><a href="#buy-credits" className="nav-cta">Buy Credits</a></li>
+          {isAuthenticated && <li><a href="#buy-credits" className="nav-cta">Buy Credits</a></li>}
         </ul>
         <div className="credit-display">
           <span className="credit-icon">💰</span>
@@ -786,23 +786,25 @@ export const HomePage = () => {
         </div>
       </section>
 
-      <section id="buy-credits">
-        <div className="section-label">{'// Credit System'}</div>
-        <div className="section-title">BUY CREDITS</div>
-        <p className="section-sub">Premium packs in both currencies: Rs 10 ($1), Rs 50 ($15), Rs 100 ($50).</p>
-        <div className="credits-grid">
-          {packages.map((pkg) => (
-            <div key={pkg.amount} className={`credit-card ${pkg.featured ? 'featured' : ''}`}>
-              {pkg.featured ? <div className="featured-badge-credit">BEST VALUE</div> : null}
-              <div className="credit-amount">{pkg.credits}</div>
-              <div className="credit-label">Credits</div>
-              <div className="credit-price">Rs {pkg.amount} / ${pkg.amount === 10 ? '1' : pkg.amount === 50 ? '15' : '50'}</div>
-              <div className="credit-per">Premium Pack</div>
-              <button type="button" className="credit-btn" onClick={() => handlePay(pkg.amount)}>Buy Now</button>
-            </div>
-          ))}
-        </div>
-      </section>
+      {isAuthenticated && (
+        <section id="buy-credits">
+          <div className="section-label">{'// Credit System'}</div>
+          <div className="section-title">BUY CREDITS</div>
+          <p className="section-sub">Premium packs in both currencies: Rs 10 ($1), Rs 50 ($15), Rs 100 ($50).</p>
+          <div className="credits-grid">
+            {packages.map((pkg) => (
+              <div key={pkg.amount} className={`credit-card ${pkg.featured ? 'featured' : ''}`}>
+                {pkg.featured ? <div className="featured-badge-credit">BEST VALUE</div> : null}
+                <div className="credit-amount">{pkg.credits}</div>
+                <div className="credit-label">Credits</div>
+                <div className="credit-price">Rs {pkg.amount} / ${pkg.amount === 10 ? '1' : pkg.amount === 50 ? '15' : '50'}</div>
+                <div className="credit-per">Premium Pack</div>
+                <button type="button" className="credit-btn" onClick={() => handlePay(pkg.amount)}>Buy Now</button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section id="testimonials">
         <div className="section-label">{'// Social Proof'}</div>

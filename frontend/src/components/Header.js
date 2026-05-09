@@ -43,9 +43,11 @@ export const Header = () => {
 
         {/* Right Section */}
         <div className="flex items-center gap-4">
-          <button type="button" onClick={handleBuyCredits} className="btn-primary text-sm py-2 px-4">
-            Buy Credits
-          </button>
+          {isLoggedIn && (
+            <button type="button" onClick={handleBuyCredits} className="btn-primary text-sm py-2 px-4">
+              Buy Credits
+            </button>
+          )}
           <div className="flex items-center gap-2 text-sm text-yellow-400">
             <span>💰</span>
             <span className="font-bold">{balance} Credits</span>
