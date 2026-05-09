@@ -21,6 +21,7 @@ function getRazorpayClient() {
 // Create an order
 router.post('/create-order', async (req, res) => {
   try {
+    console.log('POST /api/payments/create-order called, body=', req.body);
     const rawAmount = Number(req.body?.amountINR ?? req.body?.amount ?? 0);
     if (isNaN(rawAmount) || rawAmount <= 0) {
       return res.status(400).json({ success: false, message: 'Amount is required (in INR)' });
@@ -48,6 +49,11 @@ router.post('/create-order', async (req, res) => {
     console.error('create-order error', err);
     res.status(500).json({ success: false, error: err.message });
   }
+});
+
+// Diagnostic ping to verify router is mounted
+router.get('/ping', (req, res) => {
+  res.json({ ok: true, route: '/api/payments/ping' });
 });
 
 // Verify payment signature (called by frontend after payment)

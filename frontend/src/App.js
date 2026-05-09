@@ -1,7 +1,7 @@
 
 
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { Header, Footer } from './components';
@@ -38,18 +38,27 @@ function AppRoutes() {
   );
 }
 
+function AppShell() {
+  const location = useLocation();
+  const showGlobalChrome = location.pathname !== '/' && location.pathname !== '/checkout';
+
+  return (
+    <div className="min-h-screen bg-dark flex flex-col">
+      {showGlobalChrome ? <Header /> : null}
+      <main className="flex-grow">
+        <AppRoutes />
+      </main>
+      {showGlobalChrome ? <Footer /> : null}
+    </div>
+  );
+}
+
 function App() {
   return (
     <Router>
       <AuthProvider>
         <ToastProvider>
-          <div className="min-h-screen bg-dark flex flex-col">
-            <Header />
-            <main className="flex-grow">
-              <AppRoutes />
-            </main>
-            <Footer />
-          </div>
+          <AppShell />
           <ToastContainer />
         </ToastProvider>
       </AuthProvider>

@@ -130,14 +130,30 @@ export const CheckoutPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-dark pt-20 pb-12">
-      {/* PACKAGES SECTION */}
-      <div className="max-w-6xl mx-auto px-4 mb-12">
-        <h1 className="text-3xl md:text-4xl font-bold text-white text-center mb-12">
-          SELECT YOUR CREDIT PACKAGE
+    <div className="min-h-screen bg-dark pt-20">
+      {/* PROMO BANNER - reuse index/home layout */}
+      <div className="bg-dark py-6 mb-8">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="border-2 border-yellow-400/50 rounded-lg py-4 px-6 text-center">
+            <h2 className="text-2xl md:text-3xl font-bold text-yellow-400 uppercase tracking-wide">
+              FREE YOUTUBE SUBSCRIBERS & FREE YOUTUBE LIKES
+            </h2>
+          </div>
+        </div>
+      </div>
+
+      {/* HERO + PACKAGES - match index.html / HomePage structure */}
+      <div className="max-w-6xl mx-auto px-4 py-12 text-center">
+        <h1 className="text-5xl md:text-7xl font-black text-white mb-8 leading-tight">
+          BUY CREDITS FOR YOUR CHANNEL<br />
+          FAST, SECURE & RELIABLE
         </h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <p className="text-lg md:text-xl text-text-secondary mb-12 max-w-3xl mx-auto leading-relaxed">
+          Choose a credits package below and proceed to secure checkout powered by Razorpay.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
           {packages.map((pkg, idx) => (
             <div
               key={idx}
@@ -161,7 +177,7 @@ export const CheckoutPage = () => {
 
               <div className="mb-8">
                 <p className="text-white text-2xl md:text-3xl font-bold mb-2">
-                  ₹{pkg.amount} / ${Math.round(pkg.amount / 33.5)}
+                  ₹{pkg.amount}
                 </p>
                 <p className="text-gray-400">{pkg.label}</p>
               </div>
@@ -173,7 +189,6 @@ export const CheckoutPage = () => {
                   setSelectedAmount(amt);
                   setLoading(false);
                   setError(null);
-                  // immediately start payment for this package
                   await handlePayment(amt);
                 }}
                 className="w-full bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-300 hover:to-orange-300 text-dark font-bold py-3 px-6 rounded-xl transition-all text-lg"
@@ -183,100 +198,8 @@ export const CheckoutPage = () => {
             </div>
           ))}
         </div>
-      </div>
 
-      {/* ORDER & PAYMENT SECTION */}
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* ORDER SUMMARY */}
-          <div className="bg-white rounded-lg overflow-hidden shadow-lg">
-            <div className="bg-primary text-white p-6">
-              <h2 className="text-2xl font-bold">ORDER SUMMARY</h2>
-            </div>
-            <div className="p-8">
-              <div className="mb-6">
-                <p className="text-gray-600 text-sm uppercase tracking-wide mb-2">Credits Package</p>
-                <p className="text-4xl font-bold text-dark">{creditsToAdd}</p>
-                <p className="text-gray-500 text-sm mt-1">Credits</p>
-              </div>
-
-              <hr className="my-6" />
-
-              <div className="space-y-4 mb-6">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-700">Price (INR)</span>
-                  <span className="font-bold text-lg">₹{selectedAmount}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-700">Tax</span>
-                  <span className="font-bold text-lg">₹0</span>
-                </div>
-              </div>
-
-              <hr className="my-6" />
-
-              <div className="flex justify-between items-center mb-8">
-                <span className="text-lg font-bold text-dark">TOTAL</span>
-                <span className="text-3xl font-bold text-primary">₹{selectedAmount}</span>
-              </div>
-
-              <div className="bg-blue-50 border-l-4 border-primary p-4 rounded">
-                <p className="text-sm text-gray-700">
-                  <strong>Note:</strong> Credits are added immediately after successful payment. You can use them to boost your YouTube channel.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* PAYMENT SECTION */}
-          <div className="bg-white rounded-lg overflow-hidden shadow-lg">
-            <div className="bg-primary text-white p-6">
-              <h2 className="text-2xl font-bold">PAYMENT</h2>
-            </div>
-            <div className="p-8">
-              {error && (
-                <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded mb-6">
-                  <strong>Error:</strong> {error}
-                </div>
-              )}
-
-              <div className="mb-8">
-                <h3 className="text-lg font-bold text-dark mb-4">Select Payment Method</h3>
-                <p className="text-gray-600 text-sm mb-6">
-                  Click the button below to proceed with Razorpay checkout. You can pay using:
-                </p>
-                <ul className="text-gray-600 text-sm space-y-2 mb-6">
-                  <li>✓ UPI (Google Pay, PhonePe, Paytm, etc.)</li>
-                  <li>✓ Debit/Credit Cards</li>
-                  <li>✓ Net Banking</li>
-                  <li>✓ Digital Wallets</li>
-                  <li>✓ BNPL (Buy Now Pay Later)</li>
-                </ul>
-              </div>
-
-              <button
-                onClick={handlePayment}
-                disabled={loading}
-                className="w-full bg-primary hover:bg-red-700 disabled:opacity-50 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg"
-              >
-                {loading ? 'Opening Checkout...' : `Pay ₹${selectedAmount} and Get ${creditsToAdd} Credits`}
-              </button>
-
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="w-full mt-4 bg-gray-200 hover:bg-gray-300 text-dark font-bold py-3 px-6 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-
-              <div className="mt-8 pt-6 border-t">
-                <p className="text-xs text-gray-500 text-center">
-                  <i className="bi bi-shield-lock"></i> Secured by Razorpay | Safe & Secure Payment
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div className="py-12"></div>
       </div>
     </div>
   );
