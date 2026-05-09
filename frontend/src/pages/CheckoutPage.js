@@ -5,11 +5,24 @@ import { useAuth } from '../context/AuthContext';
 export const CheckoutPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedAmount, setSelectedAmount] = useState(searchParams.get('amount') || '50');
 
+  // Check authentication on mount and Razorpay script
+  useEffect(() => {
+    if (!isAuthenticated || !user?.youtubeChannelId) {
+      navigate('/login', { replace: true });
+      return;
+    }
+    
+    if (!window.Razorpay) {
+      setError('Razorpay checkout is not loaded. Please refresh the page.');
+    }
+  }, [isAuthenticated, user?.youtubeChannelId, navigate]);
+
+  // Define packages and credit mapping
   const packages = [
     { amount: 10, credits: 100, label: 'Premium Pack', badge: null },
     { amount: 50, credits: 500, label: 'Premium Pack', badge: 'BEST VALUE' },
@@ -22,13 +35,10 @@ export const CheckoutPage = () => {
     100: 1000,
   };
 
-  const creditsToAdd = creditsByAmount[selectedAmount] || selectedAmount;
-
-  useEffect(() => {
-    if (!window.Razorpay) {
-      setError('Razorpay checkout is not loaded. Please refresh the page.');
-    }
-  }, []);
+  // Guard: don't render if not authenticated
+  if (!isAuthenticated || !user?.youtubeChannelId) {
+    return null;
+  }
 
   const handlePayment = async (amountParam) => {
     // amountParam (optional) allows immediate checkout from a package button
