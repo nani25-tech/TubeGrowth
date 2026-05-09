@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Redirect</title>
+  <script>
+    // Redirect all non-existent routes to index.html with the path preserved
+    var path = window.location.pathname.replace(/\/$/, '');
+    if (path) {
+      sessionStorage.redirect = path + (window.location.search || '') + (window.location.hash || '');
+      window.location.href = '/';
+    }
+  </script>
+</head>
+<body></body>
+</html>

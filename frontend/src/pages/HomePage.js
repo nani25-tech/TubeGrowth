@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 export const HomePage = () => {
@@ -14,6 +13,10 @@ export const HomePage = () => {
     setTimeout(() => {
       setIsSearching(false);
     }, 1000);
+  };
+
+  const handlePay = () => {
+    navigate('/checkout?amount=500');
   };
 
   return (
@@ -65,9 +68,9 @@ export const HomePage = () => {
             </button>
           </div>
           
-          <a href="#" className="text-text-secondary text-sm hover:text-white transition-colors">
+          <button type="button" className="text-text-secondary text-sm hover:text-white transition-colors" onClick={() => navigate('/campaigns')}>
             Where I can find my YouTube Channel ID
-          </a>
+          </button>
         </div>
 
         {/* CTA BUTTON */}
@@ -76,6 +79,13 @@ export const HomePage = () => {
           className="bg-yellow-400 text-dark font-bold text-lg px-8 py-4 rounded-lg hover:bg-yellow-300 transition-colors inline-flex items-center gap-2 uppercase tracking-wide"
         >
           <span>📊</span> ANALYZE YOUR YOUTUBE VIDEOS FOR FREE
+        </button>
+
+        <button
+          onClick={handlePay}
+          className="ml-4 bg-primary text-white font-bold text-lg px-6 py-3 rounded-lg hover:opacity-95 transition-colors inline-flex items-center gap-2"
+        >
+          Buy Credits ₹500
         </button>
       </div>
 

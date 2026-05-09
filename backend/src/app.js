@@ -7,6 +7,7 @@ import userRoutes from './routes/userRoutes.js';
 import campaignRoutes from './routes/campaignRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import paymentRoutes, { paymentWebhookHandler } from './routes/paymentRoutes.js';
 
 const app = express();
 
@@ -17,6 +18,9 @@ app.use(cors({
   credentials: true,
 }));
 app.use(morgan('dev'));
+// Webhook endpoint requires raw body for signature verification
+app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), paymentWebhookHandler);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -26,6 +30,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

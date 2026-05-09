@@ -3,3 +3,4 @@ export { HomePage } from './HomePage';
 export { EarnPage } from './EarnPage';
 export { CampaignsPage } from './CampaignsPage';
 export { default as BuyCreditsPage } from './BuyCreditsPage';
+export { default as CheckoutPage } from './CheckoutPage';

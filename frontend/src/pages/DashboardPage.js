@@ -19,7 +19,6 @@ export const DashboardPage = () => {
   const [youtubeActionLoading, setYoutubeActionLoading] = useState(false);
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [buyAmountINR, setBuyAmountINR] = useState('100');
-  const [buyLoading, setBuyLoading] = useState(false);
   const premiumPackages = [
     { label: '₹10 - 100 credits', amount: 10 },
     { label: '₹50 - 500 credits', amount: 50 },
@@ -145,22 +144,11 @@ export const DashboardPage = () => {
     }
   };
 
-  const handleBuyCredits = async () => {
+  const handleBuyCredits = () => {
     const amount = Number(buyAmountINR);
     if (isNaN(amount) || amount <= 0) return;
-
-    try {
-      setBuyLoading(true);
-      const response = await userAPI.buyCredits({ amountINR: amount });
-      if (response.data?.user) {
-        updateUser(response.data.user);
-      }
-      setShowBuyModal(false);
-    } catch (error) {
-      console.error('Buy credits failed:', error);
-    } finally {
-      setBuyLoading(false);
-    }
+    setShowBuyModal(false);
+    navigate(`/checkout?amount=${amount}`);
   };
 
   return (
@@ -400,10 +388,9 @@ export const DashboardPage = () => {
             <div className="flex gap-3">
               <button
                 onClick={handleBuyCredits}
-                disabled={buyLoading}
                 className="flex-1 bg-yellow-500 text-white py-2 rounded font-bold hover:bg-yellow-600"
               >
-                {buyLoading ? 'PROCESSING...' : 'BUY'}
+                BUY
               </button>
               <button
                 onClick={() => setShowBuyModal(false)}

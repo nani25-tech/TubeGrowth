@@ -560,7 +560,16 @@ function purchaseCredits(amount, price, successMessage) {
   showToast('bi-coin', 'Credits Purchased!', successMessage || `+${amount} Credits added to your account`);
 }
 
-function openPaymentPage(amountINR) {
+function getPaymentsApiBase() {
+  const host = window.location.hostname;
+  if (host === 'localhost' || host === '127.0.0.1') {
+    return 'http://localhost:5000/api';
+  }
+
+  return 'https://tubegrowth.onrender.com/api';
+}
+
+async function openPaymentPage(amountINR) {
   const numericAmount = Number(amountINR);
   if (!numericAmount) {
     showToast('bi-exclamation-triangle-fill', 'Invalid Amount', 'Please choose a valid INR package');
@@ -579,31 +588,75 @@ function openPaymentPage(amountINR) {
     return;
   }
 
-  const paymentMethod = window.prompt(
-    `Pay Rs ${numericAmount} (${getLegacyUSDLabel(numericAmount)})\nChoose payment method: UPI / Card / NetBanking`,
-    'UPI'
-  );
+  try {
+    const accessToken = localStorage.getItem('accessToken');
+    const apiBase = getPaymentsApiBase();
 
-  if (!paymentMethod) {
-    showToast('bi-x-circle', 'Payment Cancelled', 'No payment method selected');
-    return;
+    if (!window.Razorpay) {
+      showToast('bi-exclamation-triangle-fill', 'Payment Not Ready', 'Razorpay checkout is not loaded yet. Refresh the page and try again.');
+      return;
+    }
+
+    const response = await fetch(`${apiBase}/payments/create-order`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      },
+      body: JSON.stringify({ amountINR: numericAmount }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data?.message || 'Unable to create payment order');
+    }
+
+    const options = {
+      key: data.keyId || window.RAZORPAY_KEY_ID || '',
+      amount: data.order.amount,
+      currency: data.order.currency,
+      name: 'TubeBoost',
+      description: `Buy ${creditsToAdd} Credits`,
+      order_id: data.order.id,
+      prefill: {
+        name: JSON.parse(localStorage.getItem('user') || 'null')?.name || '',
+        email: JSON.parse(localStorage.getItem('user') || 'null')?.email || '',
+      },
+      theme: { color: '#FBBF24' },
+      handler: async function (paymentResponse) {
+        const verifyResponse = await fetch(`${apiBase}/payments/verify`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+          body: JSON.stringify(paymentResponse),
+        });
+
+        const verifyData = await verifyResponse.json();
+        if (!verifyResponse.ok) {
+          throw new Error(verifyData?.message || 'Payment verification failed');
+        }
+
+        purchaseCredits(
+          creditsToAdd,
+          numericAmount,
+          `Rs ${numericAmount} paid | +${creditsToAdd} credits added`
+        );
+      },
+      modal: {
+        ondismiss: () => {
+          showToast('bi-x-circle', 'Payment Cancelled', 'Your Razorpay checkout was closed');
+        },
+      },
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+  } catch (error) {
+    console.error('Razorpay payment error:', error);
+    showToast('bi-x-circle', 'Payment Failed', error.message || 'Unable to open Razorpay checkout');
   }
-
-  const confirmed = window.confirm(
-    `Confirm payment of Rs ${numericAmount} via ${paymentMethod.trim()}?`
-  );
-
-  if (!confirmed) {
-    showToast('bi-x-circle', 'Payment Cancelled', 'Your credit purchase was not completed');
-    return;
-  }
-
-  localStorage.setItem('selectedBuyAmount', String(numericAmount));
-  purchaseCredits(
-    creditsToAdd,
-    numericAmount,
-    `Rs ${numericAmount} paid via ${paymentMethod.trim()} | +${creditsToAdd} credits added`
-  );
 }
 
 function getLegacyUSDLabel(amountINR) {
