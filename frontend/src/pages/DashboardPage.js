@@ -158,6 +158,12 @@ export const DashboardPage = () => {
     const amount = Number(buyAmountINR);
     if (isNaN(amount) || amount <= 0) return;
     setShowBuyModal(false);
+
+    if (!user?.youtubeChannelId) {
+      navigate('/login', { state: { from: { pathname: '/checkout', search: `?amount=${amount}` } } });
+      return;
+    }
+
     navigate(`/checkout?amount=${amount}`);
   };
 

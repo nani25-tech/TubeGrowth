@@ -646,9 +646,21 @@ export const HomePage = () => {
             <div className="hero-step">Boost Channel: Once you have accumulated credits, click on &quot;Boost Channel&quot; to exchange those credits for your own subscribers, likes, or views.</div>
           </div>
           <div className="hero-btns">
-            <button type="button" className="btn-primary" onClick={() => navigate('/campaigns')}>Boost Channel</button>
-            <button type="button" className="btn-secondary" onClick={() => navigate('/buy')}>Get Credits <span>→</span></button>
-          </div>
+              <button type="button" className="btn-primary" onClick={() => navigate('/campaigns')}>Boost Channel</button>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    navigate('/login', { state: { from: { pathname: '/buy', search: '' } } });
+                    return;
+                  }
+                  navigate('/buy');
+                }}
+              >
+                Get Credits <span>→</span>
+              </button>
+            </div>
         </div>
       </section>
 
