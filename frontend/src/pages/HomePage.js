@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const packages = [
@@ -489,6 +490,7 @@ export const HomePage = () => {
   const [channelInput, setChannelInput] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const handleChannelSearch = async () => {
     if (!channelInput.trim()) return;
@@ -497,6 +499,11 @@ export const HomePage = () => {
   };
 
   const handlePay = (amount) => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: { pathname: '/checkout', search: `?amount=${amount}` } } });
+      return;
+    }
+
     navigate(`/checkout?amount=${amount}`);
   };
 

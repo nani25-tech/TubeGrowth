@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { userAPI } from '../utils/api';
+import { authStorage } from '../utils/storage';
 
 export const EarnPage = () => {
   const { user, updateUser } = useAuth();
@@ -48,7 +49,7 @@ export const EarnPage = () => {
 
   useEffect(() => {
     const loadCompletedTasks = async () => {
-      if (!user || user.isGuest) {
+      if (!user || !authStorage.hasAccessToken()) {
         return;
       }
 
@@ -68,8 +69,9 @@ export const EarnPage = () => {
       return;
     }
 
-    if (user?.isGuest) {
+    if (!authStorage.hasAccessToken()) {
       setCompletedTasks([...completedTasks, task.taskKey]);
+      updateUser({ credits: (user?.credits ?? 1000) + task.reward });
       return;
     }
 
@@ -144,7 +146,7 @@ export const EarnPage = () => {
           </div>
           <div className="bg-secondary rounded-lg p-6 text-center">
             <h3 className="text-2xl font-bold text-success mb-2">
-              {tasks.reduce((acc, task) => completedTasks.includes(task.id) ? acc + task.reward : acc, 0)}
+              {tasks.reduce((acc, task) => completedTasks.includes(task.taskKey) ? acc + task.reward : acc, 0)}
             </h3>
             <p className="text-text-secondary">Credits Earned</p>
           </div>

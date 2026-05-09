@@ -1,39 +1,66 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { authAPI, userAPI } from '../utils/api';
-import { authStorage } from '../utils/storage';
+import { authStorage, channelStorage } from '../utils/storage';
 
 const AuthContext = createContext(null);
 
-// Guest user for demo/public access
-const GUEST_USER = {
-  id: 'guest',
-  name: 'Guest User',
-  email: 'guest@tubegrowth.com',
+const createChannelUser = (channelId, channelName) => ({
+  id: `channel:${channelId}`,
+  name: channelName || channelId,
+  email: `${channelId}@tubegrowth.local`,
   credits: 1000,
-  isGuest: true,
-};
+  subscribers: 0,
+  watchTimeHours: 0,
+  youtubeChannelId: channelId,
+  youtubeConnected: true,
+  isGuest: false,
+  isChannelLogin: true,
+});
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(GUEST_USER);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const storedUser = authStorage.getUser();
+    const storedSession = channelStorage.getSession();
 
-    if (!storedUser) {
+    if (!storedSession?.channelId) {
       setLoading(false);
       return;
     }
 
-    setUser(storedUser);
+    const storedUser = authStorage.getUser();
+    const nextUser = storedUser?.youtubeChannelId
+      ? {
+          ...storedUser,
+          youtubeChannelId: storedUser.youtubeChannelId || storedSession.channelId,
+          youtubeConnected: true,
+          isGuest: false,
+          isChannelLogin: true,
+        }
+      : createChannelUser(storedSession.channelId, storedSession.channelName);
+
+    setUser(nextUser);
 
     const syncStoredUser = async () => {
       try {
+        if (!authStorage.hasAccessToken()) {
+          setLoading(false);
+          return;
+        }
+
         const response = await userAPI.getProfile();
         if (response.data?.user) {
-          authStorage.setUser(response.data.user);
-          setUser(response.data.user);
+          const mergedUser = {
+            ...response.data.user,
+            youtubeChannelId: response.data.user.youtubeChannelId || storedSession.channelId,
+            youtubeConnected: true,
+            isGuest: false,
+            isChannelLogin: true,
+          };
+          authStorage.setUser(mergedUser);
+          setUser(mergedUser);
         }
       } catch (error) {
         // Keep cached user if the profile refresh fails.
@@ -44,6 +71,20 @@ export const AuthProvider = ({ children }) => {
 
     syncStoredUser();
   }, []);
+
+  const channelLogin = (channelId, channelName) => {
+    const normalizedChannelId = String(channelId || '').trim();
+
+    if (!normalizedChannelId) {
+      throw new Error('Channel ID is required');
+    }
+
+    const nextUser = createChannelUser(normalizedChannelId, channelName || normalizedChannelId);
+    channelStorage.setSession({ channelId: normalizedChannelId, channelName: channelName || normalizedChannelId });
+    authStorage.setUser(nextUser);
+    setUser(nextUser);
+    return nextUser;
+  };
 
   const login = async (email, password) => {
     try {
@@ -98,6 +139,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     authStorage.clearAuth();
+    channelStorage.clearSession();
     setUser(null);
   };
 
@@ -132,10 +174,11 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     googleLogin,
+    channelLogin,
     logout,
     updateUser,
     refreshUser,
-    isAuthenticated: !!user,
+    isAuthenticated: Boolean(user?.youtubeChannelId || authStorage.hasAccessToken()),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

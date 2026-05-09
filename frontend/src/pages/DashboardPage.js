@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { FiCopy, FiCheck } from 'react-icons/fi';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { userAPI } from '../utils/api';
+import { authStorage } from '../utils/storage';
 
 export const DashboardPage = () => {
   const { user, logout, updateUser, refreshUser } = useAuth();
@@ -34,7 +35,7 @@ export const DashboardPage = () => {
     let isActive = true;
 
     const syncYouTubeStats = async () => {
-      if (!user || user.isGuest || !youtubeChannelId) {
+      if (!user || !youtubeChannelId || !authStorage.hasAccessToken()) {
         return;
       }
 
@@ -59,7 +60,7 @@ export const DashboardPage = () => {
     return () => {
       isActive = false;
     };
-  }, [user?.id, user?.isGuest, youtubeChannelId, updateUser]);
+  }, [user?.id, youtubeChannelId, updateUser]);
 
   useEffect(() => {
     const query = new URLSearchParams(location.search);
@@ -118,6 +119,15 @@ export const DashboardPage = () => {
 
     try {
       setYoutubeActionLoading(true);
+
+      if (!authStorage.hasAccessToken()) {
+        updateUser({
+          youtubeChannelId: trimmedChannelId,
+          youtubeConnected: true,
+          name: user?.name || trimmedChannelId,
+        });
+        return;
+      }
 
       const profileResponse = await userAPI.updateProfile({ youtubeChannelId: trimmedChannelId });
       if (profileResponse.data?.user) {

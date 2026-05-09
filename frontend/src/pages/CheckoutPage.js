@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export const CheckoutPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedAmount, setSelectedAmount] = useState(searchParams.get('amount') || '50');
@@ -31,6 +33,12 @@ export const CheckoutPage = () => {
   const handlePayment = async (amountParam) => {
     // amountParam (optional) allows immediate checkout from a package button
     const amountToUse = amountParam ? String(amountParam) : selectedAmount;
+
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: { pathname: '/checkout', search: `?amount=${amountToUse}` } } });
+      return;
+    }
+
     setSelectedAmount(String(amountToUse));
     setLoading(true);
     setError(null);

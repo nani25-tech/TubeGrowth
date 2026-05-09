@@ -1,6 +1,7 @@
 const AUTH_TOKEN_KEY = 'accessToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
 const USER_KEY = 'user';
+const CHANNEL_SESSION_KEY = 'channelSession';
 
 export const authStorage = {
   setTokens: (accessToken, refreshToken) => {
@@ -25,10 +26,30 @@ export const authStorage = {
     localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(CHANNEL_SESSION_KEY);
   },
 
   isAuthenticated: () => {
+    return !!localStorage.getItem(CHANNEL_SESSION_KEY);
+  },
+
+  hasAccessToken: () => {
     return !!localStorage.getItem(AUTH_TOKEN_KEY);
+  },
+};
+
+export const channelStorage = {
+  setSession: (session) => {
+    localStorage.setItem(CHANNEL_SESSION_KEY, JSON.stringify(session));
+  },
+
+  getSession: () => {
+    const session = localStorage.getItem(CHANNEL_SESSION_KEY);
+    return session ? JSON.parse(session) : null;
+  },
+
+  clearSession: () => {
+    localStorage.removeItem(CHANNEL_SESSION_KEY);
   },
 };
 
