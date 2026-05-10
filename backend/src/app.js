@@ -10,14 +10,18 @@ import adminRoutes from './routes/adminRoutes.js';
 import paymentRoutes, { paymentWebhookHandler } from './routes/paymentRoutes.js';
 
 const app = express();
-const configuredOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean)
-  : [
-      'http://localhost:3000',
-      'http://127.0.0.1:3000',
-      'http://localhost:5173',
-      'https://tubegrowth.zone.id',
-    ];
+const configuredOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:5173',
+  'https://tubegrowth.zone.id',
+  'https://www.tubegrowth.zone.id',
+  'https://nani25-tech.github.io',
+  'https://nani25-tech.github.io/TubeGrowth',
+  ...(process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean)
+    : []),
+];
 
 function isAllowedOrigin(origin) {
   if (!origin) {
