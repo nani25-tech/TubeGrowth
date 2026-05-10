@@ -591,22 +591,31 @@ function getApiBase() {
   return getPaymentsApiBase();
 }
 
-async function openPaymentPage(amountINR) {
-  const numericAmount = Number(amountINR);
+const PAYMENT_PACKS = {
+  INR: {
+    10: 100,
+    50: 500,
+    100: 1000,
+  },
+  USD: {
+    1: 100,
+    15: 500,
+    50: 1000,
+  },
+};
+
+async function openPaymentPage(currency, amount) {
+  const selectedCurrency = String(currency || 'INR').toUpperCase();
+  const numericAmount = Number(amount);
   if (!numericAmount) {
-    showToast('bi-exclamation-triangle-fill', 'Invalid Amount', 'Please choose a valid INR package');
+    showToast('bi-exclamation-triangle-fill', 'Invalid Amount', 'Please choose a valid payment package');
     return;
   }
 
-  const creditsByINR = {
-    10: 100,
-    50: 500,
-    100: 1000
-  };
-
-  const creditsToAdd = creditsByINR[numericAmount];
+  const creditsByCurrency = PAYMENT_PACKS[selectedCurrency];
+  const creditsToAdd = creditsByCurrency?.[numericAmount];
   if (!creditsToAdd) {
-    showToast('bi-exclamation-triangle-fill', 'Invalid Package', 'Please choose one of the listed credit packs');
+    showToast('bi-exclamation-triangle-fill', 'Invalid Package', `Please choose one of the listed ${selectedCurrency} credit packs`);
     return;
   }
 
@@ -625,7 +634,7 @@ async function openPaymentPage(amountINR) {
         'Content-Type': 'application/json',
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
-      body: JSON.stringify({ amountINR: numericAmount }),
+      body: JSON.stringify({ amount: numericAmount, currency: selectedCurrency }),
     });
 
     const data = await response.json();
@@ -638,7 +647,7 @@ async function openPaymentPage(amountINR) {
       amount: data.order.amount,
       currency: data.order.currency,
       name: 'TubeBoost',
-      description: `Buy ${creditsToAdd} Credits`,
+      description: `Buy ${creditsToAdd} Credits (${selectedCurrency})`,
       order_id: data.order.id,
       prefill: {
         name: JSON.parse(localStorage.getItem('user') || 'null')?.name || '',
@@ -663,7 +672,7 @@ async function openPaymentPage(amountINR) {
         purchaseCredits(
           creditsToAdd,
           numericAmount,
-          `Rs ${numericAmount} paid | +${creditsToAdd} credits added`
+          `${selectedCurrency === 'USD' ? '$' : 'Rs'} ${numericAmount} paid | +${creditsToAdd} credits added`
         );
       },
       modal: {
@@ -681,18 +690,16 @@ async function openPaymentPage(amountINR) {
   }
 }
 
-function getLegacyUSDLabel(amountINR) {
-  const usdMap = {
-    10: '$1',
-    50: '$15',
-    100: '$50'
-  };
-
-  return usdMap[Number(amountINR)] || '$0';
+function purchaseCreditsByINR(amountINR) {
+  openPaymentPage('INR', amountINR);
 }
 
-function purchaseCreditsByINR(amountINR) {
-  openPaymentPage(amountINR);
+function purchaseCreditsByUSD(amountUSD) {
+  openPaymentPage('USD', amountUSD);
+}
+
+function purchaseCreditsByCurrency(currency, amount) {
+  openPaymentPage(currency, amount);
 }
 
 function deductCredits(amount) {
