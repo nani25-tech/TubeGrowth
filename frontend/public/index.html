@@ -449,7 +449,7 @@
           <div class="earn-status" id="status-subscribe"></div>
 
           <div class="earn-settings">
-            <button type="button" class="earn-toggle" aria-label="Toggle auto verify" onclick="toggleEarnAutoVerify()"></button>
+            <button type="button" class="earn-toggle" aria-label="Toggle auto verify" onclick="(function(btn){var enabled=localStorage.getItem('earnAutoVerifyEnabled')==='true'; enabled=!enabled; localStorage.setItem('earnAutoVerifyEnabled', enabled?'true':'false'); btn.classList.toggle('active', enabled); btn.setAttribute('aria-checked', String(enabled)); btn.title = enabled ? 'Auto verify enabled' : 'Auto verify disabled';})(this)"></button>
             <div class="earn-settings-text">
               <strong>Settings</strong>
               <span>Automatically verify promotion when popup window closes</span>
