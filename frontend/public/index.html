@@ -393,6 +393,19 @@
   <div class="section-label">// Credit System</div>
   <div class="section-title">BUY CREDITS</div>
   <p class="section-sub">Choose a payment method below. INR uses Razorpay in rupees, USD uses a separate dollar checkout flow.</p>
+  <div class="currency-selector">
+    <div id="currencySelect" class="currency-select" role="combobox" aria-expanded="false" tabindex="0" aria-label="Select currency">
+      <div class="currency-current" id="currencyCurrent" aria-hidden="true">
+        <span class="flag" id="currencyFlag">🇮🇳</span>
+        <span class="currency-code" id="currencyCode">INR</span>
+        <span class="currency-arrow">▾</span>
+      </div>
+      <ul class="currency-options" id="currencyOptions" role="listbox" aria-label="Currency options">
+        <li role="option" data-currency="INR" class="currency-option"><span class="flag">🇮🇳</span> INR - Indian Rupee</li>
+        <li role="option" data-currency="USD" class="currency-option"><span class="flag">🇺🇸</span> USD - US Dollar</li>
+      </ul>
+    </div>
+  </div>
 
   <div class="buy-methods reveal">
     <div class="buy-method-panel">

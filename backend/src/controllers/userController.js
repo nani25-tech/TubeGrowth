@@ -311,8 +311,8 @@ export const buyCredits = async (req, res) => {
       return res.status(403).json({ message: 'Please login to buy credits' });
     }
 
-    const { amountINR } = req.body;
-    const amount = Number(amountINR || 0);
+    const amount = Number(req.body?.amount || req.body?.amountINR || 0);
+    const currency = String(req.body?.currency || 'INR').toUpperCase();
     if (isNaN(amount) || amount <= 0) {
       return res.status(400).json({ message: 'Invalid amount' });
     }
@@ -320,7 +320,13 @@ export const buyCredits = async (req, res) => {
     const user = await User.findById(req.user.userId);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    const creditsToAdd = getCreditsForAmount(amount);
+    let creditsToAdd = 0;
+    if (currency === 'USD') {
+      const USD_MAP = { 1: 100, 15: 500, 50: 1000 };
+      creditsToAdd = USD_MAP[amount] || getCreditsForAmount(amount);
+    } else {
+      creditsToAdd = getCreditsForAmount(amount);
+    }
     user.credits = (user.credits || 0) + creditsToAdd;
 
     await user.save();
@@ -351,7 +357,8 @@ export const createCreditOrder = async (req, res) => {
       return res.status(403).json({ message: 'Please login to buy credits' });
     }
 
-    const amount = Number(req.body?.amountINR || 0);
+    const amount = Number(req.body?.amount || req.body?.amountINR || 0);
+    const currency = String(req.body?.currency || 'INR').toUpperCase();
     if (isNaN(amount) || amount <= 0) {
       return res.status(400).json({ message: 'Invalid amount' });
     }
@@ -362,21 +369,34 @@ export const createCreditOrder = async (req, res) => {
     }
 
     const razorpay = getRazorpayClient();
-    const creditsToAdd = getCreditsForAmount(amount);
+
+    // Determine credits based on currency and amount
+    let creditsToAdd = 0;
+    if (currency === 'USD') {
+      const USD_MAP = { 1: 100, 15: 500, 50: 1000 };
+      creditsToAdd = USD_MAP[amount] || getCreditsForAmount(amount);
+    } else {
+      creditsToAdd = getCreditsForAmount(amount);
+    }
+
     const order = await razorpay.orders.create({
       amount: Math.round(amount * 100),
-      currency: 'INR',
+      currency: currency,
       receipt: `tg_${Date.now()}`,
       notes: {
         userId: String(user._id),
         creditsToAdd: String(creditsToAdd),
+        currency: currency,
       },
     });
 
     await PaymentTransaction.create({
       user: user._id,
       orderId: order.id,
-      amountINR: amount,
+      amountValue: amount,
+      currency: currency,
+      // keep legacy amountINR for INR records
+      amountINR: currency === 'INR' ? amount : 0,
       creditsToAdd,
       status: 'created',
     });
@@ -514,7 +534,7 @@ export const getPaymentHistory = async (req, res) => {
     const transactions = await PaymentTransaction.find({ user: req.user.userId })
       .sort({ createdAt: -1 })
       .limit(20)
-      .select('orderId paymentId amountINR creditsToAdd status verifiedAt createdAt');
+      .select('orderId paymentId amountValue currency creditsToAdd status verifiedAt createdAt');
 
     res.json({ transactions });
   } catch (error) {

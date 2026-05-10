@@ -381,42 +381,76 @@
 <section id="buy-credits" style="background: var(--dark);">
   <div class="section-label">// Credit System</div>
   <div class="section-title">BUY CREDITS</div>
-  <p class="section-sub">Premium packs in both currencies: Rs 10 ($1), Rs 50 ($15), Rs 100 ($50).</p>
-  
-  <!-- Channel & Summary Info -->
-  <div class="credit-summary-box" id="creditSummaryBox" style="display: none; margin-bottom: 2rem; padding: 1.5rem; background: rgba(251, 191, 36, 0.1); border: 2px solid #FBBF24; border-radius: 12px; max-width: 500px; margin-left: auto; margin-right: auto;">
-    <div style="color: #fff; margin-bottom: 1rem;">
-      <div style="font-size: 0.9rem; color: #FBBF24; margin-bottom: 0.5rem;">Channel Name:</div>
-      <div style="font-size: 1.2rem; font-weight: 600; color: #fff;" id="summaryChannelName">-</div>
+  <p class="section-sub">Choose a payment method below. INR uses Razorpay in rupees, USD uses a separate dollar checkout flow.</p>
+
+
+  <div class="buy-methods reveal">
+    <div class="buy-method-panel">
+      <div class="buy-method-head">
+        <div>
+          <h3>Pay in INR</h3>
+        </div>
+      </div>
+
+      <div class="credits-grid">
+        <div class="credit-card" onclick="purchaseCreditsByCurrency('INR', 10)">
+          <div class="credit-amount">100</div>
+          <div class="credit-label">Credits</div>
+          <div class="credit-price">Rs 10</div>
+          <div class="credit-per">INR payment</div>
+          <button class="credit-btn">Buy Now</button>
+        </div>
+        <div class="credit-card" onclick="purchaseCreditsByCurrency('INR', 50)">
+          <div class="credit-amount">500</div>
+          <div class="credit-label">Credits</div>
+          <div class="credit-price">Rs 50</div>
+          <div class="credit-per">INR payment</div>
+          <button class="credit-btn">Buy Now</button>
+        </div>
+        <div class="credit-card featured" onclick="purchaseCreditsByCurrency('INR', 100)">
+          <div class="featured-badge-credit"><i class="bi bi-gem"></i> BEST VALUE</div>
+          <div class="credit-amount">1,000</div>
+          <div class="credit-label">Credits</div>
+          <div class="credit-price">Rs 100</div>
+          <div class="credit-per">INR payment</div>
+          <button class="credit-btn">Buy Now</button>
+        </div>
+      </div>
     </div>
-    <div style="color: #fff;">
-      <div style="font-size: 0.9rem; color: #FBBF24; margin-bottom: 0.5rem;">You are buying:</div>
-      <div style="font-size: 1.5rem; font-weight: 700; color: #FBBF24;" id="summaryCreditsAmount">100 Credits</div>
-    </div>
-  </div>
-  
-  <div class="credits-grid reveal">
-    <div class="credit-card" onclick="showCreditSummary(10, 100); purchaseCreditsByINR(10)">
-      <div class="credit-amount">100</div>
-      <div class="credit-label">Credits</div>
-      <div class="credit-price">Rs 10 / $1</div>
-      <div class="credit-per">Premium Pack</div>
-      <button class="credit-btn">Buy Now</button>
-    </div>
-    <div class="credit-card" onclick="showCreditSummary(50, 500); purchaseCreditsByINR(50)">
-      <div class="credit-amount">500</div>
-      <div class="credit-label">Credits</div>
-      <div class="credit-price">Rs 50 / $15</div>
-      <div class="credit-per">Premium Pack</div>
-      <button class="credit-btn">Buy Now</button>
-    </div>
-    <div class="credit-card featured" onclick="showCreditSummary(100, 1000); purchaseCreditsByINR(100)">
-      <div class="featured-badge-credit"><i class="bi bi-gem"></i> BEST VALUE</div>
-      <div class="credit-amount">1,000</div>
-      <div class="credit-label">Credits</div>
-      <div class="credit-price">Rs 100 / $50</div>
-      <div class="credit-per">Premium Pack</div>
-      <button class="credit-btn">Buy Now</button>
+
+    <div class="buy-method-panel usd">
+      <div class="buy-method-head">
+        <div>
+          <div class="buy-method-kicker">International</div>
+          <h3>Pay in USD</h3>
+        </div>
+        <span class="buy-method-tag usd">Dollar</span>
+      </div>
+
+      <div class="credits-grid">
+        <div class="credit-card" onclick="purchaseCreditsByCurrency('USD', 1)">
+          <div class="credit-amount">100</div>
+          <div class="credit-label">Credits</div>
+          <div class="credit-price">$1</div>
+          <div class="credit-per">USD payment</div>
+          <button class="credit-btn">Buy Now</button>
+        </div>
+        <div class="credit-card" onclick="purchaseCreditsByCurrency('USD', 15)">
+          <div class="credit-amount">500</div>
+          <div class="credit-label">Credits</div>
+          <div class="credit-price">$15</div>
+          <div class="credit-per">USD payment</div>
+          <button class="credit-btn">Buy Now</button>
+        </div>
+        <div class="credit-card featured" onclick="purchaseCreditsByCurrency('USD', 50)">
+          <div class="featured-badge-credit"><i class="bi bi-gem"></i> BEST VALUE</div>
+          <div class="credit-amount">1,000</div>
+          <div class="credit-label">Credits</div>
+          <div class="credit-price">$50</div>
+          <div class="credit-per">USD payment</div>
+          <button class="credit-btn">Buy Now</button>
+        </div>
+      </div>
     </div>
   </div>
 </section>

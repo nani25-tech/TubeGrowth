@@ -113,7 +113,7 @@ function showSection(sectionId) {
     element.style.display = element === sectionElement ? '' : 'none';
   });
 
-  history.replaceState(null, '', normalizedId === 'home' ? '#top' : `#${normalizedId}`);
+  window.history.replaceState(null, '', normalizedId === 'home' ? '#top' : `#${normalizedId}`);
   updateActiveSectionLinks(normalizedId);
 
   if (normalizedId === 'dashboard-preview') {
@@ -702,6 +702,99 @@ function purchaseCreditsByCurrency(currency, amount) {
   openPaymentPage(currency, amount);
 }
 
+// Currency selector persistence and UI
+const PREFERRED_CURRENCY_KEY = 'preferredCurrency';
+
+function getPreferredCurrency() {
+  return (localStorage.getItem(PREFERRED_CURRENCY_KEY) || 'INR').toUpperCase();
+}
+
+function setPreferredCurrency(currency) {
+  const c = String(currency || 'INR').toUpperCase();
+  localStorage.setItem(PREFERRED_CURRENCY_KEY, c);
+  // update UI
+  // update selector UI (flag and code)
+  const codeEl = document.getElementById('currencyCode');
+  const flagEl = document.getElementById('currencyFlag');
+  if (codeEl) codeEl.textContent = c;
+  if (flagEl) flagEl.textContent = c === 'USD' ? '🇺🇸' : '🇮🇳';
+
+  // close options if open
+  const optionsEl = document.getElementById('currencyOptions');
+  const selectRoot = document.getElementById('currencySelect');
+  if (optionsEl && selectRoot) {
+    optionsEl.classList.remove('show');
+    selectRoot.setAttribute('aria-expanded', 'false');
+  }
+
+  // show/hide panels for clarity (keep existing per-panel handlers functional)
+  const panels = document.querySelectorAll('.buy-method-panel');
+  panels.forEach(panel => {
+    const isUsd = panel.classList.contains('usd');
+    panel.style.display = (c === 'USD') ? (isUsd ? '' : 'none') : (isUsd ? 'none' : '');
+  });
+}
+
+function initCurrencySelector() {
+  // apply stored preference or default
+  const current = getPreferredCurrency();
+  setPreferredCurrency(current);
+}
+
+// Initialize on load
+try {
+  initCurrencySelector();
+} catch (err) {
+  // ignore initialization errors
+}
+
+// Dropdown behavior for stylized selector
+document.addEventListener('click', (e) => {
+  const sel = document.getElementById('currencySelect');
+  const opts = document.getElementById('currencyOptions');
+  if (!sel || !opts) return;
+
+  if (sel.contains(e.target)) {
+    // click inside - toggle when clicking current region or select option
+    const opt = e.target.closest('.currency-option');
+    if (opt) {
+      const c = opt.getAttribute('data-currency');
+      setPreferredCurrency(c);
+    } else if (e.target.closest('.currency-current')) {
+      const expanded = sel.getAttribute('aria-expanded') === 'true';
+      if (expanded) {
+        opts.classList.remove('show');
+        sel.setAttribute('aria-expanded', 'false');
+      } else {
+        opts.classList.add('show');
+        sel.setAttribute('aria-expanded', 'true');
+      }
+    }
+    return;
+  }
+
+  // click outside closes dropdown
+  opts.classList.remove('show');
+  sel.setAttribute('aria-expanded', 'false');
+});
+
+// keyboard interaction
+document.addEventListener('keydown', (e) => {
+  const sel = document.getElementById('currencySelect');
+  const opts = document.getElementById('currencyOptions');
+  if (!sel || !opts) return;
+  if (document.activeElement === sel) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      opts.classList.toggle('show');
+      sel.setAttribute('aria-expanded', opts.classList.contains('show') ? 'true' : 'false');
+    } else if (e.key === 'Escape') {
+      opts.classList.remove('show');
+      sel.setAttribute('aria-expanded', 'false');
+    }
+  }
+});
+
 function deductCredits(amount) {
   if (userCredits >= amount) {
     userCredits -= amount;
@@ -713,13 +806,6 @@ function deductCredits(amount) {
 }
 
 // Earn Credits System
-const earnedToday = JSON.parse(localStorage.getItem('earnedToday')) || {};
-const earnLimits = {
-  subscribe: { max: 1, earned: 0 },
-  like: { max: 5, earned: 0 },
-  watch: { max: 1, earned: 0 }
-};
-
 function getEarnedToday() {
   const today = new Date().toDateString();
   const lastReset = localStorage.getItem('earnLastReset');
@@ -1750,7 +1836,7 @@ function nextPage() {
 }
 
 function deletePromotion(campaignId) {
-  if (confirm('Are you sure you want to delete this promotion? Credits will be refunded.')) {
+  if (window.confirm('Are you sure you want to delete this promotion? Credits will be refunded.')) {
     let campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
     const campaignToDelete = campaigns.find(c => c.id === campaignId);
     
@@ -1771,6 +1857,26 @@ function deletePromotion(campaignId) {
     }
   }
 }
+
+// Expose handlers used by inline HTML attributes.
+Object.assign(window, {
+  searchAndOpenDashboard,
+  scrollToSection,
+  purchaseCreditsByINR,
+  purchaseCreditsByUSD,
+  purchaseCreditsByCurrency,
+  startWatchTimer,
+  selectPlan,
+  handleChannelSearch,
+  addPromotion,
+  previousPage,
+  nextPage,
+  deletePromotion,
+  setPreferredCurrency,
+  showEarnModal,
+  verifyTask,
+  closeEarnModal,
+});
 
 // Initialize credit display on page load
 document.addEventListener('DOMContentLoaded', () => {

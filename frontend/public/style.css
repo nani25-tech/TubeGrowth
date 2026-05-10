@@ -2623,6 +2623,71 @@ footer {
 .footer-logo span,
 .logo span,
 .credit-balance strong,
+
+/* Currency selector for Buy Credits */
+.currency-selector {
+  display: inline-flex;
+  gap: 8px;
+  margin: 12px 0 20px;
+}
+.currency-btn {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, transform 0.08s;
+}
+.currency-btn:hover { transform: translateY(-1px); }
+.currency-btn.active {
+  background: var(--red);
+  color: #fff;
+  border-color: var(--red);
+}
+
+/* Stylized currency selector */
+.currency-select {
+  position: relative;
+  display: inline-block;
+  min-width: 160px;
+  user-select: none;
+}
+.currency-current {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.02);
+  cursor: pointer;
+}
+.currency-current .flag { font-size: 18px; }
+.currency-current .currency-code { font-weight: 800; color: var(--text); }
+.currency-current .currency-arrow { margin-left: 6px; color: var(--muted); }
+.currency-options {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: max-content;
+  min-width: 220px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  padding: 6px 6px;
+  list-style: none;
+  z-index: 1200;
+  display: none;
+}
+.currency-options.show { display: block; }
+.currency-option {
+  padding: 8px 10px; display: flex; gap: 10px; align-items: center; cursor: pointer; border-radius: 6px; color: var(--text);
+}
+.currency-option:hover { background: rgba(255,255,255,0.02); }
+.currency-option .flag { font-size: 16px; }
 .profile-credits,
 .view-promo-credit-chip,
 .earn-credit-chip,

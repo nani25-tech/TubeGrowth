@@ -235,7 +235,7 @@ export const getPayments = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit)
-      .select('user orderId paymentId amountINR creditsToAdd status verifiedAt createdAt');
+      .select('user orderId paymentId amountValue currency creditsToAdd status verifiedAt createdAt');
 
     const total = await PaymentTransaction.countDocuments();
 

@@ -23,9 +23,22 @@ const paymentTransactionSchema = new mongoose.Schema(
       default: '',
       index: true,
     },
-    amountINR: {
+    // Stored raw amount value (in major currency units). Use `currency` to interpret.
+    amountValue: {
       type: Number,
       required: true,
+    },
+    currency: {
+      type: String,
+      required: true,
+      default: 'INR',
+      index: true,
+    },
+    // Deprecated/legacy field retained for compatibility with older records.
+    amountINR: {
+      type: Number,
+      required: false,
+      default: 0,
     },
     creditsToAdd: {
       type: Number,
