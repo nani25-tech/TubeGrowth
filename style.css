@@ -57,6 +57,25 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
 }
 
+.referral-form-box {
+  border-color: #ffd700 !important;
+}
+
+.referral-form-box .free-boost-search-btn {
+  background: #ffd700;
+  color: #1a1a1a;
+  box-shadow: 0 3px 10px rgba(255, 215, 0, 0.3);
+}
+
+.referral-form-box .free-boost-search-btn:hover {
+  background: #ffed4e;
+  box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+}
+
+.referral-form-box .free-boost-input:focus {
+  outline-color: #ffd700;
+}
+
 .form-label {
   text-align: left;
   font-size: 16px;

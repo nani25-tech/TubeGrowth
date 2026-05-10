@@ -1174,6 +1174,64 @@ function trackReferralReward() {
   }
 }
 
+function verifyAndApplyReferralCode() {
+  try {
+    const codeInput = document.getElementById('referralCodeInput');
+    const statusDiv = document.getElementById('referralVerifyStatus');
+    
+    if (!codeInput || !statusDiv) {
+      console.error('[verifyAndApplyReferralCode] Required elements not found');
+      return;
+    }
+
+    const referralCode = codeInput.value.trim();
+
+    if (!referralCode) {
+      statusDiv.textContent = 'Please enter a referral code';
+      statusDiv.style.color = '#e74c3c';
+      return;
+    }
+
+    // Verify the code
+    const verification = verifyReferralCode(referralCode);
+    
+    if (!verification.valid) {
+      statusDiv.textContent = verification.error;
+      statusDiv.style.color = '#e74c3c';
+      console.log('[verifyAndApplyReferralCode] Invalid code:', verification.error);
+      return;
+    }
+
+    // Award credits
+    const success = awardReferralCredits(referralCode);
+    
+    if (success) {
+      statusDiv.textContent = '✓ Referral code applied successfully! 30 credits awarded.';
+      statusDiv.style.color = '#39b54a';
+      codeInput.value = '';
+      codeInput.disabled = true;
+      
+      // Re-enable input after 2 seconds
+      setTimeout(() => {
+        codeInput.value = '';
+        codeInput.disabled = false;
+      }, 3000);
+    } else {
+      statusDiv.textContent = 'Failed to apply referral code. Please try again.';
+      statusDiv.style.color = '#e74c3c';
+    }
+  } catch (err) {
+    console.error('[verifyAndApplyReferralCode] Error:', err);
+    const statusDiv = document.getElementById('referralVerifyStatus');
+    if (statusDiv) {
+      statusDiv.textContent = 'An error occurred. Please try again.';
+      statusDiv.style.color = '#e74c3c';
+    }
+  }
+}
+
+window.verifyAndApplyReferralCode = verifyAndApplyReferralCode;
+
 function normalizeChannelReference(value) {
   if (!value) return '';
 

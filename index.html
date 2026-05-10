@@ -58,6 +58,21 @@
       <p class="form-help"><a href="#" class="form-link">Where I can find my YouTube Channel ID</a></p>
     </div>
 
+    <div class="free-boost-form-box referral-form-box">
+      <p class="form-label">Have a Referral Code? Get Free Credits:</p>
+      <div class="free-boost-form">
+        <input 
+          type="text" 
+          id="referralCodeInput" 
+          class="free-boost-input" 
+          placeholder="Enter referral code (e.g., TGBUCXSX4K)"
+          value=""
+        />
+        <button type="button" class="free-boost-search-btn referral-verify-btn" onclick="verifyAndApplyReferralCode()">APPLY CODE</button>
+      </div>
+      <div id="referralVerifyStatus" class="form-help"></div>
+    </div>
+
     <div class="free-boost-cta">
       <button type="button" class="analyze-videos-btn" onclick="scrollToSection('#services')">
         <i class="bi bi-graph-up-arrow"></i> ANALYZE YOUR YOUTUBE VIDEOS FOR FREE

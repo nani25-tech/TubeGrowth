@@ -211,6 +211,106 @@ function scrollToSection(sectionId) {
   showSection(sectionId);
 }
 
+function verifyReferralCode(referralCode) {
+  if (!referralCode || typeof referralCode !== 'string') {
+    return { valid: false, error: 'Invalid referral code format' };
+  }
+
+  if (!referralCode.toUpperCase().startsWith('TGB')) {
+    return { valid: false, error: 'Invalid referral code - must start with TGB' };
+  }
+
+  if (referralCode.length < 7) {
+    return { valid: false, error: 'Invalid referral code - too short' };
+  }
+
+  const usedCode = localStorage.getItem('usedReferralCode');
+  if (usedCode === referralCode.toUpperCase()) {
+    return { valid: false, error: 'You already used this referral code' };
+  }
+
+  return { valid: true };
+}
+
+function awardReferralCredits(referralCode) {
+  try {
+    const verification = verifyReferralCode(referralCode);
+
+    if (!verification.valid) {
+      return false;
+    }
+
+    userCredits += 30;
+    persistCredits();
+    updateCreditDisplay();
+
+    localStorage.setItem('usedReferralCode', referralCode.toUpperCase());
+    localStorage.setItem('referralTimestamp', new Date().toISOString());
+
+    const referralLog = JSON.parse(localStorage.getItem('referralLog')) || [];
+    referralLog.push({
+      code: referralCode.toUpperCase(),
+      claimedAt: new Date().toISOString(),
+      creditsAwarded: 30
+    });
+    localStorage.setItem('referralLog', JSON.stringify(referralLog));
+
+    showToast('bi-gift-fill', 'Referral Bonus!', '+30 Credits awarded for joining with a referral code');
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+function verifyAndApplyReferralCode() {
+  try {
+    const codeInput = document.getElementById('referralCodeInput');
+    const statusDiv = document.getElementById('referralVerifyStatus');
+
+    if (!codeInput || !statusDiv) {
+      return;
+    }
+
+    const referralCode = codeInput.value.trim();
+
+    if (!referralCode) {
+      statusDiv.textContent = 'Please enter a referral code';
+      statusDiv.style.color = '#e74c3c';
+      return;
+    }
+
+    const verification = verifyReferralCode(referralCode);
+    if (!verification.valid) {
+      statusDiv.textContent = verification.error;
+      statusDiv.style.color = '#e74c3c';
+      return;
+    }
+
+    const success = awardReferralCredits(referralCode);
+    if (success) {
+      statusDiv.textContent = 'Referral code applied successfully. 30 credits awarded.';
+      statusDiv.style.color = '#39b54a';
+      codeInput.value = '';
+      codeInput.disabled = true;
+
+      setTimeout(() => {
+        codeInput.disabled = false;
+      }, 3000);
+    } else {
+      statusDiv.textContent = 'Failed to apply referral code. Please try again.';
+      statusDiv.style.color = '#e74c3c';
+    }
+  } catch (error) {
+    const statusDiv = document.getElementById('referralVerifyStatus');
+    if (statusDiv) {
+      statusDiv.textContent = 'An error occurred. Please try again.';
+      statusDiv.style.color = '#e74c3c';
+    }
+  }
+}
+
+window.verifyAndApplyReferralCode = verifyAndApplyReferralCode;
+
 function getChannelDisplayName(channelInput) {
   if (!channelInput) {
     return 'Unknown Channel';
@@ -1514,6 +1614,10 @@ function initializeBoostProfile() {
 document.addEventListener('DOMContentLoaded', () => {
   initializeBoostProfile();
   initializeViewPromotions();
+  const referralCodeFromUrl = new URLSearchParams(window.location.search).get('ref');
+  if (referralCodeFromUrl) {
+    awardReferralCredits(referralCodeFromUrl);
+  }
   updateCreditsDisplay();
   const initialSection = window.location.hash ? window.location.hash.slice(1) : 'home';
   showSection(initialSection);
