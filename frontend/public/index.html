@@ -117,7 +117,26 @@
       <article class="dash-card bonus-card">
         <header class="dash-card-head bonus-head">DAILY BONUS <span>25 CREDITS</span></header>
         <div class="dash-card-body bonus-body">
-          <p id="dashboardBonusNote" class="bonus-note">Checking daily bonus status...</p>
+          <div id="dashDailyBonusContainer">
+            <div class="daily-actions-box">
+              <strong>DAILY ACTIONS COMPLETED:</strong>
+              <span id="dashDailyActionsCount">0</span> / <span id="dashDailyActionsNeeded">20</span>
+            </div>
+
+            <div class="daily-bonus-info">
+              <h4>HOW TO CLAIM DAILY BONUS?</h4>
+              <p>Complete <span id="dashActionsNeeded">20</span> daily actions before the end of timer and you will be able to claim daily bonus. Every Like or Subscribe that you perform is counted as 1 daily action.</p>
+            </div>
+
+            <div class="daily-bonus-timer">
+              Daily Bonus Reset in: <span id="dashDailyBonusTimer">--:--</span>
+            </div>
+
+            <p class="daily-bonus-note" id="dashDailyBonusNote">Make sure you perform 20 actions before this time to claim bonus credits.</p>
+
+            <button id="dashClaimBonusBtn" class="earn-btn" onclick="claimDailyBonus()" disabled>CLAIM BONUS</button>
+            <div id="dashDailyBonusStatus" class="earn-status"></div>
+          </div>
         </div>
       </article>
 
