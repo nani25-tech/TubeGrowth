@@ -76,10 +76,15 @@ function clearSelectedChannelSession() {
 
 function updateCreditsDisplay() {
   const navCredits = document.getElementById('navCredits');
+  const buyCreditsNav = document.getElementById('buyCreditsNav');
   const hasChannel = hasSelectedChannel();
   
   if (navCredits) {
     navCredits.style.display = hasChannel ? 'flex' : 'none';
+  }
+
+  if (buyCreditsNav) {
+    buyCreditsNav.style.display = hasChannel ? 'flex' : 'none';
   }
 }
 
