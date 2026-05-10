@@ -4,9 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TubeBoost - Grow Your YouTube Channel</title>
+<script>
+  (function () {
+    var canonicalHost = 'tubegrowth.zone.id';
+    var currentHost = window.location.hostname || '';
+    var isGithubPages = /github\.io$/i.test(currentHost);
+    var isNotCustomDomain = currentHost !== canonicalHost && currentHost !== 'localhost' && currentHost !== '127.0.0.1';
+    if (isGithubPages || (isNotCustomDomain && currentHost.includes('nani25-tech'))) {
+      window.location.replace('https://' + canonicalHost + window.location.pathname + window.location.search + window.location.hash);
+    }
+  }());
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=20260510-2">
 </head>
 <body id="top">
 
@@ -106,15 +117,54 @@
       <article class="dash-card bonus-card">
         <header class="dash-card-head bonus-head">DAILY BONUS <span>25 CREDITS</span></header>
         <div class="dash-card-body bonus-body">
-          <p class="bonus-note">You have already claimed daily bonus for today. You can again claim it tomorrow.</p>
+          <div id="dashDailyBonusContainer">
+            <div class="daily-actions-box">
+              <strong>DAILY ACTIONS COMPLETED:</strong>
+              <span id="dashDailyActionsCount">0</span> / <span id="dashDailyActionsNeeded">20</span>
+            </div>
+
+            <div class="daily-bonus-info">
+              <h4>HOW TO CLAIM DAILY BONUS?</h4>
+              <p>Complete <span id="dashActionsNeeded">20</span> daily actions before the end of timer and you will be able to claim daily bonus. Every Like or Subscribe that you perform is counted as 1 daily action.</p>
+            </div>
+
+            <div class="daily-bonus-timer">
+              Daily Bonus Reset in: <span id="dashDailyBonusTimer">--:--</span>
+            </div>
+
+            <p class="daily-bonus-note" id="dashDailyBonusNote">Make sure you perform 20 actions before this time to claim bonus credits.</p>
+
+            <button id="dashClaimBonusBtn" class="earn-btn" onclick="claimDailyBonus()" disabled>CLAIM BONUS</button>
+            <div id="dashDailyBonusStatus" class="earn-status"></div>
+          </div>
         </div>
       </article>
 
       <article class="dash-card refer-card">
-        <header class="dash-card-head">REFER &amp; EARN</header>
+        <header class="dash-card-head">REFER &amp; EARN <span style="color: #FFD700; font-size: 14px; background: rgba(255,215,0,0.2); padding: 2px 8px; border-radius: 3px; margin-left: 6px;">+30 CREDITS</span></header>
         <div class="dash-card-body refer-body">
-          <p>Refer your friends to My Tools Town and earn credits.</p>
-          <button type="button" class="refer-btn">REFER &amp; EARN</button>
+          <p style="margin-bottom: 16px; font-size: 13px; color: #999;">Share your referral code with friends. Get 30 credits when they join!</p>
+          
+          <div class="referral-code-box">
+            <div class="referral-code-label">Your Referral Code:</div>
+            <div class="referral-code-display">
+              <input type="text" id="referralCode" readonly value="TUBEBOOST123" style="background: #fff; border: 1px solid #ddd; padding: 8px 10px; border-radius: 4px; width: 100%; font-family: 'Space Mono', monospace; font-weight: 600; color: #333; text-align: center; margin-bottom: 10px;">
+              <button type="button" class="copy-code-btn" onclick="copyReferralCode()"><i class="bi bi-clipboard"></i> Copy Code</button>
+            </div>
+          </div>
+          
+          <div class="referral-stats">
+            <div class="stat-item">
+              <span class="stat-label">Referred:</span>
+              <span class="stat-value" id="referralCount">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Earned:</span>
+              <span class="stat-value" id="referralEarnings">0</span>
+            </div>
+          </div>
+          
+          <button type="button" class="refer-btn" onclick="shareReferralCode()"><i class="bi bi-share"></i> Share Link</button>
         </div>
       </article>
       
@@ -382,14 +432,28 @@
   <div class="section-label">// Credit System</div>
   <div class="section-title">BUY CREDITS</div>
   <p class="section-sub">Choose a payment method below. INR uses Razorpay in rupees, USD uses a separate dollar checkout flow.</p>
-
+  <div class="currency-selector">
+    <div id="currencySelect" class="currency-select" role="combobox" aria-expanded="false" tabindex="0" aria-label="Select currency">
+      <div class="currency-current" id="currencyCurrent" aria-hidden="true">
+        <span class="flag" id="currencyFlag">🇮🇳</span>
+        <span class="currency-code" id="currencyCode">INR</span>
+        <span class="currency-arrow">▾</span>
+      </div>
+      <ul class="currency-options" id="currencyOptions" role="listbox" aria-label="Currency options">
+        <li role="option" data-currency="INR" class="currency-option"><span class="flag">🇮🇳</span> INR - Indian Rupee</li>
+        <li role="option" data-currency="USD" class="currency-option"><span class="flag">🇺🇸</span> USD - US Dollar</li>
+      </ul>
+    </div>
+  </div>
 
   <div class="buy-methods reveal">
     <div class="buy-method-panel">
       <div class="buy-method-head">
         <div>
+          <div class="buy-method-kicker">India</div>
           <h3>Pay in INR</h3>
         </div>
+        <span class="buy-method-tag">Razorpay</span>
       </div>
 
       <div class="credits-grid">
@@ -484,7 +548,7 @@
           <div class="earn-status" id="status-subscribe"></div>
 
           <div class="earn-settings">
-            <div class="earn-toggle" aria-hidden="true"></div>
+            <button type="button" class="earn-toggle" aria-label="Toggle auto verify"></button>
             <div class="earn-settings-text">
               <strong>Settings</strong>
               <span>Automatically verify promotion when popup window closes</span>
@@ -521,7 +585,26 @@
       <article class="earn-panel">
         <header class="earn-panel-head purple">DAILY BONUS <span>25 CREDITS</span></header>
         <div class="earn-panel-body">
-          <p class="earn-bonus-note">You have already claimed daily bonus for today. You can again claim it tomorrow.</p>
+          <div id="daily-bonus-container">
+            <div class="daily-actions-box">
+              <strong>DAILY ACTIONS COMPLETED:</strong>
+              <span id="dailyActionsCount">0</span> / <span id="dailyActionsNeeded">20</span>
+            </div>
+            
+            <div class="daily-bonus-info">
+              <h4>HOW TO CLAIM DAILY BONUS?</h4>
+              <p>Complete <span id="actionsNeeded">20</span> daily actions before the end of timer and you will be able to claim daily bonus. Every Like or Subscribe that you perform is counted as 1 daily action.</p>
+            </div>
+            
+            <div class="daily-bonus-timer">
+              Daily Bonus Reset in: <span id="dailyBonusTimer">--:--</span>
+            </div>
+            
+            <p class="daily-bonus-note" id="dailyBonusNote">Make sure you perform 20 actions before this time to claim bonus credits.</p>
+            
+            <button id="claimBonusBtn" class="earn-btn" onclick="claimDailyBonus()" disabled>CLAIM BONUS</button>
+            <div id="dailyBonusStatus" class="earn-status"></div>
+          </div>
         </div>
       </article>
 
@@ -728,7 +811,7 @@
 </div>
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<script src="script.js"></script>
+<script src="script.js?v=20260510-2"></script>
 </body>
 </html>
 
