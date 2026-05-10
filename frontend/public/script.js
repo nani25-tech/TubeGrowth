@@ -826,16 +826,30 @@ function saveEarnedToday(data) {
 // DAILY BONUS FUNCTIONS
 function getDailyBonusData() {
   const today = new Date().toDateString();
-  const storedData = JSON.parse(localStorage.getItem('dailyBonusData')) || {};
+  let storedData = {};
+
+  try {
+    storedData = JSON.parse(localStorage.getItem('dailyBonusData')) || {};
+  } catch (error) {
+    storedData = {};
+  }
   
   if (storedData.date !== today) {
     // Reset daily bonus for new day
     storedData.date = today;
     storedData.claimed = false;
     storedData.actionsCompleted = 0;
+    saveDailyBonusData(storedData);
   }
   
   return storedData;
+}
+
+function formatTimeRemainingUntilReset() {
+  const { hours, minutes } = getTimeUntilReset();
+  const safeHours = String(hours).padStart(2, '0');
+  const safeMinutes = String(minutes).padStart(2, '0');
+  return `${safeHours}h ${safeMinutes}m`;
 }
 
 function saveDailyBonusData(data) {
@@ -885,15 +899,22 @@ function updateDailyBonusUI() {
     if (bonusData.claimed) {
       bonusBtn.disabled = true;
       bonusBtn.textContent = 'Already Claimed Today';
-      if (statusEl) statusEl.innerHTML = '<span style="color: #4ade80;">✓ Daily bonus claimed! Return tomorrow.</span>';
+      if (statusEl) statusEl.innerHTML = `<span style="color: #4ade80;">✓ Claimed today. Next bonus in ${formatTimeRemainingUntilReset()}.</span>`;
+      // Update dashboard card message
+      const dashboardNote = document.getElementById('dashboardBonusNote');
+      if (dashboardNote) dashboardNote.innerHTML = `You have already claimed daily bonus for today. Next bonus in ${formatTimeRemainingUntilReset()}.`;
     } else if ((bonusData.actionsCompleted || 0) >= neededCount) {
       bonusBtn.disabled = false;
       bonusBtn.textContent = 'CLAIM BONUS';
       if (statusEl) statusEl.innerHTML = '';
+      const dashboardNote = document.getElementById('dashboardBonusNote');
+      if (dashboardNote) dashboardNote.innerHTML = 'Daily bonus ready — claim it in the Daily Bonus panel.';
     } else {
       bonusBtn.disabled = true;
       bonusBtn.textContent = `CLAIM BONUS (${bonusData.actionsCompleted || 0}/${neededCount})`;
       if (statusEl) statusEl.innerHTML = '';
+      const dashboardNote = document.getElementById('dashboardBonusNote');
+      if (dashboardNote) dashboardNote.innerHTML = `Complete ${bonusData.actionsCompleted || 0}/${neededCount} actions to claim the daily bonus. Reset in ${formatTimeRemainingUntilReset()}.`;
     }
   }
   
@@ -916,7 +937,7 @@ function claimDailyBonus() {
   
   // Award 25 credits
   userCredits += 25;
-  localStorage.setItem('userCredits', userCredits);
+  persistCredits();
   updateCreditDisplay();
   
   // Mark as claimed
@@ -947,11 +968,14 @@ function generateReferralCode() {
 }
 
 function getReferralData() {
-  return JSON.parse(localStorage.getItem('referralData')) || {
+  const storedData = JSON.parse(localStorage.getItem('referralData')) || {
     code: generateReferralCode(),
     referred: 0,
     earnings: 0
   };
+
+  saveReferralData(storedData);
+  return storedData;
 }
 
 function saveReferralData(data) {
@@ -2074,6 +2098,7 @@ Object.assign(window, {
   deletePromotion,
   setPreferredCurrency,
   showEarnModal,
+  claimDailyBonus,
   verifyTask,
   closeEarnModal,
   copyReferralCode,
