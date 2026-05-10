@@ -78,7 +78,8 @@ export const CheckoutPage = () => {
             theme: { color: '#FBBF24' },
             handler: function(paymentResponse) {
               // Notify user and redirect — server verification still needed separately
-              navigate('/dashboard?payment=success');
+              const creditsToAdd = creditsByAmount[amountToUse] || 0;
+              navigate(`/dashboard?payment=success&amount=${amountToUse}&credits=${creditsToAdd}`);
             },
             modal: { ondismiss: () => setLoading(false) },
           };
@@ -123,7 +124,8 @@ export const CheckoutPage = () => {
             
             const verifyData = await verifyResponse.json();
             if (verifyData.success) {
-              navigate('/dashboard?payment=success');
+              const creditsToAdd = creditsByAmount[amountToUse] || 0;
+              navigate(`/dashboard?payment=success&amount=${amountToUse}&credits=${creditsToAdd}`);
               return;
             }
             throw new Error('Payment verification failed');

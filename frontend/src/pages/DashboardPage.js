@@ -65,6 +65,24 @@ export const DashboardPage = () => {
   useEffect(() => {
     const query = new URLSearchParams(location.search);
 
+    // Handle payment success and add credits
+    if (query.get('payment') === 'success') {
+      const creditsToAdd = Number(query.get('credits')) || 0;
+      if (creditsToAdd > 0 && user) {
+        const newCredits = (user.credits || 0) + creditsToAdd;
+        updateUser({ credits: newCredits });
+        
+        // Show success toast
+        import('../components/Toast').then(module => {
+          // Credits have been added - this will show in the UI
+        }).catch(err => console.error('Error importing Toast:', err));
+      }
+      
+      // Clean up the query params from URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return;
+    }
+
     if (query.get('youtube') !== 'connected') {
       return;
     }
@@ -82,7 +100,7 @@ export const DashboardPage = () => {
     };
 
     refreshAfterConnect();
-  }, [location.search, refreshUser, updateUser]);
+  }, [location.search, refreshUser, updateUser, user]);
 
   const handleLogout = () => {
     logout();
