@@ -1414,6 +1414,12 @@ section { padding: 100px 60px; }
   background: #c8c8c8;
   position: relative;
   flex-shrink: 0;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.earn-toggle.active {
+  background: linear-gradient(90deg, #7ccf7a, #4cc9f0);
 }
 
 .earn-toggle::after {
@@ -1426,6 +1432,11 @@ section { padding: 100px 60px; }
   position: absolute;
   left: 3px;
   top: 3px;
+  transition: transform 0.2s ease;
+}
+
+.earn-toggle.active::after {
+  transform: translateX(24px);
 }
 
 .earn-settings-text {

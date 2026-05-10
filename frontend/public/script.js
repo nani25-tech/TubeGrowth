@@ -129,7 +129,7 @@ function showSection(sectionId) {
 function updateActiveSectionLinks(activeSectionId) {
   document.querySelectorAll('a[href^="#"]').forEach((link) => {
     const href = link.getAttribute('href');
-    if (!href || href === '#') {
+    if (!href || href === '#' || href === '#top') {
       return;
     }
 
@@ -816,7 +816,7 @@ function getNextEarnTask() {
 function renderEarnMainTask() {
   const taskType = getNextEarnTask();
   const copyEl = document.getElementById('earn-main-copy');
-  const openBtn = document.getElementById('earn-main-open-btn');
+  const openBtn = document.getElementById('earn-main-open-btn') || document.getElementById('earn-main-open-btn-alt');
   const verifyBtn = document.getElementById('earn-main-verify-btn');
 
   if (!copyEl || !openBtn || !verifyBtn) return;
@@ -893,7 +893,17 @@ function pickNextSubscribePromotion(campaigns) {
 function showEarnModal(taskType) {
   const modal = document.getElementById('earnModal');
   modal.classList.add('active');
+  bindEarnSettingsToggle();
+  syncEarnAutoVerifyToggle();
   
+  // Ensure subscribe verify button is disabled until pending verification is prepared
+  const subscribeVerifyBtn = document.querySelector('#subscribe-modal .modal-verify-btn');
+  const _subscribeVerifyOriginal = subscribeVerifyBtn ? subscribeVerifyBtn.innerHTML : null;
+  if (subscribeVerifyBtn) {
+    subscribeVerifyBtn.disabled = true;
+    subscribeVerifyBtn.innerHTML = '<i class="bi bi-clock-fill"></i> Preparing...';
+  }
+
   // Hide all views
   document.getElementById('subscribe-modal').style.display = 'none';
   document.getElementById('like-modal').style.display = 'none';
@@ -924,6 +934,7 @@ function showEarnModal(taskType) {
       }
 
       linkEl.href = href;
+      linkEl.onclick = (event) => openEarnLink(taskType, href, linkEl) ? undefined : event.preventDefault();
       nameEl.textContent = `Channel: ${ref}`;
 
       const history = getSubscribeHistory();
@@ -938,8 +949,12 @@ function showEarnModal(taskType) {
         const startCount = await fetchChannelSubscriberCount(channelRef);
         const title = await fetchChannelTitle(channelRef);
         if (title) nameEl.textContent = `Channel: ${title}`;
-        const pending = { type: 'subscribe', campaignId: promo.id, channelReference: promo.videoLink, startCount: startCount };
-        localStorage.setItem('pendingVerify', JSON.stringify(pending));
+          const pending = { type: 'subscribe', campaignId: promo.id, channelReference: promo.videoLink, startCount: startCount };
+          localStorage.setItem('pendingVerify', JSON.stringify(pending));
+          if (subscribeVerifyBtn) {
+            subscribeVerifyBtn.disabled = false;
+            subscribeVerifyBtn.innerHTML = _subscribeVerifyOriginal || '<i class="bi bi-check2-circle"></i> Verify';
+          }
       })();
     } else if (linkEl && nameEl) {
       // Fallback: rotate through default subscribe channels
@@ -954,6 +969,7 @@ function showEarnModal(taskType) {
       
       const href = `https://www.youtube.com/channel/${selectedChannel}`;
       linkEl.href = href;
+      linkEl.onclick = (event) => openEarnLink(taskType, href, linkEl) ? undefined : event.preventDefault();
       nameEl.textContent = `Channel: ${selectedChannel}`;
       
       // Start verification with default channel
@@ -961,8 +977,12 @@ function showEarnModal(taskType) {
         const startCount = await fetchChannelSubscriberCount(selectedChannel);
         const title = await fetchChannelTitle(selectedChannel);
         if (title) nameEl.textContent = `Channel: ${title}`;
-        const pending = { type: 'subscribe', channelReference: selectedChannel, startCount: startCount };
-        localStorage.setItem('pendingVerify', JSON.stringify(pending));
+          const pending = { type: 'subscribe', channelReference: selectedChannel, startCount: startCount };
+          localStorage.setItem('pendingVerify', JSON.stringify(pending));
+          if (subscribeVerifyBtn) {
+            subscribeVerifyBtn.disabled = false;
+            subscribeVerifyBtn.innerHTML = _subscribeVerifyOriginal || '<i class="bi bi-check2-circle"></i> Verify';
+          }
       })();
     }
   } else if (taskType === 'like' || taskType === 'watch') {
@@ -977,6 +997,8 @@ function showEarnModal(taskType) {
     if (promo && linkEl && nameEl) {
       const promoRef = normalizeChannelReference(promo.videoLink);
       linkEl.href = promotionVideoLinkToHref(promo.videoLink);
+      const promoHref = promotionVideoLinkToHref(promo.videoLink);
+      linkEl.onclick = (event) => openEarnLink(taskType, promoHref, linkEl) ? undefined : event.preventDefault();
       const channelLabel = promo.channelName || promo.channelId || getChannelDisplayName(promo.videoLink);
       nameEl.textContent = `Channel: ${channelLabel}`;
 
@@ -987,6 +1009,7 @@ function showEarnModal(taskType) {
       }
     } else if (linkEl && nameEl) {
       linkEl.href = 'https://youtube.com/@TubeBoost';
+      linkEl.onclick = (event) => openEarnLink(taskType, linkEl.href, linkEl) ? undefined : event.preventDefault();
       nameEl.textContent = 'Channel: TubeBoost';
     }
   }
@@ -994,6 +1017,14 @@ function showEarnModal(taskType) {
 
 function refreshEarnTaskRotation() {
   renderEarnMainTask();
+}
+
+function getVerifyButtonForTask(taskType) {
+  if (!taskType) return null;
+  if (taskType === 'subscribe') return document.querySelector('#subscribe-modal .modal-verify-btn');
+  if (taskType === 'like') return document.querySelector('#like-modal .modal-verify-btn');
+  if (taskType === 'watch') return document.querySelector('#watch-modal .modal-verify-btn');
+  return null;
 }
 
 function closeEarnModal() {
@@ -1006,6 +1037,11 @@ function closeEarnModal() {
     window.watchTimerInterval = null;
   }
 
+  if (window.earnPopupInterval) {
+    clearInterval(window.earnPopupInterval);
+    window.earnPopupInterval = null;
+  }
+
   const watchSession = JSON.parse(localStorage.getItem('watchSession') || 'null');
   if (watchSession && !watchSession.completed) {
     localStorage.removeItem('watchSession');
@@ -1013,6 +1049,7 @@ function closeEarnModal() {
 }
 
 function verifyTask(taskType) {
+  console.log('[verifyTask] called for', taskType);
   userCredits = getStoredCredits();
   const earned = getEarnedToday();
   const limits = {
@@ -1054,8 +1091,9 @@ function verifyTask(taskType) {
     showStatus(taskType, `+${task.credits} Credits earned! (${earned[taskType]}/${task.max})`, 'success');
     showToast('bi-coin', 'Credits Earned!', `+${task.credits} Credits added to your account`);
 
-    const btn = document.getElementById(`${taskType}-btn`);
+    const btn = getVerifyButtonForTask(taskType);
     if (btn) {
+      console.log('[verifyTask] disabling verify button for', taskType);
       btn.disabled = true;
     }
 
@@ -1070,49 +1108,65 @@ function verifyTask(taskType) {
   if (taskType === 'subscribe') {
     const pendingRaw = localStorage.getItem('pendingVerify');
     if (!pendingRaw) {
+      console.log('[verifyTask] no pendingVerify in localStorage');
       showStatus(taskType, 'No pending subscription verification found.', 'error');
       return;
     }
 
     const pending = JSON.parse(pendingRaw);
     if (pending.type !== 'subscribe') {
+      console.log('[verifyTask] pending type mismatch', pending);
       showStatus(taskType, 'No pending subscription verification found.', 'error');
       return;
     }
 
     (async () => {
-      const current = await fetchChannelSubscriberCount(pending.channelReference);
-      if (current === null) {
-        showStatus(taskType, 'Unable to verify at this time. Try again later.', 'error');
-        return;
-      }
+      try {
+        console.log('[verifyTask] verifying pending', pending);
+        const current = await fetchChannelSubscriberCount(pending.channelReference);
+        console.log('[verifyTask] fetched current subscriber count:', current);
+        if (current === null) {
+          showStatus(taskType, 'Unable to verify at this time. Try again later.', 'error');
+          return;
+        }
 
-      const start = parseInt(pending.startCount || 0, 10);
-      if (current > start) {
-        // Grant credits
-        userCredits += task.credits;
-        persistCredits();
-        updateCreditDisplay();
+        const start = parseInt(pending.startCount || 0, 10);
+        if (isNaN(start)) {
+          console.log('[verifyTask] pending.startCount is not a number', pending.startCount);
+        }
 
-        // Update earned count
-        earned[taskType] = timesEarned + 1;
-        saveEarnedToday(earned);
+        if (current > start) {
+          // Grant credits
+          userCredits += task.credits;
+          persistCredits();
+          updateCreditDisplay();
 
-        // Clear pending
-        localStorage.removeItem('pendingVerify');
+          // Update earned count
+          earned[taskType] = timesEarned + 1;
+          saveEarnedToday(earned);
 
-        // Show success
-        showStatus(taskType, `+${task.credits} Credits earned! (${earned[taskType]}/${task.max})`, 'success');
-        showToast('bi-coin', 'Credits Earned!', `+${task.credits} Credits added to your account`);
+          // Clear pending
+          localStorage.removeItem('pendingVerify');
 
-        // Disable button
-        const btn = document.getElementById(`${taskType}-btn`);
-        if (btn) btn.disabled = true;
+          // Show success
+          showStatus(taskType, `+${task.credits} Credits earned! (${earned[taskType]}/${task.max})`, 'success');
+          showToast('bi-coin', 'Credits Earned!', `+${task.credits} Credits added to your account`);
 
-        // Close modal
-        setTimeout(() => closeEarnModal(), 500);
-      } else {
-        showStatus(taskType, 'No new subscriber detected yet. Please subscribe and try again.', 'error');
+          // Disable button
+          const btn = getVerifyButtonForTask(taskType);
+          if (btn) {
+            console.log('[verifyTask] disabling verify button for', taskType);
+            btn.disabled = true;
+          }
+
+          // Close modal
+          setTimeout(() => closeEarnModal(), 500);
+        } else {
+          showStatus(taskType, 'No new subscriber detected yet. Please subscribe and try again.', 'error');
+        }
+      } catch (err) {
+        console.error('[verifyTask] error during subscribe verification', err);
+        showStatus(taskType, 'Verification failed due to an internal error. Try again later.', 'error');
       }
     })();
 
@@ -1133,8 +1187,9 @@ function verifyTask(taskType) {
   showToast('bi-coin', 'Credits Earned!', `+${task.credits} Credits added to your account`);
   
   // Disable button
-  const btn = document.getElementById(`${taskType}-btn`);
+  const btn = getVerifyButtonForTask(taskType);
   if (btn) {
+    console.log('[verifyTask] disabling verify button for', taskType);
     btn.disabled = true;
   }
   
@@ -1207,11 +1262,10 @@ function updateEarnedUI() {
   
   Object.keys(limits).forEach(taskType => {
     const timesEarned = earned[taskType] || 0;
-    const btn = document.getElementById(`${taskType}-btn`);
-    
+    const btn = getVerifyButtonForTask(taskType) || document.getElementById(`${taskType}-btn`);
     if (btn && timesEarned >= limits[taskType].max) {
       btn.disabled = true;
-      btn.textContent = 'Limit Reached';
+      try { btn.textContent = 'Limit Reached'; } catch (e) {}
       showStatus(taskType, `Daily limit reached (${timesEarned}/${limits[taskType].max})`, 'success');
     }
   });
@@ -1324,6 +1378,85 @@ const notifications = [
   { name: 'Marcus J.', action: 'just reached monetization - 4,000 Watch Hours!', time: '14 min ago' },
 ];
 let nIdx = 0;
+
+const EARN_AUTO_VERIFY_KEY = 'earnAutoVerifyEnabled';
+
+function getEarnAutoVerifyEnabled() {
+  return localStorage.getItem(EARN_AUTO_VERIFY_KEY) === 'true';
+}
+
+function setEarnAutoVerifyEnabled(enabled) {
+  localStorage.setItem(EARN_AUTO_VERIFY_KEY, enabled ? 'true' : 'false');
+  syncEarnAutoVerifyToggle();
+}
+
+function syncEarnAutoVerifyToggle() {
+  const toggle = document.querySelector('.earn-toggle');
+  if (!toggle) return;
+
+  const enabled = getEarnAutoVerifyEnabled();
+  toggle.classList.toggle('active', enabled);
+  toggle.setAttribute('aria-checked', String(enabled));
+  toggle.setAttribute('title', enabled ? 'Auto verify enabled' : 'Auto verify disabled');
+}
+
+function toggleEarnAutoVerify() {
+  setEarnAutoVerifyEnabled(!getEarnAutoVerifyEnabled());
+  showToast('bi-gear-fill', 'Settings Updated', getEarnAutoVerifyEnabled() ? 'Auto verify enabled' : 'Auto verify disabled');
+}
+
+function openEarnLink(taskType, href, fallbackLinkEl) {
+  const autoVerifyEnabled = getEarnAutoVerifyEnabled();
+
+  if (!autoVerifyEnabled) {
+    return true;
+  }
+
+  const popup = window.open(href, '_blank', 'noopener,noreferrer');
+  if (!popup) {
+    showStatus(taskType, 'Popup was blocked. Allow popups and try again.', 'error');
+    return false;
+  }
+
+  if (window.earnPopupInterval) {
+    clearInterval(window.earnPopupInterval);
+    window.earnPopupInterval = null;
+  }
+
+  window.earnPopupInterval = setInterval(() => {
+    if (!popup || popup.closed) {
+      clearInterval(window.earnPopupInterval);
+      window.earnPopupInterval = null;
+      showToast('bi-check-circle-fill', 'Popup Closed', 'Verifying your action now');
+      setTimeout(() => verifyTask(taskType), 250);
+    }
+  }, 500);
+
+  if (fallbackLinkEl) {
+    fallbackLinkEl.classList.add('auto-verifying');
+  }
+
+  return false;
+}
+
+function bindEarnSettingsToggle() {
+  const toggle = document.querySelector('.earn-toggle');
+  if (!toggle || toggle.dataset.bound === 'true') return;
+
+  toggle.dataset.bound = 'true';
+  toggle.setAttribute('role', 'switch');
+  toggle.setAttribute('tabindex', '0');
+  toggle.addEventListener('click', toggleEarnAutoVerify);
+  toggle.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      toggleEarnAutoVerify();
+    }
+  });
+
+  syncEarnAutoVerifyToggle();
+}
+
 function showNotification() {
   const n = notifications[nIdx % notifications.length];
   showToast('bi-bell-fill', n.name, n.action);
@@ -1634,6 +1767,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateCreditDisplay();
   syncCreditsFromBackend();
   updateEarnedUI();
+  bindEarnSettingsToggle();
   
   // Close modal on overlay click
   const modal = document.getElementById('earnModal');
