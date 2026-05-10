@@ -28,7 +28,7 @@ const testimonials = [
 
 const services = [
   { id: '3394791', type: 'Youtube Channel Subscribers', required: 10, delivered: 10, spent: 20, status: 'Completed', promoted: '01-May-2026' },
-  { id: '3398670', type: 'Youtube Channel Subscribers', required: 20, delivered: 4, spent: 40, status: 'In Progress', promoted: '07-May-2026' },
+  { id: '3398670', type: 'Youtube Channel Subscribers', required: 20, delivered: 20, spent: 40, status: 'Completed', promoted: '07-May-2026' },
   { id: '3392191', type: 'Youtube Channel Subscribers', required: 10, delivered: 10, spent: 20, status: 'Completed', promoted: '26-Apr-2026' },
   { id: '3394088', type: 'Youtube Channel Subscribers', required: 10, delivered: 10, spent: 20, status: 'Completed', promoted: '29-Apr-2026' },
 ];
