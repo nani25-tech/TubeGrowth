@@ -877,25 +877,32 @@ function getTimeUntilReset() {
 }
 
 function updateDailyBonusTimer() {
-  const timerEl = document.getElementById('dailyBonusTimer');
-  if (!timerEl) return;
-  
-  const { hours, minutes } = getTimeUntilReset();
-  const txt = `${hours}h ${minutes}m`;
-  timerEl.textContent = txt;
-  const dashTimer = document.getElementById('dashDailyBonusTimer');
-  if (dashTimer) dashTimer.textContent = txt;
+  try {
+    const { hours, minutes } = getTimeUntilReset();
+    const safeHours = Math.max(0, hours || 0);
+    const safeMinutes = Math.max(0, minutes || 0);
+    const txt = `${safeHours}h ${safeMinutes}m`;
+    
+    const timerEl = document.getElementById('dailyBonusTimer');
+    if (timerEl) timerEl.textContent = txt;
+    
+    const dashTimer = document.getElementById('dashDailyBonusTimer');
+    if (dashTimer) dashTimer.textContent = txt;
+  } catch (err) {
+    console.error('[updateDailyBonusTimer] Error:', err);
+  }
 }
 
 function updateDailyBonusUI() {
-  const bonusData = getDailyBonusData();
-  const actionsCountEl = document.getElementById('dailyActionsCount');
-  const dashActionsCountEl = document.getElementById('dashDailyActionsCount');
-  const bonusBtn = document.getElementById('claimBonusBtn');
-  const dashBonusBtn = document.getElementById('dashClaimBonusBtn');
-  const statusEl = document.getElementById('dailyBonusStatus');
-  const dashStatusEl = document.getElementById('dashDailyBonusStatus');
-  const neededCount = 20;
+  try {
+    const bonusData = getDailyBonusData();
+    const actionsCountEl = document.getElementById('dailyActionsCount');
+    const dashActionsCountEl = document.getElementById('dashDailyActionsCount');
+    const bonusBtn = document.getElementById('claimBonusBtn');
+    const dashBonusBtn = document.getElementById('dashClaimBonusBtn');
+    const statusEl = document.getElementById('dailyBonusStatus');
+    const dashStatusEl = document.getElementById('dashDailyBonusStatus');
+    const neededCount = 20;
   
   if (actionsCountEl) {
     actionsCountEl.textContent = bonusData.actionsCompleted || 0;
@@ -903,48 +910,51 @@ function updateDailyBonusUI() {
   if (dashActionsCountEl) {
     dashActionsCountEl.textContent = bonusData.actionsCompleted || 0;
   }
-  // Ensure needed count is displayed everywhere
-  const neededEl = document.getElementById('dailyActionsNeeded');
-  const actionsNeededEl = document.getElementById('actionsNeeded');
-  const dashNeededEl = document.getElementById('dashDailyActionsNeeded');
-  const dashActionsNeededEl = document.getElementById('dashActionsNeeded');
-  if (neededEl) neededEl.textContent = neededCount;
-  if (actionsNeededEl) actionsNeededEl.textContent = neededCount;
-  if (dashNeededEl) dashNeededEl.textContent = neededCount;
-  if (dashActionsNeededEl) dashActionsNeededEl.textContent = neededCount;
-  
-  if (bonusBtn) {
-    if (bonusData.claimed) {
-      bonusBtn.disabled = true;
-      bonusBtn.textContent = 'Already Claimed Today';
-      if (statusEl) statusEl.innerHTML = `<span style="color: #4ade80;">✓ Claimed today. Next bonus in ${formatTimeRemainingUntilReset()}.</span>`;
-      if (dashBonusBtn) {
-        dashBonusBtn.disabled = true;
-        dashBonusBtn.textContent = 'Already Claimed Today';
+    // Ensure needed count is displayed everywhere
+    const neededEl = document.getElementById('dailyActionsNeeded');
+    const actionsNeededEl = document.getElementById('actionsNeeded');
+    const dashNeededEl = document.getElementById('dashDailyActionsNeeded');
+    const dashActionsNeededEl = document.getElementById('dashActionsNeeded');
+    if (neededEl) neededEl.textContent = neededCount;
+    if (actionsNeededEl) actionsNeededEl.textContent = neededCount;
+    if (dashNeededEl) dashNeededEl.textContent = neededCount;
+    if (dashActionsNeededEl) dashActionsNeededEl.textContent = neededCount;
+    
+    if (bonusBtn) {
+      if (bonusData.claimed) {
+        bonusBtn.disabled = true;
+        bonusBtn.textContent = 'Already Claimed Today';
+        if (statusEl) statusEl.innerHTML = `<span style="color: #4ade80;">✓ Claimed today. Next bonus in ${formatTimeRemainingUntilReset()}.</span>`;
+        if (dashBonusBtn) {
+          dashBonusBtn.disabled = true;
+          dashBonusBtn.textContent = 'Already Claimed Today';
+        }
+        if (dashStatusEl) dashStatusEl.innerHTML = `<span style="color: #4ade80;">✓ Claimed today. Next bonus in ${formatTimeRemainingUntilReset()}.</span>`;
+      } else if ((bonusData.actionsCompleted || 0) >= neededCount) {
+        bonusBtn.disabled = false;
+        bonusBtn.textContent = 'CLAIM BONUS';
+        if (statusEl) statusEl.innerHTML = '';
+        if (dashBonusBtn) {
+          dashBonusBtn.disabled = false;
+          dashBonusBtn.textContent = 'CLAIM BONUS';
+        }
+        if (dashStatusEl) dashStatusEl.innerHTML = 'Daily bonus ready — claim it in the Daily Bonus panel.';
+      } else {
+        bonusBtn.disabled = true;
+        bonusBtn.textContent = `CLAIM BONUS (${bonusData.actionsCompleted || 0}/${neededCount})`;
+        if (statusEl) statusEl.innerHTML = '';
+        if (dashBonusBtn) {
+          dashBonusBtn.disabled = true;
+          dashBonusBtn.textContent = `CLAIM BONUS (${bonusData.actionsCompleted || 0}/${neededCount})`;
+        }
+        if (dashStatusEl) dashStatusEl.innerHTML = `Complete ${bonusData.actionsCompleted || 0}/${neededCount} actions to claim the daily bonus. Reset in ${formatTimeRemainingUntilReset()}.`;
       }
-      if (dashStatusEl) dashStatusEl.innerHTML = `<span style="color: #4ade80;">✓ Claimed today. Next bonus in ${formatTimeRemainingUntilReset()}.</span>`;
-    } else if ((bonusData.actionsCompleted || 0) >= neededCount) {
-      bonusBtn.disabled = false;
-      bonusBtn.textContent = 'CLAIM BONUS';
-      if (statusEl) statusEl.innerHTML = '';
-      if (dashBonusBtn) {
-        dashBonusBtn.disabled = false;
-        dashBonusBtn.textContent = 'CLAIM BONUS';
-      }
-      if (dashStatusEl) dashStatusEl.innerHTML = 'Daily bonus ready — claim it in the Daily Bonus panel.';
-    } else {
-      bonusBtn.disabled = true;
-      bonusBtn.textContent = `CLAIM BONUS (${bonusData.actionsCompleted || 0}/${neededCount})`;
-      if (statusEl) statusEl.innerHTML = '';
-      if (dashBonusBtn) {
-        dashBonusBtn.disabled = true;
-        dashBonusBtn.textContent = `CLAIM BONUS (${bonusData.actionsCompleted || 0}/${neededCount})`;
-      }
-      if (dashStatusEl) dashStatusEl.innerHTML = `Complete ${bonusData.actionsCompleted || 0}/${neededCount} actions to claim the daily bonus. Reset in ${formatTimeRemainingUntilReset()}.`;
     }
+    
+    updateDailyBonusTimer();
+  } catch (err) {
+    console.error('[updateDailyBonusUI] Error:', err);
   }
-  
-  updateDailyBonusTimer();
 }
 
 // Testing helpers
@@ -2001,6 +2011,11 @@ document.addEventListener('DOMContentLoaded', () => {
   updateCreditsDisplay();
   const initialSection = window.location.hash ? window.location.hash.slice(1) : 'home';
   showSection(initialSection);
+  
+  // Ensure daily bonus UI is initialized
+  setTimeout(() => {
+    updateDailyBonusUI();
+  }, 100);
 });
 
 // VIEW PROMOTIONS FUNCTIONS
@@ -2186,6 +2201,8 @@ document.addEventListener('DOMContentLoaded', () => {
       closeEarnModal();
     }
   });
+  
+  console.log('[DOMContentLoaded] Daily bonus initialized');
 });
 
 
