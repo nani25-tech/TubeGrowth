@@ -1,20 +1,697 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#111111" />
-    <meta
-      name="description"
-      content="TubeGrowth - Grow your YouTube channel faster with credits"
-    />
-    <title>TubeGrowth - YouTube Growth Platform</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-  </body>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TubeBoost - Grow Your YouTube Channel</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body id="top">
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Tube<span>Boost</span></div>
+  <ul>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#how-it-works">How It Works</a></li>
+    <li><a href="#testimonials">Reviews</a></li>
+    <li class="credit-display" id="navCredits" style="display: none;">
+      <span class="credit-icon"><i class="bi bi-coin"></i></span>
+      <span class="credit-balance"><strong id="userCredits">0</strong> Credits</span>
+    </li>
+  </ul>
+</nav>
+
+<!-- FREE YOUTUBE BOOST BANNER -->
+<section class="free-boost-section">
+  <div class="free-boost-banner">Free YouTube Subscribers & Free YouTube Likes</div>
+  
+  <div class="free-boost-content reveal">
+    <h1 class="free-boost-title">Grow your YouTube Channel Faster Than Ever Before!</h1>
+    <p class="free-boost-subtitle">My Tools Town is the best platform to boost your YouTube channel with thousands of real youtube subscribers.</p>
+    
+    <div class="free-boost-form-box">
+      <p class="form-label">Enter Youtube Channel Link / Channel ID:</p>
+      <div class="free-boost-form">
+        <input 
+          type="text" 
+          id="channelSearchInput" 
+          class="free-boost-input" 
+          placeholder="UCXsx4kQEJsIMrdAtm-mayuw"
+          value=""
+        />
+        <button type="button" class="free-boost-search-btn" onclick="searchAndOpenDashboard()">SEARCH CHANNEL</button>
+      </div>
+      <p class="form-help"><a href="#" class="form-link">Where I can find my YouTube Channel ID</a></p>
+    </div>
+
+    <div class="free-boost-cta">
+      <button type="button" class="analyze-videos-btn" onclick="scrollToSection('#services')">
+        <i class="bi bi-graph-up-arrow"></i> ANALYZE YOUR YOUTUBE VIDEOS FOR FREE
+      </button>
+    </div>
+
+    <div class="how-it-works-section">
+      <h2 class="how-it-works-title">HOW IT WORKS</h2>
+      <div class="how-it-works-steps">
+        <div class="how-it-works-step">
+          <div class="step-number">STEP 1</div>
+          <p>Paste your Youtube Channel Link / Channel ID above.</p>
+        </div>
+        <div class="how-it-works-step">
+          <div class="step-number">STEP 2</div>
+          <p>Earn credits by Subscribing & Liking other Channels & Videos.</p>
+        </div>
+        <div class="how-it-works-step">
+          <div class="step-number">STEP 3</div>
+          <p>Boost your YouTube Channel using this credits.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DASHBOARD PREVIEW -->
+<section id="dashboard-preview">
+  <div class="dashboard-shell reveal">
+    <div class="dashboard-topbar">DASHBOARD</div>
+    <div class="dashboard-tabs">
+      <a class="dash-tab active" href="#dashboard-preview" aria-current="page" aria-label="Go to dashboard">DASHBOARD</a>
+      <a class="dash-tab" href="#earn-credits" aria-label="Go to earn credits">EARN CREDITS</a>
+      <a class="dash-tab" href="#get-started" aria-label="Go to boost profile form">BOOST PROFILE</a>
+      <a class="dash-tab" href="#services" aria-label="Go to promotions section">VIEW PROMOTIONS</a>
+      <a class="dash-tab" href="#top" aria-label="Back to top">LOGOUT</a>   
+    </div>
+  </div>
+
+  <div class="dashboard-area reveal">
+    <div class="dashboard-layout">
+      <article class="dash-card profile-card">
+        <header class="dash-card-head">PROFILE INFORMATION</header>
+        <div class="dash-card-body profile-body">
+          <div class="profile-avatar" aria-hidden="true">
+            <img id="profileAvatarImg" alt="Channel logo" />
+          </div>
+          <p class="profile-name">AD official</p>
+          <p class="profile-channel"><strong>YT Channel ID :</strong> UCXsX4kQEJsIMrdAtm-mayuw</p>
+          <p class="profile-credits">Your Credits : 0</p>
+          <p class="profile-subscribers">Subscribers : 0</p>
+          <p class="profile-watchtime">Watch Time : 0h</p>
+        </div>
+      </article>
+
+      <article class="dash-card bonus-card">
+        <header class="dash-card-head bonus-head">DAILY BONUS <span>25 CREDITS</span></header>
+        <div class="dash-card-body bonus-body">
+          <p class="bonus-note">You have already claimed daily bonus for today. You can again claim it tomorrow.</p>
+        </div>
+      </article>
+
+      <article class="dash-card refer-card">
+        <header class="dash-card-head">REFER &amp; EARN</header>
+        <div class="dash-card-body refer-body">
+          <p>Refer your friends to My Tools Town and earn credits.</p>
+          <button type="button" class="refer-btn">REFER &amp; EARN</button>
+        </div>
+      </article>
+      
+    </div>
+  </div>
+</section>
+
+
+
+<!-- FREE YOUTUBE BOOST BANNER -->
+<section class="free-boost-section">
+  <div class="free-boost-banner">Free YouTube Subscribers & Free YouTube Likes</div>
+  
+  <div class="free-boost-content reveal">
+    <h1 class="free-boost-title">Grow your YouTube Channel Faster Than Ever Before!</h1>
+    <p class="free-boost-subtitle">My Tools Town is the best platform to boost your YouTube channel with thousands of real youtube subscribers.</p>
+    
+    <div class="free-boost-form-box">
+      <p class="form-label">Enter Youtube Channel Link / Channel ID:</p>
+      <div class="free-boost-form">
+        <input 
+          type="text" 
+          id="channelSearchInput" 
+          class="free-boost-input" 
+          placeholder="UCXsx4kQEJsIMrdAtm-mayuw"
+          value=""
+        />
+        <button type="button" class="free-boost-search-btn" onclick="searchAndOpenDashboard()">SEARCH CHANNEL</button>
+      </div>
+      <p class="form-help"><a href="#" class="form-link">Where I can find my YouTube Channel ID</a></p>
+    </div>
+
+    <div class="free-boost-cta">
+      <button type="button" class="analyze-videos-btn" onclick="scrollToSection('#services')">
+        <i class="bi bi-graph-up-arrow"></i> ANALYZE YOUR YOUTUBE VIDEOS FOR FREE
+      </button>
+    </div>
+
+    <div class="how-it-works-section">
+      <h2 class="how-it-works-title">HOW IT WORKS</h2>
+      <div class="how-it-works-steps">
+        <div class="how-it-works-step">
+          <div class="step-number">STEP 1</div>
+          <p>Paste your Youtube Channel Link / Channel ID above.</p>
+        </div>
+        <div class="how-it-works-step">
+          <div class="step-number">STEP 2</div>
+          <p>Earn credits by Subscribing & Liking other Channels & Videos.</p>
+        </div>
+        <div class="how-it-works-step">
+          <div class="step-number">STEP 3</div>
+          <p>Boost your YouTube Channel using this credits.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="badge"><i class="bi bi-patch-check-fill"></i> Trusted by 10,000+ YouTubers Worldwide</div>
+    <h1>GROW YOUR <span class="accent">YOUTUBE</span> CHANNEL FAST</h1>
+    <p>Get real subscribers, genuine likes, and authentic views from active YouTube users. No bots. No fake accounts. 100% organic growth.</p>
+    <div class="hero-search">
+      <label for="channelSearch">Enter your ID</label>
+      <div class="search-bar">
+        <input id="channelSearch" type="text" placeholder="Paste your YouTube Channel Link or Channel ID" />
+        <button type="button" class="search-btn" onclick="handleChannelSearch()">Search</button>
+      </div>
+      <p class="search-help">Paste your YouTube Channel Link or Channel ID into the search box on the homepage.</p>
+    </div>
+    <div class="hero-steps">
+      <div class="hero-step">Earn Credits: You must perform actions (like or subscribe) on other users' channels. This is the "currency" used to buy your own boosts.</div>
+      <div class="hero-step">Boost Channel: Once you have accumulated credits, click on "Boost Channel" to exchange those credits for your own subscribers, likes, or views.</div>
+    </div>
+    <div class="hero-btns">
+      <a href="#get-started" class="btn-primary">Boost Channel</a>
+      <a href="#buy-credits" class="btn-secondary">Get Credits <i class="bi bi-arrow-right-circle"></i></a>
+    </div>
+  </div>
+</section>
+
+<!-- STATS TICKER -->
+<div class="stats-bar">
+  <div class="ticker-track" id="ticker">
+    <div class="ticker-item"><i class="bi bi-people-fill"></i> 2.4M+ Subscribers Delivered</div>
+    <div class="ticker-item"><i class="bi bi-hand-thumbs-up-fill"></i> 18M+ Likes Generated</div>
+    <div class="ticker-item"><i class="bi bi-play-circle-fill"></i> 95M+ Views Driven</div>
+    <div class="ticker-item"><i class="bi bi-star-fill"></i> 4.9/5 Average Rating</div>
+    <div class="ticker-item"><i class="bi bi-shield-check"></i> 100% Safe & Secure</div>
+    <div class="ticker-item"><i class="bi bi-lightning-charge-fill"></i> Delivery in 24-72 Hours</div>
+    <div class="ticker-item"><i class="bi bi-globe2"></i> Global Real Users</div>
+    <div class="ticker-item"><i class="bi bi-trophy-fill"></i> 10,000+ Channels Grown</div>
+    <!-- Duplicate for seamless loop -->
+    <div class="ticker-item"><i class="bi bi-people-fill"></i> 2.4M+ Subscribers Delivered</div>
+    <div class="ticker-item"><i class="bi bi-hand-thumbs-up-fill"></i> 18M+ Likes Generated</div>
+    <div class="ticker-item"><i class="bi bi-play-circle-fill"></i> 95M+ Views Driven</div>
+    <div class="ticker-item"><i class="bi bi-star-fill"></i> 4.9/5 Average Rating</div>
+    <div class="ticker-item"><i class="bi bi-shield-check"></i> 100% Safe & Secure</div>
+    <div class="ticker-item"><i class="bi bi-lightning-charge-fill"></i> Delivery in 24-72 Hours</div>
+    <div class="ticker-item"><i class="bi bi-globe2"></i> Global Real Users</div>
+    <div class="ticker-item"><i class="bi bi-trophy-fill"></i> 10,000+ Channels Grown</div>
+  </div>
+</div>
+
+<!-- SERVICES -->
+<!-- VIEW PROMOTIONS -->
+<section id="services">
+  <div class="view-promo-credit-chip">Your Credits : 0</div>
+
+  <div class="view-promo-shell reveal">
+    <div class="view-promo-shell-topbar">VIEW PROMOTIONS</div>
+    <div class="view-promo-shell-tabs">
+      <a class="view-promo-shell-tab" href="#dashboard-preview" aria-label="Go to dashboard">DASHBOARD</a>
+      <a class="view-promo-shell-tab" href="#earn-credits" aria-label="Go to earn credits">EARN CREDITS</a>
+      <a class="view-promo-shell-tab" href="#get-started" aria-label="Go to boost profile">BOOST PROFILE</a>
+      <a class="view-promo-shell-tab active" href="#services" aria-current="page" aria-label="Go to view promotions">VIEW PROMOTIONS</a>
+      <a class="view-promo-shell-tab" href="#top" aria-label="Back to top">LOGOUT</a>
+    </div>
+  </div>
+
+  <div class="view-promo-layout reveal">
+    <div class="view-promo-search-bar">
+      <input type="text" id="promoSearch" placeholder="Search..." />
+    </div>
+
+    <div class="view-promo-table-wrapper">
+      <table class="view-promo-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Type</th>
+            <th>Link</th>
+            <th>Required</th>
+            <th>Delivered</th>
+            <th>Spent Credits</th>
+            <th>Status</th>
+            <th>Promoted</th>
+            <th>Boost <i class="bi bi-lightning-charge-fill"></i></th>
+            <th>Manage</th>
+          </tr>
+        </thead>
+        <tbody id="promoTableBody">
+          <tr>
+            <td>3394791</td>
+            <td>Youtube Channel Subscribers</td>
+            <td><a href="#" class="link-btn">https://www.youtube.co</a> <span class="open-link-btn"><i class="bi bi-box-arrow-up-right"></i> OPEN LINK</span></td>
+            <td>10</td>
+            <td>10</td>
+            <td>20</td>
+            <td><span class="status-completed">Completed</span></td>
+            <td>01-May-2026</td>
+            <td>NA</td>
+            <td><button class="manage-btn" onclick="deletePromotion(3394791)" aria-label="Delete promotion">&#128465;</button></td>
+          </tr>
+          <tr>
+            <td>3398670</td>
+            <td>Youtube Channel Subscribers</td>
+            <td><a href="#" class="link-btn">https://www.youtube.co</a> <span class="open-link-btn"><i class="bi bi-box-arrow-up-right"></i> OPEN LINK</span></td>
+            <td>20</td>
+            <td>20</td>
+            <td>40</td>
+            <td><span class="status-completed">Completed</span></td>
+            <td>07-May-2026</td>
+            <td>NA</td>
+            <td><button class="manage-btn" onclick="deletePromotion(3398670)" aria-label="Delete promotion">&#128465;</button></td>
+          </tr>
+          <tr>
+            <td>3392191</td>
+            <td>Youtube Channel Subscribers</td>
+            <td><a href="#" class="link-btn">https://www.youtube.co</a> <span class="open-link-btn"><i class="bi bi-box-arrow-up-right"></i> OPEN LINK</span></td>
+            <td>10</td>
+            <td>10</td>
+            <td>20</td>
+            <td><span class="status-completed">Completed</span></td>
+            <td>26-Apr-2026</td>
+            <td>NA</td>
+            <td><button class="manage-btn" onclick="deletePromotion(3392191)" aria-label="Delete promotion">&#128465;</button></td>
+          </tr>
+          <tr>
+            <td>3394088</td>
+            <td>Youtube Channel Subscribers</td>
+            <td><a href="#" class="link-btn">https://www.youtube.co</a> <span class="open-link-btn"><i class="bi bi-box-arrow-up-right"></i> OPEN LINK</span></td>
+            <td>10</td>
+            <td>10</td>
+            <td>20</td>
+            <td><span class="status-completed">Completed</span></td>
+            <td>29-Apr-2026</td>
+            <td>NA</td>
+            <td><button class="manage-btn" onclick="deletePromotion(3394088)" aria-label="Delete promotion">&#128465;</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="view-promo-pagination">
+      <span>Showing 1 to 4 of 4 entries</span>
+      <div class="pagination-buttons">
+        <button class="pagination-btn" onclick="previousPage()">Previous</button>
+        <button class="pagination-btn active">1</button>
+        <button class="pagination-btn" onclick="nextPage()">Next</button>
+      </div>
+    </div>
+
+    <div class="view-promo-info-section">
+      <article class="view-promo-info-card">
+        <header class="view-promo-info-head">Status Meanings</header>
+        <div class="view-promo-info-body">
+          <p><strong>Running / In Progress:</strong> When the promotion is in process of gaining likes and followers.</p>
+          <p><strong>Completed:</strong> Promotion is completed.</p>
+          <p><strong>Canceled:</strong> Promotion is canceled due to some reason. In this case your coins will be refunded at the same time promotion is canceled.</p>
+          <p><strong>Stopped:</strong> Promotion is automatically stopped when you change your profile privacy to private or we are not able to view your profile / post for any reason.</p>
+        </div>
+      </article>
+
+      <article class="view-promo-info-card">
+        <header class="view-promo-info-head">Manage Promotions</header>
+        <div class="view-promo-info-body">
+          <p><strong>Edit Promotion:</strong> You can increase the current required quantity of your promotion using this option. You cannot decrease the required quantity.</p>
+          <p><strong>Delete Promotion:</strong> Deleting a promotion will stop sending likes and followers to that promotion & unused credits will be refunded immediately.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how-it-works" style="background: var(--dark);">
+  <div class="section-label">// The Process</div>
+  <div class="section-title">HOW IT WORKS</div>
+  <p class="section-sub">Three simple steps to explosive YouTube growth.</p>
+  <div class="steps reveal">
+    <div class="step">
+      <div class="step-num">01</div>
+      <span class="step-icon"><i class="bi bi-send-check-fill"></i></span>
+      <h3>Submit Your Order</h3>
+      <p>Fill out our simple form with your YouTube channel URL, choose your desired service, and select a package that fits your goals.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <span class="step-icon"><i class="bi bi-gear-fill"></i></span>
+      <h3>We Process It</h3>
+      <p>Our team activates your campaign using our network of real users. We start delivery within 1-6 hours of confirmed payment.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <span class="step-icon"><i class="bi bi-graph-up-arrow"></i></span>
+      <h3>Watch Your Channel Grow</h3>
+      <p>Sit back and watch the numbers climb. Track your progress in real time and see your channel's reach expand dramatically.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <span class="step-icon"><i class="bi bi-rocket-takeoff-fill"></i></span>
+      <h3>Scale & Repeat</h3>
+      <p>Once you see results, scale up. Many of our clients return monthly to keep the algorithm momentum going strong.</p>
+    </div>
+  </div>
+</section>
+
+<!-- BUY CREDITS -->
+<section id="buy-credits" style="background: var(--dark);">
+  <div class="section-label">// Credit System</div>
+  <div class="section-title">BUY CREDITS</div>
+  <p class="section-sub">Premium packs in both currencies: Rs 10 ($1), Rs 50 ($15), Rs 100 ($50).</p>
+  
+  <!-- Channel & Summary Info -->
+  <div class="credit-summary-box" id="creditSummaryBox" style="display: none; margin-bottom: 2rem; padding: 1.5rem; background: rgba(251, 191, 36, 0.1); border: 2px solid #FBBF24; border-radius: 12px; max-width: 500px; margin-left: auto; margin-right: auto;">
+    <div style="color: #fff; margin-bottom: 1rem;">
+      <div style="font-size: 0.9rem; color: #FBBF24; margin-bottom: 0.5rem;">Channel Name:</div>
+      <div style="font-size: 1.2rem; font-weight: 600; color: #fff;" id="summaryChannelName">-</div>
+    </div>
+    <div style="color: #fff;">
+      <div style="font-size: 0.9rem; color: #FBBF24; margin-bottom: 0.5rem;">You are buying:</div>
+      <div style="font-size: 1.5rem; font-weight: 700; color: #FBBF24;" id="summaryCreditsAmount">100 Credits</div>
+    </div>
+  </div>
+  
+  <div class="credits-grid reveal">
+    <div class="credit-card" onclick="showCreditSummary(10, 100); purchaseCreditsByINR(10)">
+      <div class="credit-amount">100</div>
+      <div class="credit-label">Credits</div>
+      <div class="credit-price">Rs 10 / $1</div>
+      <div class="credit-per">Premium Pack</div>
+      <button class="credit-btn">Buy Now</button>
+    </div>
+    <div class="credit-card" onclick="showCreditSummary(50, 500); purchaseCreditsByINR(50)">
+      <div class="credit-amount">500</div>
+      <div class="credit-label">Credits</div>
+      <div class="credit-price">Rs 50 / $15</div>
+      <div class="credit-per">Premium Pack</div>
+      <button class="credit-btn">Buy Now</button>
+    </div>
+    <div class="credit-card featured" onclick="showCreditSummary(100, 1000); purchaseCreditsByINR(100)">
+      <div class="featured-badge-credit"><i class="bi bi-gem"></i> BEST VALUE</div>
+      <div class="credit-amount">1,000</div>
+      <div class="credit-label">Credits</div>
+      <div class="credit-price">Rs 100 / $50</div>
+      <div class="credit-per">Premium Pack</div>
+      <button class="credit-btn">Buy Now</button>
+    </div>
+  </div>
+</section>
+
+<!-- EARN CREDITS -->
+<section id="earn-credits">
+  <div class="earn-shell reveal">
+    <div class="earn-shell-topbar">EARN CREDITS</div>
+    <div class="earn-shell-tabs">
+      <a class="earn-shell-tab" href="#dashboard-preview" aria-label="Go to dashboard">DASHBOARD</a>
+      <a class="earn-shell-tab active" href="#earn-credits" aria-current="page" aria-label="Go to earn credits">EARN CREDITS</a>
+      <a class="earn-shell-tab" href="#get-started" aria-label="Go to boost profile form">BOOST PROFILE</a>
+      <a class="earn-shell-tab" href="#services" aria-label="Go to promotions section">VIEW PROMOTIONS</a>
+      <a class="earn-shell-tab" href="#top" aria-label="Back to top">LOGOUT</a>
+    </div>
+  </div>
+
+  <div class="earn-credit-chip">Your Credits : 0</div>
+
+  <div class="earn-layout reveal">
+    <div class="earn-left">
+      <article class="earn-panel">
+        <header class="earn-panel-head green">EARN CREDITS</header>
+        <div class="earn-panel-body main-task-body">
+          <p class="earn-main-copy" id="earn-main-copy"><strong>Subscribe TubeBoost</strong> to earn 2 credits.</p>
+          <div class="earn-main-actions">
+            <button class="earn-action-btn blue" id="earn-main-open-btn" onclick="showEarnModal('subscribe')">SUBSCRIBE</button>
+            <button class="earn-action-btn purple" id="earn-main-verify-btn" onclick="verifyTask('subscribe')">VERIFY &amp; NEXT PROMOTION</button>
+          </div>
+          <div class="earn-status" id="status-subscribe"></div>
+
+          <div class="earn-settings">
+            <div class="earn-toggle" aria-hidden="true"></div>
+            <div class="earn-settings-text">
+              <strong>Settings</strong>
+              <span>Automatically verify promotion when popup window closes</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="earn-panel note-panel">
+        <div class="earn-panel-body">
+          <h4>Note:</h4>
+          <ol>
+            <li>Please wait at least <strong>10 seconds</strong> after liking/subscribing action before closing the new tab.</li>
+            <li>If you unsubscribe others, then all subscribers that you received from us will be removed.</li>
+            <li><strong>We recommend you not to subscribe more than 10 channels per day and not to like more than 100 videos per day.</strong></li>
+            <li>Do not use bots to like and subscribe otherwise your My Tools Town access will be restricted.</li>
+          </ol>
+          <div class="earn-status" id="status-like"></div>
+          <div class="earn-status" id="status-watch"></div>
+        </div>
+      </article>
+    </div>
+
+    <div class="earn-right">
+      <article class="earn-panel">
+        <header class="earn-panel-head purple">STEPS TO EARN CREDITS</header>
+        <div class="earn-panel-body steps-body">
+          <div class="earn-step-box"><strong>STEP 1</strong><span>Click on the Like / Subscribe button in the earn credits section.</span></div>
+          <div class="earn-step-box"><strong>STEP 2</strong><span>You will be redirected to Youtube. Like / Subscribe the user.</span></div>
+          <div class="earn-step-box"><strong>STEP 3</strong><span>Then close the window and press the Verify button and credits will be added to your account.</span></div>
+        </div>
+      </article>
+
+      <article class="earn-panel">
+        <header class="earn-panel-head purple">DAILY BONUS <span>25 CREDITS</span></header>
+        <div class="earn-panel-body">
+          <p class="earn-bonus-note">You have already claimed daily bonus for today. You can again claim it tomorrow.</p>
+        </div>
+      </article>
+
+      <article class="earn-panel">
+        <header class="earn-panel-head gray">SEND FEEDBACK / REPORT BUG</header>
+        <div class="earn-panel-body feedback-body">
+          <p>If you have any bug to report or any suggestions, Please let us know!</p>
+          <button type="button" class="feedback-btn">SEND FEEDBACK</button>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials" style="background: var(--dark);">
+  <div class="section-label">// Social Proof</div>
+  <div class="section-title">WHAT OUR CLIENTS SAY</div>
+  <p class="section-sub">Real results from real creators who trusted TubeBoost.</p>
+  <div class="testimonials-grid reveal">
+    <div class="testi-card">
+      <div class="stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
+      <p>"I went from 800 to 5,400 subscribers in less than two weeks. The engagement feels organic and my videos are now getting recommended. Absolutely worth it."</p>
+      <div class="testi-author">
+        <div class="avatar"><i class="bi bi-person-circle"></i></div>
+        <div>
+          <div class="testi-name">Alex Mercer</div>
+          <div class="testi-handle">Gaming Channel -+ 12.4K subs</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <div class="stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
+      <p>"Hit monetization in 3 weeks with TubeBoost. I needed the watch hours and they delivered fast. The team was super responsive and the results were real."</p>
+      <div class="testi-author">
+        <div class="avatar"><i class="bi bi-person-circle"></i></div>
+        <div>
+          <div class="testi-name">Priya Sharma</div>
+          <div class="testi-handle">Cooking Channel -+ 8.2K subs</div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <div class="stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
+      <p>"My music channel was stuck at 300 subs for months. After one month with TubeBoost I crossed 3,000. The algorithm started picking up my videos naturally after that!"</p>
+      <div class="testi-author">
+        <div class="avatar"><i class="bi bi-person-circle"></i></div>
+        <div>
+          <div class="testi-name">Jordan Lee</div>
+          <div class="testi-handle">Music Channel -+ 6.7K subs</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BOOST PROFILE -->
+<section id="get-started">
+  <div class="boost-credit-chip">Your Credits : 0</div>
+
+  <div class="boost-shell reveal">
+    <div class="boost-shell-topbar">BOOST PROFILE</div>
+    <div class="boost-shell-tabs">
+      <a class="boost-shell-tab" href="#dashboard-preview" aria-label="Go to dashboard">DASHBOARD</a>
+      <a class="boost-shell-tab" href="#earn-credits" aria-label="Go to earn credits">EARN CREDITS</a>
+      <a class="boost-shell-tab active" href="#get-started" aria-current="page" aria-label="Go to boost profile">BOOST PROFILE</a>
+      <a class="boost-shell-tab" href="#services" aria-label="Go to promotions section">VIEW PROMOTIONS</a>
+      <a class="boost-shell-tab" href="#top" aria-label="Back to top">LOGOUT</a>
+    </div>
+  </div>
+
+  <div class="boost-layout reveal">
+    <div class="boost-left">
+      <article class="boost-panel">
+        <header class="boost-panel-head">ADD PROMOTION</header>
+        <div class="boost-panel-body add-promo-body">
+          <p class="boost-your-channel">Your Channel : AD official</p>
+
+          <div class="boost-form-group">
+            <label>Select Promotion Type</label>
+            <select id="promotionType" onchange="updateBoostCalculation()">
+              <option value="">Select promotion type</option>
+              <option value="likes">Youtube Video Likes</option>
+              <option value="subs">Youtube Subscribers</option>
+              <option value="views">Youtube Video Views</option>
+              <option value="comments">Youtube Comments</option>
+            </select>
+          </div>
+
+          <div class="boost-form-group">
+            <label id="videoLinkLabel">Youtube Video Link</label>
+            <input type="text" id="videoLink" placeholder="https://youtu.be/AAVBn_fHA" value="https://youtu.be/AAVBn_fHA" />
+          </div>
+
+          <div class="boost-form-group">
+            <label>Number Of <span id="quantityLabel">Likes</span></label>
+            <input type="number" id="quantityInput" value="10" min="1" onchange="updateBoostCalculation()" placeholder="10" />
+          </div>
+
+          <div class="boost-credits-needed">CREDITS NEEDED : <span id="creditsNeeded">10</span></div>
+
+          <button type="button" class="boost-add-promo-btn" onclick="addPromotion()">ADD PROMOTION</button>
+        </div>
+      </article>
+    </div>
+
+    <div class="boost-right">
+      <article class="boost-info-card">
+        <header class="boost-info-head">How to add promotion?</header>
+        <div class="boost-info-body">
+          <ol>
+            <li><strong>STEP 1:</strong> Select promotion type from above ( Youtube Likes / Subscribers etc).</li>
+            <li><strong>STEP 2:</strong> Then you have to provide your Youtube video link or Channel ID , whatever is asked.</li>
+            <li><strong>STEP 3:</strong> Then enter the number of likes or subscribers you want and hit the add promotion button. Your promotion will be completed after few hours of adding the promotion.</li>
+          </ol>
+        </div>
+      </article>
+
+      <article class="boost-info-card">
+        <header class="boost-info-head">Important:</header>
+        <div class="boost-info-body">
+          <ul>
+            <li>You cannot boost same link more than one time, but you can always increase the required count by editing the promotion in view promotions page.</li>
+            <li>You cannot boost any other profile or any other profile posts by using your credits.</li>
+            <li>No one other than you can use your credits to get likes/subscribers on his/her account.</li>
+            <li>You cannot transfer credits to any other username.</li>
+          </ul>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="footer-logo">Tube<span>Boost</span></div>
+    <p style="margin-top: 8px;"><i class="bi bi-c-circle"></i> 2025 TubeBoost. All rights reserved.</p>
+  </div>
+  <div class="footer-links">
+    <a href="#">Privacy Policy</a>
+    <a href="#">Terms of Service</a>
+    <a href="#">Refund Policy</a>
+    <a href="#get-started">Contact</a>
+  </div>
+</footer>
+
+<!-- EARN MODALS -->
+<div class="modal-overlay" id="earnModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalTitle">Earn Credits</h3>
+      <button class="modal-close" onclick="closeEarnModal()" aria-label="Close modal"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-body">
+      <div id="subscribe-modal" class="modal-view">
+        <div class="modal-icon"><i class="bi bi-person-plus-fill"></i></div>
+        <h4>Subscribe to TubeBoost</h4>
+        <p>Visit the channel below and subscribe to get <strong>+2 Credits</strong></p>
+        <p id="subscribe-channel-name" style="font-weight:600; margin:8px 0;">Channel: TubeBoost</p>
+        <a id="subscribe-link" href="https://youtube.com/@TubeBoost" target="_blank" class="modal-link-btn">
+          <i class="bi bi-youtube"></i> Open Channel
+        </a>
+        <button class="modal-verify-btn" onclick="verifyTask('subscribe')"><i class="bi bi-check2-circle"></i> Verify</button>
+      </div>
+
+      <div id="like-modal" class="modal-view" style="display:none;">
+        <div class="modal-icon"><i class="bi bi-hand-thumbs-up-fill"></i></div>
+        <h4>Like One of Our Videos</h4>
+        <p>Visit the registered promotion channel and like the video to get <strong>+1 Credit</strong></p>
+        <p id="like-channel-name" style="font-weight:600; margin:8px 0;">Channel: TubeBoost</p>
+        <a id="like-link" href="https://youtube.com/@TubeBoost" target="_blank" class="modal-link-btn">
+          <i class="bi bi-play-btn-fill"></i> Open Video
+        </a>
+        <button class="modal-verify-btn" onclick="verifyTask('like')"><i class="bi bi-check2-circle"></i> Verify</button>
+      </div>
+
+      <div id="watch-modal" class="modal-view" style="display:none;">
+        <div class="modal-icon"><i class="bi bi-stopwatch-fill"></i></div>
+        <h4>Watch a Video for 5 Minutes</h4>
+        <p>Watch the registered promotion video for 5 minutes to earn <strong>+3 Credits</strong></p>
+        <p id="watch-channel-name" style="font-weight:600; margin:8px 0;">Channel: TubeBoost</p>
+        <a id="watch-link" href="https://youtube.com/@TubeBoost" target="_blank" class="modal-link-btn">
+          <i class="bi bi-play-btn-fill"></i> Open Video
+        </a>
+        <button class="modal-verify-btn" onclick="startWatchTimer()"><i class="bi bi-play-circle-fill"></i> Start & Verify</button>
+        <div id="watch-timer-modal" style="display:none; margin-top: 20px;">
+          <div class="timer-text">Time remaining: <span id="timer-modal">5:00</span></div>
+          <div class="timer-bar"><div class="timer-fill" id="timer-fill-modal"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-icon" id="toastIcon"><i class="bi bi-bell-fill"></i></div>
+  <div class="toast-text">
+    <strong id="toastTitle">Success</strong>
+    <span id="toastMsg">Action completed.</span>
+  </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="script.js"></script>
+</body>
 </html>
+
+
