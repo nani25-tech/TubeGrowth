@@ -1079,21 +1079,99 @@ function shareReferralCode() {
   }
 }
 
+// Verify and process referral code
+function verifyReferralCode(referralCode) {
+  if (!referralCode || typeof referralCode !== 'string') {
+    return { valid: false, error: 'Invalid referral code format' };
+  }
+
+  // Validate code format (should start with TGB)
+  if (!referralCode.toUpperCase().startsWith('TGB')) {
+    return { valid: false, error: 'Invalid referral code - must start with TGB' };
+  }
+
+  // Check if code length is reasonable (TGB + at least 4 characters)
+  if (referralCode.length < 7) {
+    return { valid: false, error: 'Invalid referral code - too short' };
+  }
+
+  // Check if already used
+  const usedCode = localStorage.getItem('usedReferralCode');
+  if (usedCode === referralCode.toUpperCase()) {
+    return { valid: false, error: 'You already used this referral code' };
+  }
+
+  return { valid: true };
+}
+
+// Award referral credits to new user
+function awardReferralCredits(referralCode) {
+  try {
+    const verification = verifyReferralCode(referralCode);
+    
+    if (!verification.valid) {
+      console.warn('[awardReferralCredits] Invalid code:', verification.error);
+      return false;
+    }
+
+    // Award 30 credits to the new user
+    const previousCredits = userCredits;
+    userCredits += 30;
+    persistCredits();
+    updateCreditDisplay();
+
+    // Mark this code as used
+    localStorage.setItem('usedReferralCode', referralCode.toUpperCase());
+    localStorage.setItem('referralTimestamp', new Date().toISOString());
+
+    // Log the referral for tracking
+    const referralLog = JSON.parse(localStorage.getItem('referralLog')) || [];
+    referralLog.push({
+      code: referralCode.toUpperCase(),
+      claimedAt: new Date().toISOString(),
+      creditsAwarded: 30,
+      creditsBefore: previousCredits
+    });
+    localStorage.setItem('referralLog', JSON.stringify(referralLog));
+
+    console.log('[awardReferralCredits] Successfully awarded 30 credits for referral code:', referralCode);
+    showToast('bi-gift-fill', 'Referral Bonus!', '+30 Credits awarded for joining with a referral code');
+    
+    return true;
+  } catch (err) {
+    console.error('[awardReferralCredits] Error:', err);
+    return false;
+  }
+}
+
 function trackReferralReward() {
-  // Check if coming from referral link
-  const params = new URLSearchParams(window.location.search);
-  const refCode = params.get('ref');
-  
-  if (!refCode) return;
-  
-  const storedRefCode = localStorage.getItem('usedReferralCode');
-  if (storedRefCode === refCode) return; // Already claimed
-  
-  // Award 30 credits to referrer (would be done server-side in production)
-  localStorage.setItem('usedReferralCode', refCode);
-  
-  // In production, this would call backend to track referral
-  showToast('bi-gift-fill', 'Welcome!', 'Enter your channel to claim referral bonus');
+  try {
+    // Check if coming from referral link
+    const params = new URLSearchParams(window.location.search);
+    const refCode = params.get('ref');
+    
+    if (!refCode) {
+      return; // No referral code in URL
+    }
+
+    // Check if already claimed this referral
+    const storedRefCode = localStorage.getItem('usedReferralCode');
+    if (storedRefCode === refCode.toUpperCase()) {
+      console.log('[trackReferralReward] Referral code already used:', refCode);
+      return;
+    }
+
+    // Award referral credits
+    const success = awardReferralCredits(refCode);
+    
+    if (success) {
+      console.log('[trackReferralReward] Referral verified and credits awarded');
+      // Clean up the URL so it doesn't show the ref code
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  } catch (err) {
+    console.error('[trackReferralReward] Error processing referral:', err);
+  }
 }
 
 function normalizeChannelReference(value) {
@@ -2166,6 +2244,8 @@ Object.assign(window, {
   claimDailyBonus,
   resetDailyBonusState,
   simulateDailyActions,
+  verifyReferralCode,
+  awardReferralCredits,
 });
 
 // Initialize credit display on page load
