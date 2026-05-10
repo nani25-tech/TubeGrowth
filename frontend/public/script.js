@@ -927,6 +927,99 @@ function claimDailyBonus() {
   showToast('bi-star-fill', 'Daily Bonus Claimed!', '+25 Credits added to your account');
 }
 
+// REFERRAL SYSTEM
+function generateReferralCode() {
+  const stored = localStorage.getItem('referralCode');
+  if (stored) return stored;
+  
+  // Generate code from channel ID or create random code
+  const channelId = localStorage.getItem('selectedChannelId') || '';
+  let code;
+  
+  if (channelId) {
+    code = 'TGB' + channelId.substring(0, 8).toUpperCase();
+  } else {
+    code = 'TGB' + Math.random().toString(36).substring(2, 10).toUpperCase();
+  }
+  
+  localStorage.setItem('referralCode', code);
+  return code;
+}
+
+function getReferralData() {
+  return JSON.parse(localStorage.getItem('referralData')) || {
+    code: generateReferralCode(),
+    referred: 0,
+    earnings: 0
+  };
+}
+
+function saveReferralData(data) {
+  localStorage.setItem('referralData', JSON.stringify(data));
+}
+
+function updateReferralUI() {
+  const data = getReferralData();
+  const codeInput = document.getElementById('referralCode');
+  const countEl = document.getElementById('referralCount');
+  const earningsEl = document.getElementById('referralEarnings');
+  
+  if (codeInput) codeInput.value = data.code;
+  if (countEl) countEl.textContent = data.referred || 0;
+  if (earningsEl) earningsEl.textContent = (data.earnings || 0) + ' Credits';
+}
+
+function copyReferralCode() {
+  const codeInput = document.getElementById('referralCode');
+  if (!codeInput) return;
+  
+  codeInput.select();
+  document.execCommand('copy');
+  showToast('bi-check-circle-fill', 'Copied!', 'Referral code copied to clipboard');
+}
+
+function shareReferralCode() {
+  const data = getReferralData();
+  const shareUrl = `${window.location.origin}/?ref=${data.code}`;
+  
+  if (navigator.share) {
+    navigator.share({
+      title: 'Join TubeBoost',
+      text: 'Get 30 credits when you join with my referral code!',
+      url: shareUrl
+    }).catch(() => {
+      // Fallback if share fails
+      copyReferralCode();
+    });
+  } else {
+    // Fallback: copy to clipboard
+    const textarea = document.createElement('textarea');
+    textarea.value = shareUrl;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    showToast('bi-link-45deg', 'Link Copied!', 'Share this link to earn referral credits');
+  }
+}
+
+function trackReferralReward() {
+  // Check if coming from referral link
+  const params = new URLSearchParams(window.location.search);
+  const refCode = params.get('ref');
+  
+  if (!refCode) return;
+  
+  const storedRefCode = localStorage.getItem('usedReferralCode');
+  if (storedRefCode === refCode) return; // Already claimed
+  
+  // Award 30 credits to referrer (would be done server-side in production)
+  localStorage.setItem('usedReferralCode', refCode);
+  
+  // In production, this would call backend to track referral
+  showToast('bi-gift-fill', 'Welcome!', 'Enter your channel to claim referral bonus');
+}
+
 function normalizeChannelReference(value) {
   if (!value) return '';
 
@@ -1983,6 +2076,8 @@ Object.assign(window, {
   showEarnModal,
   verifyTask,
   closeEarnModal,
+  copyReferralCode,
+  shareReferralCode,
 });
 
 // Initialize credit display on page load
@@ -1997,6 +2092,10 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Update daily bonus timer every second
   setInterval(updateDailyBonusTimer, 1000);
+  
+  // Initialize referral system
+  updateReferralUI();
+  trackReferralReward();
   
   // Close modal on overlay click
   const modal = document.getElementById('earnModal');

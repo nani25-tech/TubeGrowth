@@ -122,10 +122,30 @@
       </article>
 
       <article class="dash-card refer-card">
-        <header class="dash-card-head">REFER &amp; EARN</header>
+        <header class="dash-card-head">REFER &amp; EARN <span style="color: #FFD700; font-size: 14px; background: rgba(255,215,0,0.2); padding: 2px 8px; border-radius: 3px; margin-left: 6px;">+30 CREDITS</span></header>
         <div class="dash-card-body refer-body">
-          <p>Refer your friends to My Tools Town and earn credits.</p>
-          <button type="button" class="refer-btn">REFER &amp; EARN</button>
+          <p style="margin-bottom: 16px; font-size: 13px; color: #999;">Share your referral code with friends. Get 30 credits when they join!</p>
+          
+          <div class="referral-code-box">
+            <div class="referral-code-label">Your Referral Code:</div>
+            <div class="referral-code-display">
+              <input type="text" id="referralCode" readonly value="TUBEBOOST123" style="background: #fff; border: 1px solid #ddd; padding: 8px 10px; border-radius: 4px; width: 100%; font-family: 'Space Mono', monospace; font-weight: 600; color: #333; text-align: center; margin-bottom: 10px;">
+              <button type="button" class="copy-code-btn" onclick="copyReferralCode()"><i class="bi bi-clipboard"></i> Copy Code</button>
+            </div>
+          </div>
+          
+          <div class="referral-stats">
+            <div class="stat-item">
+              <span class="stat-label">Referred:</span>
+              <span class="stat-value" id="referralCount">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Earned:</span>
+              <span class="stat-value" id="referralEarnings">0</span>
+            </div>
+          </div>
+          
+          <button type="button" class="refer-btn" onclick="shareReferralCode()"><i class="bi bi-share"></i> Share Link</button>
         </div>
       </article>
       

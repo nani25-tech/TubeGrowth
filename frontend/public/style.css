@@ -3627,7 +3627,127 @@ nav,
   margin-right: 0;
 }
 
+/* REFERRAL SYSTEM */
+.referral-code-box {
+  background: rgba(79, 166, 255, 0.08);
+  border: 1px solid rgba(79, 166, 255, 0.2);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.referral-code-label {
+  font-size: 11px;
+  color: #7cc4ff;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+  letter-spacing: 0.5px;
+}
+
+.referral-code-display {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.referral-code-display input {
+  font-size: 14px !important;
+  letter-spacing: 2px;
+  font-weight: 600 !important;
+}
+
+.copy-code-btn {
+  background: #4fa6ff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.copy-code-btn:hover {
+  background: #3d95ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(79, 166, 255, 0.3);
+}
+
+.copy-code-btn:active {
+  transform: translateY(0);
+}
+
+.referral-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+  background: rgba(255, 215, 0, 0.06);
+  border: 1px solid rgba(255, 215, 0, 0.15);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: #999;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.stat-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #FFD700;
+}
+
+.refer-btn {
+  background: linear-gradient(135deg, #4fa6ff, #3d95ff);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.refer-btn:hover {
+  background: linear-gradient(135deg, #3d95ff, #2d85ff);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(79, 166, 255, 0.4);
+}
+
+.refer-btn:active {
+  transform: translateY(0);
+}
+
 /* RESPONSIVE DESIGN */
+
 @media (max-width: 1200px) {
   nav {
     padding: 16px 40px;
@@ -3731,6 +3851,21 @@ nav,
     left: 12px;
     right: 12px;
     width: auto;
+  }
+  
+  /* Referral responsive */
+  .referral-code-box {
+    padding: 12px;
+  }
+  
+  .referral-stats {
+    padding: 10px;
+  }
+  
+  .copy-code-btn,
+  .refer-btn {
+    font-size: 11px;
+    padding: 10px 16px;
   }
 }
 
@@ -4209,6 +4344,41 @@ nav,
   
   .free-boost-search-btn {
     width: 100%;
+  }
+  
+  /* Referral mobile styles */
+  .referral-code-box {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  
+  .referral-code-display input {
+    font-size: 12px !important;
+    letter-spacing: 1px;
+  }
+  
+  .copy-code-btn,
+  .refer-btn {
+    padding: 10px 12px;
+    font-size: 11px;
+  }
+  
+  .referral-stats {
+    padding: 10px;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  
+  .stat-item {
+    gap: 4px;
+  }
+  
+  .stat-label {
+    font-size: 10px;
+  }
+  
+  .stat-value {
+    font-size: 14px;
   }
   
   .footer {
