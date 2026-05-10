@@ -823,6 +823,110 @@ function saveEarnedToday(data) {
   localStorage.setItem('earnedToday', JSON.stringify(data));
 }
 
+// DAILY BONUS FUNCTIONS
+function getDailyBonusData() {
+  const today = new Date().toDateString();
+  const storedData = JSON.parse(localStorage.getItem('dailyBonusData')) || {};
+  
+  if (storedData.date !== today) {
+    // Reset daily bonus for new day
+    storedData.date = today;
+    storedData.claimed = false;
+    storedData.actionsCompleted = 0;
+  }
+  
+  return storedData;
+}
+
+function saveDailyBonusData(data) {
+  localStorage.setItem('dailyBonusData', JSON.stringify(data));
+}
+
+function incrementDailyActions() {
+  const bonusData = getDailyBonusData();
+  bonusData.actionsCompleted = (bonusData.actionsCompleted || 0) + 1;
+  saveDailyBonusData(bonusData);
+  updateDailyBonusUI();
+}
+
+function getTimeUntilReset() {
+  const now = new Date();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+  
+  const timeLeft = tomorrow - now;
+  const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+  const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+  
+  return { hours, minutes, timeLeft };
+}
+
+function updateDailyBonusTimer() {
+  const timerEl = document.getElementById('dailyBonusTimer');
+  if (!timerEl) return;
+  
+  const { hours, minutes } = getTimeUntilReset();
+  timerEl.textContent = `${hours}h ${minutes}m`;
+}
+
+function updateDailyBonusUI() {
+  const bonusData = getDailyBonusData();
+  const actionsCountEl = document.getElementById('dailyActionsCount');
+  const bonusBtn = document.getElementById('claimBonusBtn');
+  const statusEl = document.getElementById('dailyBonusStatus');
+  const neededCount = 20;
+  
+  if (actionsCountEl) {
+    actionsCountEl.textContent = bonusData.actionsCompleted || 0;
+  }
+  
+  if (bonusBtn) {
+    if (bonusData.claimed) {
+      bonusBtn.disabled = true;
+      bonusBtn.textContent = 'Already Claimed Today';
+      if (statusEl) statusEl.innerHTML = '<span style="color: #4ade80;">✓ Daily bonus claimed! Return tomorrow.</span>';
+    } else if ((bonusData.actionsCompleted || 0) >= neededCount) {
+      bonusBtn.disabled = false;
+      bonusBtn.textContent = 'CLAIM BONUS';
+      if (statusEl) statusEl.innerHTML = '';
+    } else {
+      bonusBtn.disabled = true;
+      bonusBtn.textContent = `CLAIM BONUS (${bonusData.actionsCompleted || 0}/${neededCount})`;
+      if (statusEl) statusEl.innerHTML = '';
+    }
+  }
+  
+  updateDailyBonusTimer();
+}
+
+function claimDailyBonus() {
+  const bonusData = getDailyBonusData();
+  const neededCount = 20;
+  
+  if (bonusData.claimed) {
+    showToast('bi-exclamation-circle-fill', 'Already Claimed', 'You have already claimed the daily bonus today.');
+    return;
+  }
+  
+  if ((bonusData.actionsCompleted || 0) < neededCount) {
+    showToast('bi-exclamation-triangle-fill', 'Not Enough Actions', `Complete ${neededCount} actions to claim the bonus. (${bonusData.actionsCompleted || 0}/${neededCount})`);
+    return;
+  }
+  
+  // Award 25 credits
+  userCredits += 25;
+  localStorage.setItem('userCredits', userCredits);
+  updateCreditDisplay();
+  
+  // Mark as claimed
+  bonusData.claimed = true;
+  saveDailyBonusData(bonusData);
+  updateDailyBonusUI();
+  
+  showToast('bi-star-fill', 'Daily Bonus Claimed!', '+25 Credits added to your account');
+}
+
 function normalizeChannelReference(value) {
   if (!value) return '';
 
@@ -1178,6 +1282,7 @@ function verifyTask(taskType) {
 
     earned[taskType] = timesEarned + 1;
     saveEarnedToday(earned);
+    incrementDailyActions();
 
     localStorage.removeItem('watchSession');
 
@@ -1237,6 +1342,7 @@ function verifyTask(taskType) {
           // Update earned count
           earned[taskType] = timesEarned + 1;
           saveEarnedToday(earned);
+          incrementDailyActions();
 
           // Clear pending
           localStorage.removeItem('pendingVerify');
@@ -1274,6 +1380,7 @@ function verifyTask(taskType) {
   // Update earned count
   earned[taskType] = timesEarned + 1;
   saveEarnedToday(earned);
+  incrementDailyActions();
   
   // Show success
   showStatus(taskType, `+${task.credits} Credits earned! (${earned[taskType]}/${task.max})`, 'success');
@@ -1884,6 +1991,12 @@ document.addEventListener('DOMContentLoaded', () => {
   syncCreditsFromBackend();
   updateEarnedUI();
   bindEarnSettingsToggle();
+  
+  // Initialize daily bonus UI
+  updateDailyBonusUI();
+  
+  // Update daily bonus timer every second
+  setInterval(updateDailyBonusTimer, 1000);
   
   // Close modal on overlay click
   const modal = document.getElementById('earnModal');
