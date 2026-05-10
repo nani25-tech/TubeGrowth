@@ -3746,6 +3746,20 @@ nav,
   transform: translateY(0);
 }
 
+/* Ensure disabled earn/claim buttons are visibly disabled */
+.earn-btn:disabled,
+.copy-code-btn:disabled,
+.refer-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.25) brightness(0.95);
+  box-shadow: none !important;
+}
+
+.earn-btn[disabled] {
+  pointer-events: none;
+}
+
 /* RESPONSIVE DESIGN */
 
 @media (max-width: 1200px) {
