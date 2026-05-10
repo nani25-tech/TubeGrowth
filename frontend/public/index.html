@@ -7,7 +7,10 @@
 <script>
   (function () {
     var canonicalHost = 'tubegrowth.zone.id';
-    if (window.location.hostname && window.location.hostname !== canonicalHost && /github\.io$/i.test(window.location.hostname)) {
+    var currentHost = window.location.hostname || '';
+    var isGithubPages = /github\.io$/i.test(currentHost);
+    var isNotCustomDomain = currentHost !== canonicalHost && currentHost !== 'localhost' && currentHost !== '127.0.0.1';
+    if (isGithubPages || (isNotCustomDomain && currentHost.includes('nani25-tech'))) {
       window.location.replace('https://' + canonicalHost + window.location.pathname + window.location.search + window.location.hash);
     }
   }());
