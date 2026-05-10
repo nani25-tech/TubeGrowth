@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export const Header = () => {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const balance = user?.credits ?? 1000;
 
   return (
@@ -27,14 +27,16 @@ export const Header = () => {
           <a href="#reviews" className="text-text-secondary hover:text-white transition-colors">
             Reviews
           </a>
+          {isAuthenticated && (
+            <div className="flex items-center gap-2 text-sm text-yellow-400">
+              <span>💰</span>
+              <span className="font-bold">{balance} Credits</span>
+            </div>
+          )}
         </nav>
 
         {/* Right Section */}
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm text-yellow-400">
-            <span>💰</span>
-            <span className="font-bold">{balance} Credits</span>
-          </div>
         </div>
       </div>
     </header>

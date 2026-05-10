@@ -69,6 +69,18 @@ function clearSelectedChannelSession() {
   if (boostSearchInput) {
     boostSearchInput.value = '';
   }
+
+  // Hide credits display on logout
+  updateCreditsDisplay();
+}
+
+function updateCreditsDisplay() {
+  const navCredits = document.getElementById('navCredits');
+  const hasChannel = hasSelectedChannel();
+  
+  if (navCredits) {
+    navCredits.style.display = hasChannel ? 'flex' : 'none';
+  }
 }
 
 // LANDING PAGE FUNCTIONS
@@ -190,6 +202,7 @@ function searchAndOpenDashboard() {
   
   // Navigate to dashboard without scrolling
   setTimeout(() => {
+    updateCreditsDisplay();
     showSection('dashboard-preview');
   }, 500);
 }
@@ -1481,6 +1494,7 @@ function initializeBoostProfile() {
 document.addEventListener('DOMContentLoaded', () => {
   initializeBoostProfile();
   initializeViewPromotions();
+  updateCreditsDisplay();
   const initialSection = window.location.hash ? window.location.hash.slice(1) : 'home';
   showSection(initialSection);
 });
