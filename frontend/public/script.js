@@ -903,6 +903,15 @@ function updateDailyBonusUI() {
   if (dashActionsCountEl) {
     dashActionsCountEl.textContent = bonusData.actionsCompleted || 0;
   }
+  // Ensure needed count is displayed everywhere
+  const neededEl = document.getElementById('dailyActionsNeeded');
+  const actionsNeededEl = document.getElementById('actionsNeeded');
+  const dashNeededEl = document.getElementById('dashDailyActionsNeeded');
+  const dashActionsNeededEl = document.getElementById('dashActionsNeeded');
+  if (neededEl) neededEl.textContent = neededCount;
+  if (actionsNeededEl) actionsNeededEl.textContent = neededCount;
+  if (dashNeededEl) dashNeededEl.textContent = neededCount;
+  if (dashActionsNeededEl) dashActionsNeededEl.textContent = neededCount;
   
   if (bonusBtn) {
     if (bonusData.claimed) {
@@ -936,6 +945,22 @@ function updateDailyBonusUI() {
   }
   
   updateDailyBonusTimer();
+}
+
+// Testing helpers
+function resetDailyBonusState() {
+  localStorage.removeItem('dailyBonusData');
+  updateDailyBonusUI();
+  showToast('bi-check-circle-fill', 'Reset', 'Daily bonus state reset for testing');
+}
+
+function simulateDailyActions(count) {
+  const bonusData = getDailyBonusData();
+  bonusData.actionsCompleted = (bonusData.actionsCompleted || 0) + (Number(count) || 0);
+  if (bonusData.actionsCompleted < 0) bonusData.actionsCompleted = 0;
+  saveDailyBonusData(bonusData);
+  updateDailyBonusUI();
+  showToast('bi-activity', 'Simulated', `Added ${count} actions for testing`);
 }
 
 function claimDailyBonus() {
@@ -2115,11 +2140,17 @@ Object.assign(window, {
   deletePromotion,
   setPreferredCurrency,
   showEarnModal,
-  claimDailyBonus,
   verifyTask,
   closeEarnModal,
   copyReferralCode,
   shareReferralCode,
+});
+
+// expose testing helpers
+Object.assign(window, {
+  claimDailyBonus,
+  resetDailyBonusState,
+  simulateDailyActions,
 });
 
 // Initialize credit display on page load
