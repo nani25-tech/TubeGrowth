@@ -1,22 +1,10 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { authStorage } from '../utils/storage';
 
 export const Header = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const balance = user?.credits ?? 1000;
-  const isLoggedIn = authStorage.isAuthenticated();
-
-  const handleBuyCredits = () => {
-    if (!isLoggedIn) {
-      navigate('/login', { state: { from: { pathname: '/buy', search: '' } } });
-      return;
-    }
-
-    navigate('/buy');
-  };
 
   return (
     <header className="sticky top-0 z-40 glass border-b border-glass">
@@ -43,11 +31,6 @@ export const Header = () => {
 
         {/* Right Section */}
         <div className="flex items-center gap-4">
-          {isLoggedIn && (
-            <button type="button" onClick={handleBuyCredits} className="btn-primary text-sm py-2 px-4">
-              Buy Credits
-            </button>
-          )}
           <div className="flex items-center gap-2 text-sm text-yellow-400">
             <span>💰</span>
             <span className="font-bold">{balance} Credits</span>

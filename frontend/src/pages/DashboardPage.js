@@ -201,6 +201,12 @@ export const DashboardPage = () => {
           VIEW PROMOTIONS
         </button>
         <button
+          onClick={() => navigate('/buy')}
+          className="font-bold text-sm text-yellow-400 hover:text-yellow-300 transition-colors"
+        >
+          BUY CREDITS
+        </button>
+        <button
           onClick={handleLogout}
           className="font-bold text-sm text-text-secondary hover:text-primary transition-colors ml-auto"
         >
