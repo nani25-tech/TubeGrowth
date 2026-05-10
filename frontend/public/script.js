@@ -1446,13 +1446,16 @@ function bindEarnSettingsToggle() {
   toggle.dataset.bound = 'true';
   toggle.setAttribute('role', 'switch');
   toggle.setAttribute('tabindex', '0');
-  toggle.addEventListener('click', toggleEarnAutoVerify);
-  toggle.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      toggleEarnAutoVerify();
-    }
-  });
+  const hasInlineClickHandler = toggle.getAttribute('onclick');
+  if (!hasInlineClickHandler) {
+    toggle.addEventListener('click', toggleEarnAutoVerify);
+    toggle.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        toggleEarnAutoVerify();
+      }
+    });
+  }
 
   syncEarnAutoVerifyToggle();
 }
