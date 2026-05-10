@@ -27,7 +27,7 @@
     "tailwindcss": "^3.3.0"
   },
   "scripts": {
-    "deploy": "gh-pages -d public"
+    "deploy": "cd .. && git subtree split --prefix frontend/public --branch gh-pages-tmp && git push origin gh-pages-tmp:gh-pages && git branch -D gh-pages-tmp"
   },
   "eslintConfig": {
     "extends": [
