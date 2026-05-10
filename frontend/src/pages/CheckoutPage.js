@@ -73,11 +73,8 @@ export const CheckoutPage = () => {
             amount: amountPaise,
             currency: 'INR',
             name: 'TubeGrowth',
-            description: `${creditsByAmount[amountToUse] || amountToUse} Credits for ${user?.name || user?.youtubeChannelId}`,
-            prefill: { 
-              name: user?.name || user?.youtubeChannelId || '', 
-              email: user?.email || '' 
-            },
+            description: `Buy ${creditsByAmount[amountToUse] || amountToUse} Credits`,
+            prefill: { name: '', email: '' },
             theme: { color: '#FBBF24' },
             handler: function(paymentResponse) {
               // Notify user and redirect — server verification still needed separately
@@ -110,11 +107,11 @@ export const CheckoutPage = () => {
         amount: order.amount,
         currency: order.currency,
         name: 'TubeGrowth',
-        description: `${creditsByAmount[amountToUse] || amountToUse} Credits for ${user?.name || user?.youtubeChannelId}`,
+        description: `Buy ${creditsByAmount[amountToUse] || amountToUse} Credits`,
         order_id: order.id,
         prefill: {
-          name: user?.name || user?.youtubeChannelId || '',
-          email: user?.email || '',
+          name: '',
+          email: '',
         },
         theme: { color: '#FBBF24' },
         handler: async (paymentResponse) => {

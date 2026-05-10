@@ -682,6 +682,22 @@ function getLegacyUSDLabel(amountINR) {
   return usdMap[Number(amountINR)] || '$0';
 }
 
+function showCreditSummary(amountINR, creditsAmount) {
+  const summaryBox = document.getElementById('creditSummaryBox');
+  const summaryChannelName = document.getElementById('summaryChannelName');
+  const summaryCreditsAmount = document.getElementById('summaryCreditsAmount');
+  
+  const channelName = localStorage.getItem('selectedChannelName') || 'Unknown Channel';
+  
+  summaryChannelName.textContent = channelName;
+  summaryCreditsAmount.textContent = creditsAmount.toLocaleString() + ' Credits';
+  
+  if (summaryBox) {
+    summaryBox.style.display = 'block';
+    summaryBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
 function purchaseCreditsByINR(amountINR) {
   openPaymentPage(amountINR);
 }
