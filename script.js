@@ -489,7 +489,7 @@ async function syncCreditsFromBackend() {
   }
 
   try {
-    const response = await fetch('http://localhost:5000/api/user/profile', {
+    const response = await fetch(`${getApiBase()}/user/profile`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -580,6 +580,10 @@ function getPaymentsApiBase() {
   }
 
   return 'https://tubegrowth.onrender.com/api';
+}
+
+function getApiBase() {
+  return getPaymentsApiBase();
 }
 
 async function openPaymentPage(amountINR) {
