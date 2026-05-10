@@ -7,6 +7,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <link rel="stylesheet" href="style.css">
+<script>
+  (function () {
+    const target = new URL('./frontend/build/index.html', window.location.href).href;
+    if (window.location.href !== target) {
+      window.location.replace(target);
+    }
+  }());
+</script>
 </head>
 <body id="top">
 
@@ -83,7 +91,6 @@
       <a class="dash-tab" href="#get-started" aria-label="Go to boost profile form">BOOST PROFILE</a>
       <a class="dash-tab" href="#services" aria-label="Go to promotions section">VIEW PROMOTIONS</a>
       <a class="dash-tab" href="#top" aria-label="Back to top">LOGOUT</a>   
-    <li><a href="#buy-credits" class="nav-cta">Buy Credits</a></li>
     </div>
   </div>
 
@@ -235,7 +242,6 @@
       <a class="view-promo-shell-tab" href="#get-started" aria-label="Go to boost profile">BOOST PROFILE</a>
       <a class="view-promo-shell-tab active" href="#services" aria-current="page" aria-label="Go to view promotions">VIEW PROMOTIONS</a>
       <a class="view-promo-shell-tab" href="#top" aria-label="Back to top">LOGOUT</a>
-    <li><a href="#buy-credits" class="nav-cta">Buy Credits</a></li>
     </div>
   </div>
 
@@ -431,7 +437,6 @@
       <a class="earn-shell-tab" href="#get-started" aria-label="Go to boost profile form">BOOST PROFILE</a>
       <a class="earn-shell-tab" href="#services" aria-label="Go to promotions section">VIEW PROMOTIONS</a>
       <a class="earn-shell-tab" href="#top" aria-label="Back to top">LOGOUT</a>
-    <li><a href="#buy-credits" class="nav-cta">Buy Credits</a></li>
     </div>
   </div>
 
@@ -556,7 +561,6 @@
       <a class="boost-shell-tab active" href="#get-started" aria-current="page" aria-label="Go to boost profile">BOOST PROFILE</a>
       <a class="boost-shell-tab" href="#services" aria-label="Go to promotions section">VIEW PROMOTIONS</a>
       <a class="boost-shell-tab" href="#top" aria-label="Back to top">LOGOUT</a>
-    <li><a href="#buy-credits" class="nav-cta">Buy Credits</a></li>
     </div>
   </div>
 
