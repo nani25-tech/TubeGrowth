@@ -10,6 +10,7 @@ router.get('/users', adminController.getUsers);
 router.post('/users/:userId/ban', adminController.banUser);
 router.post('/users/:userId/unban', adminController.unbanUser);
 router.patch('/users/:userId/credits', adminController.editUserCredits);
+router.delete('/users/:userId', adminController.deleteUser);
 router.get('/campaigns', adminController.getCampaigns);
 router.post('/campaigns/:id/approve', adminController.approveCampaign);
 router.delete('/campaigns/:id', adminController.removeCampaign);

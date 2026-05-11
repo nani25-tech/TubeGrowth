@@ -33,21 +33,47 @@ function formatValue(value) {
   return typeof value === 'object' ? JSON.stringify(value) : String(value);
 }
 
+function getUserIdentityKey(user) {
+  return (user.youtubeChannelId || user.email || user._id || '').toString().trim().toLowerCase();
+}
+
+function dedupeUsers(users) {
+  const seen = new Set();
+  const uniqueUsers = [];
+
+  users.forEach((user) => {
+    const key = getUserIdentityKey(user);
+    if (seen.has(key)) {
+      return;
+    }
+    seen.add(key);
+    uniqueUsers.push(user);
+  });
+
+  return uniqueUsers;
+}
+
 function renderUsers(users) {
   usersTable.innerHTML = '';
+  const uniqueUsers = dedupeUsers(users);
 
-  if (!users.length) {
-    usersTable.innerHTML = '<tr><td colspan="3">No users found.</td></tr>';
+  if (!uniqueUsers.length) {
+    usersTable.innerHTML = '<tr><td colspan="4">No users found.</td></tr>';
     return;
   }
 
-  users.forEach((user) => {
+  uniqueUsers.forEach((user) => {
+    const channelName = user.youtubeChannelTitle || user.name || '—';
+    const channelId = user.youtubeChannelId || '—';
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td>${formatValue(user.youtubeChannelTitle)}</td>
-      <td>${formatValue(user.youtubeChannelId)}</td>
+      <td>${formatValue(channelName)}</td>
+      <td>${formatValue(channelId)}</td>
       <td>${formatValue(user.credits)}</td>
-      <td><button class="edit-btn" data-id="${user._id}" data-channel-name="${user.youtubeChannelTitle}" data-channel-id="${user.youtubeChannelId}" data-credits="${user.credits}">Edit</button></td>
+      <td>
+        <button class="edit-btn" data-id="${user._id}" data-channel-name="${channelName}" data-channel-id="${channelId}" data-credits="${user.credits}">Edit</button>
+        <button class="delete-btn" data-id="${user._id}" data-channel-name="${channelName}">Delete</button>
+      </td>
     `;
     usersTable.appendChild(row);
   });
@@ -60,6 +86,25 @@ function renderUsers(users) {
       const channelId = btn.getAttribute('data-channel-id');
       const credits = btn.getAttribute('data-credits');
       openEditModal(id, channelName, channelId, credits);
+    });
+  });
+
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-id');
+      const channelName = btn.getAttribute('data-channel-name') || 'this user';
+      const confirmed = window.confirm(`Delete ${channelName}? This cannot be undone.`);
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        await deleteUser(id);
+        setMessage('User deleted!', 'success');
+        loadUsers();
+      } catch (error) {
+        setMessage(error.message || 'Failed to delete user', 'error');
+      }
     });
   });
 }
@@ -122,6 +167,35 @@ async function updateUserCredits(userId, credits) {
   return response.json();
 }
 
+async function deleteUser(userId) {
+  const token = getToken();
+  const apiBase = getApiBase();
+  const requestOptions = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
+  let response = await fetch(`${apiBase}/admin/users/${userId}/ban`, {
+    method: 'POST',
+    ...requestOptions,
+  });
+
+  if (!response.ok) {
+    response = await fetch(`${apiBase}/admin/users/${userId}`, {
+      method: 'DELETE',
+      ...requestOptions,
+    });
+  }
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.message || 'Failed to delete user');
+  }
+
+  return data;
+}
+
 async function fetchAdminUsers() {
   const token = getToken();
   if (!token) {
@@ -141,7 +215,7 @@ async function fetchAdminUsers() {
     throw new Error(data.message || `Request failed (${response.status})`);
   }
 
-  return data.users || [];
+  return (data.users || []).filter((user) => !user.isBanned);
 }
 
 async function loadUsers() {
@@ -192,7 +266,7 @@ logoutBtn?.addEventListener('click', () => {
   localStorage.removeItem(TOKEN_KEY);
   updateAuthStatus();
   setMessage('Logged out.');
-  usersTable.innerHTML = '<tr><td colspan="7">Sign in to load users.</td></tr>';
+  usersTable.innerHTML = '<tr><td colspan="4">Sign in to load users.</td></tr>';
 });
 
 refreshBtn?.addEventListener('click', loadUsers);

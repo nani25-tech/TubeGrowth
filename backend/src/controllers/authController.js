@@ -5,22 +5,36 @@ export const channelLogin = async (req, res) => {
     if (!youtubeChannelId || !youtubeChannelTitle) {
       return res.status(400).json({ message: 'Channel ID and Channel Name are required' });
     }
+
+    const canonicalTitle = String(youtubeChannelTitle).trim();
+    const dummyEmail = `${youtubeChannelId}@channel.tubegrowth`;
     let user = await User.findOne({ youtubeChannelId });
+
     if (!user) {
-      // Generate a unique dummy email for channel users
-      const dummyEmail = `${youtubeChannelId}@channel.tubegrowth`;
+      user = await User.findOne({ email: dummyEmail });
+    }
+
+    if (!user) {
       user = new User({
-        name: youtubeChannelTitle,
+        name: canonicalTitle,
         youtubeChannelId,
-        youtubeChannelTitle,
+        youtubeChannelTitle: canonicalTitle,
         email: dummyEmail,
         password: youtubeChannelId, // Not used, but required by schema
         credits: 0,
         isAdmin: false,
       });
       user.generateReferralCode?.();
-      await user.save();
+    } else {
+      user.name = canonicalTitle;
+      user.youtubeChannelId = youtubeChannelId;
+      user.youtubeChannelTitle = canonicalTitle;
+      if (!user.email || user.email.endsWith('@channel.tubegrowth')) {
+        user.email = dummyEmail;
+      }
     }
+
+    await user.save();
     user.lastLogin = new Date();
     await user.save();
     const accessToken = signAccessToken({ userId: user._id });

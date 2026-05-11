@@ -1,11 +1,19 @@
 ﻿// Automatically register/login user with channel ID and name
 async function ensureChannelUserInBackend() {
   const channelId = restoreSelectedChannelSession();
-  const channelName = (localStorage.getItem('selectedChannelName') || '').trim() || getChannelDisplayName(channelId);
   if (!channelId) return;
-  if (!localStorage.getItem('selectedChannelName')) {
-    localStorage.setItem('selectedChannelName', channelName);
+
+  let channelName = (localStorage.getItem('selectedChannelName') || '').trim() || getChannelDisplayName(channelId);
+  try {
+    const profile = await fetchChannelProfile(channelId);
+    if (profile?.title) {
+      channelName = profile.title.trim();
+    }
+  } catch (error) {
+    // Keep the cached/display name if the profile lookup fails.
   }
+
+  localStorage.setItem('selectedChannelName', channelName);
   try {
     const apiBase = typeof getApiBase === 'function' ? getApiBase() : '';
     const response = await fetch(`${apiBase}/auth/channel-login`, {
@@ -17,6 +25,9 @@ async function ensureChannelUserInBackend() {
       const data = await response.json();
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('user', JSON.stringify(data.user));
+      if (data?.user && typeof data.user.credits === 'number') {
+        localStorage.setItem(getCreditStorageKey(), String(data.user.credits));
+      }
     }
   } catch (err) {
     // Optionally handle error
@@ -587,6 +598,44 @@ function persistCredits() {
   } catch (error) {
     // Ignore invalid stored user data and keep the balance in the credit keys.
   }
+
+  void syncCreditsToBackend(userCredits);
+}
+
+async function syncCreditsToBackend(balance = userCredits) {
+  const accessToken = localStorage.getItem('accessToken');
+  if (!accessToken) {
+    return false;
+  }
+
+  try {
+    const response = await fetch(`${getApiBase()}/user/credits/sync`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ credits: balance }),
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = await response.json();
+    if (data?.user && typeof data.user.credits === 'number') {
+      localStorage.setItem(getCreditStorageKey(), String(data.user.credits));
+      const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+      if (storedUser) {
+        storedUser.credits = data.user.credits;
+        localStorage.setItem('user', JSON.stringify(storedUser));
+      }
+    }
+
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 function updateTextForSelector(selector, value) {
@@ -612,6 +661,9 @@ async function syncCreditsFromBackend() {
       return false;
     }
 
+      if (data?.user && typeof data.user.credits === 'number') {
+        localStorage.setItem(getCreditStorageKey(), String(data.user.credits));
+      }
     const data = await response.json();
     const serverUser = data?.user;
     if (!serverUser || typeof serverUser.credits !== 'number') {
@@ -696,6 +748,64 @@ function getPaymentsApiBase() {
 
 function getApiBase() {
   return getPaymentsApiBase();
+}
+
+function applyServerCreditBalance(balance) {
+  const numericBalance = Number(balance);
+  if (!Number.isFinite(numericBalance)) {
+    return false;
+  }
+
+  userCredits = numericBalance;
+  persistCredits();
+  updateCreditDisplay();
+  return true;
+}
+
+async function recordEarnActionOnBackend({ taskKey, taskType, taskName, channelName, reward }) {
+  const accessToken = localStorage.getItem('accessToken');
+  if (!accessToken) {
+    return null;
+  }
+
+  const response = await fetch(`${getApiBase()}/user/earn`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ taskKey, taskType, taskName, channelName, reward }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.message || 'Unable to store credits');
+  }
+
+  return data;
+}
+
+async function createCampaignOnBackend({ channelUrl, type, targetCount }) {
+  const accessToken = localStorage.getItem('accessToken');
+  if (!accessToken) {
+    throw new Error('Please login to create campaigns');
+  }
+
+  const response = await fetch(`${getApiBase()}/campaign/create`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ channelUrl, type, targetCount }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.message || 'Unable to create campaign');
+  }
+
+  return data;
 }
 
 const PAYMENT_PACKS = {
@@ -1227,7 +1337,7 @@ function verifyReferralCode(referralCode) {
 }
 
 // Award referral credits to new user
-function awardReferralCredits(referralCode) {
+async function awardReferralCredits(referralCode) {
   try {
     const verification = verifyReferralCode(referralCode);
     
@@ -1237,11 +1347,23 @@ function awardReferralCredits(referralCode) {
     }
 
     const normalizedCode = referralCode.trim().toUpperCase();
-    
+
+    const result = await recordEarnActionOnBackend({
+      taskKey: `referral-${normalizedCode}`,
+      taskType: 'referral',
+      taskName: 'Referral Bonus',
+      channelName: normalizedCode,
+      reward: 30,
+    });
+
     const previousCredits = userCredits;
-    userCredits += 30;
-    persistCredits();
-    updateCreditDisplay();
+    if (result?.user && typeof result.user.credits === 'number') {
+      applyServerCreditBalance(result.user.credits);
+    } else {
+      userCredits += 30;
+      persistCredits();
+      updateCreditDisplay();
+    }
 
     localStorage.setItem('usedReferralCode', normalizedCode);
     localStorage.setItem('referralTimestamp', new Date().toISOString());
@@ -1257,7 +1379,7 @@ function awardReferralCredits(referralCode) {
 
     console.log('[awardReferralCredits] Successfully awarded 30 credits for referral code:', referralCode);
     showToast('bi-gift-fill', 'Referral Bonus!', '+30 Credits awarded for joining with a referral code');
-    
+
     return true;
   } catch (err) {
     console.error('[awardReferralCredits] Error:', err);
@@ -1265,7 +1387,7 @@ function awardReferralCredits(referralCode) {
   }
 }
 
-function trackReferralReward() {
+async function trackReferralReward() {
   try {
     // Check if coming from referral link
     const params = new URLSearchParams(window.location.search);
@@ -1283,7 +1405,7 @@ function trackReferralReward() {
     }
 
     // Award referral credits
-    const success = awardReferralCredits(refCode);
+    const success = await awardReferralCredits(refCode);
     
     if (success) {
       console.log('[trackReferralReward] Referral verified and credits awarded');
@@ -1295,7 +1417,7 @@ function trackReferralReward() {
   }
 }
 
-function verifyAndApplyReferralCode() {
+async function verifyAndApplyReferralCode() {
   try {
     const codeInput = document.getElementById('referralCodeInput');
     const statusDiv = document.getElementById('referralVerifyStatus');
@@ -1324,7 +1446,7 @@ function verifyAndApplyReferralCode() {
     }
 
     // Award credits
-    const success = awardReferralCredits(referralCode);
+    const success = await awardReferralCredits(referralCode);
     
     if (success) {
       statusDiv.textContent = '✓ Referral code applied successfully! 30 credits awarded.';
@@ -2175,7 +2297,7 @@ function updateBoostButtonState(creditsNeeded) {
   btn.style.background = '#39b54a';
 }
 
-function addPromotion() {
+async function addPromotion() {
   const type = document.getElementById('promotionType').value;
   const videoLinkInput = document.getElementById('videoLink').value;
   const quantity = parseInt(document.getElementById('quantityInput').value);
@@ -2194,41 +2316,46 @@ function addPromotion() {
     showToast('bi-x-circle-fill', 'Insufficient Credits', `You need ${creditsNeeded} credits but only have ${userCredits}`);
     return;
   }
-  
-  // Deduct credits
-  deductCredits(creditsNeeded);
-  
-  // Create campaign object
-  const campaign = {
-    id: Date.now(),
-    type: type,
-    videoLink: videoLink,
-    channelId: registeredChannelId,
-    channelName: registeredChannelName,
-    quantity: quantity,
-    costPaid: creditsNeeded,
-    status: 'Active',
-    dateCreated: new Date().toLocaleDateString(),
-    progress: 0
-  };
-  
-  // Save to localStorage
-  let campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
-  campaigns.push(campaign);
-  localStorage.setItem('campaigns', JSON.stringify(campaigns));
-  
-  // Show success
-  showToast('bi-check-circle-fill', 'Promotion Added!', `${quantity} ${type} ordered for ${videoLink}`);
-  
-  // Reset form
-  document.getElementById('promotionType').value = '';
-  document.getElementById('quantityInput').value = '';
-  document.getElementById('videoLink').value = '';
-  document.getElementById('creditsNeeded').textContent = '0';
-  updateBoostTargetField('', document.getElementById('videoLink'), document.getElementById('videoLinkLabel'));
-  updateBoostButtonState(0);
-  
-  // Update UI (optional: display campaigns list)
+
+  try {
+    const responseData = await createCampaignOnBackend({
+      channelUrl: videoLink,
+      type,
+      targetCount: quantity,
+    });
+
+    if (typeof responseData?.credits === 'number') {
+      applyServerCreditBalance(responseData.credits);
+    }
+
+    const campaign = {
+      id: responseData?.campaign?.id || Date.now(),
+      type,
+      videoLink,
+      channelId: registeredChannelId,
+      channelName: registeredChannelName,
+      quantity,
+      costPaid: creditsNeeded,
+      status: responseData?.campaign?.status || 'Active',
+      dateCreated: new Date().toLocaleDateString(),
+      progress: 0,
+    };
+
+    const campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
+    campaigns.push(campaign);
+    localStorage.setItem('campaigns', JSON.stringify(campaigns));
+
+    showToast('bi-check-circle-fill', 'Promotion Added!', `${quantity} ${type} ordered for ${videoLink}`);
+
+    document.getElementById('promotionType').value = '';
+    document.getElementById('quantityInput').value = '';
+    document.getElementById('videoLink').value = '';
+    document.getElementById('creditsNeeded').textContent = '0';
+    updateBoostTargetField('', document.getElementById('videoLink'), document.getElementById('videoLinkLabel'));
+    updateBoostButtonState(0);
+  } catch (error) {
+    showToast('bi-x-circle-fill', 'Promotion Failed', error.message || 'Unable to create promotion');
+  }
 }
 
 // Initialize boost profile display

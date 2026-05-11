@@ -214,6 +214,48 @@ export const recordEarnAction = async (req, res) => {
   }
 };
 
+export const syncCredits = async (req, res) => {
+  try {
+    if (req.user.isGuest) {
+      return res.status(400).json({ message: 'Please login to sync credits' });
+    }
+
+    const { credits } = req.body;
+    const normalizedCredits = Number(credits);
+
+    if (!Number.isFinite(normalizedCredits) || normalizedCredits < 0) {
+      return res.status(400).json({ message: 'Valid credits value is required' });
+    }
+
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.credits = Math.floor(normalizedCredits);
+    await user.save();
+
+    res.json({
+      message: 'Credits synced successfully',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        credits: user.credits,
+        subscribers: user.subscribers,
+        watchTimeHours: user.watchTimeHours,
+        referralCode: user.referralCode,
+        youtubeChannelId: user.youtubeChannelId,
+        youtubeChannelTitle: user.youtubeChannelTitle,
+        youtubeConnected: !!user.youtubeChannelId,
+      },
+    });
+  } catch (error) {
+    console.error('Sync credits error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 export const getEarnHistory = async (req, res) => {
   try {
     if (req.user.isGuest) {

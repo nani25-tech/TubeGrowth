@@ -11,13 +11,13 @@ export const getUsers = async (req, res) => {
     const { page = 1, limit = 20 } = req.query;
 
     // Only fetch regular users (not admins)
-    const users = await User.find({ isAdmin: false })
+    const users = await User.find({ isAdmin: false, isBanned: false })
       .select('-password')
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
 
-    const total = await User.countDocuments({ isAdmin: false });
+    const total = await User.countDocuments({ isAdmin: false, isBanned: false });
 
     res.json({
       users,
@@ -100,6 +100,26 @@ export const editUserCredits = async (req, res) => {
     res.json({ message: 'Credits updated', user });
   } catch (error) {
     console.error('Edit user credits error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  try {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ message: 'Admin only' });
+    }
+
+    const { userId } = req.params;
+    const user = await User.findByIdAndDelete(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Delete user error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };

@@ -11,6 +11,7 @@ router.get('/wallet', authRequired, userController.getWallet);
 router.get('/referrals', authRequired, userController.getReferrals);
 router.get('/earn-history', authRequired, userController.getEarnHistory);
 router.post('/earn', authRequired, userController.recordEarnAction);
+router.post('/credits/sync', authRequired, userController.syncCredits);
 router.get('/leaderboard', userController.getLeaderboard);
 router.get('/payments', authRequired, userController.getPaymentHistory);
 router.put('/profile', authRequired, userController.updateProfile);

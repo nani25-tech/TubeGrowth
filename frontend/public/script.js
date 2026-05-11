@@ -1,11 +1,19 @@
 ﻿// Automatically register/login user with channel ID and name
 async function ensureChannelUserInBackend() {
   const channelId = restoreSelectedChannelSession();
-  const channelName = (localStorage.getItem('selectedChannelName') || '').trim() || getChannelDisplayName(channelId);
   if (!channelId) return;
-  if (!localStorage.getItem('selectedChannelName')) {
-    localStorage.setItem('selectedChannelName', channelName);
+
+  let channelName = (localStorage.getItem('selectedChannelName') || '').trim() || getChannelDisplayName(channelId);
+  try {
+    const profile = await fetchChannelProfile(channelId);
+    if (profile?.title) {
+      channelName = profile.title.trim();
+    }
+  } catch (error) {
+    // Keep the cached/display name if the profile lookup fails.
   }
+
+  localStorage.setItem('selectedChannelName', channelName);
   try {
     const apiBase = typeof getApiBase === 'function' ? getApiBase() : '';
     const response = await fetch(`${apiBase}/auth/channel-login`, {
@@ -17,6 +25,9 @@ async function ensureChannelUserInBackend() {
       const data = await response.json();
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('user', JSON.stringify(data.user));
+      if (data?.user && typeof data.user.credits === 'number') {
+        localStorage.setItem(getCreditStorageKey(), String(data.user.credits));
+      }
     }
   } catch (err) {
     // Optionally handle error
@@ -586,6 +597,44 @@ function persistCredits() {
     }
   } catch (error) {
     // Ignore invalid stored user data and keep the balance in the credit keys.
+  }
+
+  void syncCreditsToBackend(userCredits);
+}
+
+async function syncCreditsToBackend(balance = userCredits) {
+  const accessToken = localStorage.getItem('accessToken');
+  if (!accessToken) {
+    return false;
+  }
+
+  try {
+    const response = await fetch(`${getApiBase()}/user/credits/sync`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ credits: balance }),
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = await response.json();
+    if (data?.user && typeof data.user.credits === 'number') {
+      localStorage.setItem(getCreditStorageKey(), String(data.user.credits));
+      const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+      if (storedUser) {
+        storedUser.credits = data.user.credits;
+        localStorage.setItem('user', JSON.stringify(storedUser));
+      }
+    }
+
+    return true;
+  } catch (error) {
+    return false;
   }
 }
 

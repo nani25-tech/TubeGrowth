@@ -50,6 +50,7 @@ export const createCampaign = async (req, res) => {
 
     res.status(201).json({
       message: 'Campaign created successfully',
+      credits: user.credits,
       campaign: {
         id: campaign._id,
         channelName: campaign.channelName,
