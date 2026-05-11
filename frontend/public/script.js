@@ -1344,7 +1344,10 @@ function renderEarnMainTask() {
   };
 
   const task = labels[taskType] || labels.subscribe;
-  copyEl.innerHTML = `<strong>${task.action}</strong> to earn ${task.credits} ${task.credits === 1 ? 'credit' : 'credits'}.`;
+  const taskMessage = taskType === 'subscribe'
+    ? 'a promoted channel from Boost Profile'
+    : 'a promoted video from Boost Profile';
+  copyEl.innerHTML = `<strong>${task.action}</strong> on ${taskMessage} to earn ${task.credits} ${task.credits === 1 ? 'credit' : 'credits'}.`;
   openBtn.textContent = task.action;
   verifyBtn.textContent = 'VERIFY & NEXT PROMOTION';
   openBtn.onclick = () => showEarnModal(taskType);
@@ -1526,7 +1529,7 @@ function showEarnModal(taskType) {
     } else if (linkEl && nameEl) {
       linkEl.href = 'https://youtube.com/@TubeBoost';
       linkEl.onclick = (event) => openEarnLink(taskType, linkEl.href, linkEl) ? undefined : event.preventDefault();
-      nameEl.textContent = 'Channel: TubeBoost';
+      nameEl.textContent = 'Channel: Add a promotion in Boost Profile';
     }
   }
 }
