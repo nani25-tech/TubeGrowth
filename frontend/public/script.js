@@ -752,17 +752,14 @@ function purchaseCredits(amount, price, successMessage) {
   showToast('bi-coin', 'Credits Purchased!', successMessage || `+${amount} Credits added to your account`);
 }
 
-function getPaymentsApiBase() {
+function getApiBase() {
   const host = window.location.hostname;
-  if (host === 'localhost' || host === '127.0.0.1') {
+  const port = window.location.port;
+  const protocol = window.location.protocol;
+  if (protocol === 'file:' || host === '' || host === 'localhost' || host === '127.0.0.1' || port === '5000') {
     return 'http://localhost:5000/api';
   }
-
   return 'https://tubegrowth.zone.id/api';
-}
-
-function getApiBase() {
-  return getPaymentsApiBase();
 }
 
 const PAYMENT_PACKS = {
@@ -795,7 +792,7 @@ async function openPaymentPage(currency, amount) {
 
   try {
     const accessToken = localStorage.getItem('accessToken');
-    const apiBase = getPaymentsApiBase();
+    const apiBase = getApiBase();
 
     if (!window.Razorpay) {
       showToast('bi-exclamation-triangle-fill', 'Payment Not Ready', 'Razorpay checkout is not loaded yet. Refresh the page and try again.');

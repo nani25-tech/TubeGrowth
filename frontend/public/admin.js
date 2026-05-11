@@ -9,7 +9,9 @@ const TOKEN_KEY = 'accessToken';
 
 function getApiBase() {
   const host = window.location.hostname;
-  if (host === 'localhost' || host === '127.0.0.1') {
+  const port = window.location.port;
+  const protocol = window.location.protocol;
+  if (protocol === 'file:' || host === '' || host === 'localhost' || host === '127.0.0.1' || port === '5000') {
     return 'http://localhost:5000/api';
   }
   return 'https://tubegrowth.zone.id/api';
