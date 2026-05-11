@@ -1,3 +1,47 @@
+// Login or register with channel ID and channel name only
+export const channelLogin = async (req, res) => {
+  try {
+    const { youtubeChannelId, youtubeChannelTitle } = req.body;
+    if (!youtubeChannelId || !youtubeChannelTitle) {
+      return res.status(400).json({ message: 'Channel ID and Channel Name are required' });
+    }
+    let user = await User.findOne({ youtubeChannelId });
+    if (!user) {
+      // Generate a unique dummy email for channel users
+      const dummyEmail = `${youtubeChannelId}@channel.tubegrowth`;
+      user = new User({
+        name: youtubeChannelTitle,
+        youtubeChannelId,
+        youtubeChannelTitle,
+        email: dummyEmail,
+        password: youtubeChannelId, // Not used, but required by schema
+        credits: 0,
+        isAdmin: false,
+      });
+      user.generateReferralCode?.();
+      await user.save();
+    }
+    user.lastLogin = new Date();
+    await user.save();
+    const accessToken = signAccessToken({ userId: user._id });
+    const refreshToken = signRefreshToken({ userId: user._id });
+    res.json({
+      message: 'Channel login successful',
+      accessToken,
+      refreshToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        credits: user.credits,
+        youtubeChannelId: user.youtubeChannelId,
+        youtubeChannelTitle: user.youtubeChannelTitle,
+      },
+    });
+  } catch (error) {
+    console.error('Channel login error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+}
 import User from '../models/User.js';
 import { signAccessToken, signRefreshToken } from '../utils/tokens.js';
 import { sendWelcomeEmail } from '../utils/email.js';

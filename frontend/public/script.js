@@ -1,4 +1,25 @@
-﻿// DEFAULT SUBSCRIBE CHANNELS FOR EARN CREDITS
+﻿// Automatically register/login user with channel ID and name
+async function ensureChannelUserInBackend() {
+  const channelId = localStorage.getItem('selectedChannelId');
+  const channelName = localStorage.getItem('selectedChannelName');
+  if (!channelId || !channelName) return;
+  try {
+    const apiBase = typeof getApiBase === 'function' ? getApiBase() : '';
+    const response = await fetch(`${apiBase}/auth/channel-login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ youtubeChannelId: channelId, youtubeChannelTitle: channelName })
+    });
+    if (response.ok) {
+      const data = await response.json();
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('user', JSON.stringify(data.user));
+    }
+  } catch (err) {
+    // Optionally handle error
+  }
+}
+// DEFAULT SUBSCRIBE CHANNELS FOR EARN CREDITS
 const DEFAULT_SUBSCRIBE_CHANNELS = [
   'UCmam8Q0LmXbyjU4ZuOln-Zg',
   'UCKCt8T9Z5MbnOgbxA3PYJNQ',
@@ -89,6 +110,8 @@ function updateCreditsDisplay() {
 }
 
 // LANDING PAGE FUNCTIONS
+// Ensure user is registered in backend when channel is selected
+ensureChannelUserInBackend();
 function showSection(sectionId) {
   const normalizedId = sectionId === '#top' || sectionId === 'top' ? 'home' : sectionId.replace(/^#/, '');
 
@@ -189,6 +212,7 @@ function searchAndOpenDashboard() {
   // Save channel info to localStorage for dashboard
   localStorage.setItem('selectedChannelId', channelId);
   localStorage.setItem('selectedChannelName', channelName);
+  ensureChannelUserInBackend();
   channelInput.value = channelId;
   
   // Update dashboard profile info
