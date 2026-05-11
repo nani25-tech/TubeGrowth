@@ -211,21 +211,107 @@ function scrollToSection(sectionId) {
   showSection(sectionId);
 }
 
+function getStoredUserReferralCode() {
+  const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+  const code = typeof storedUser?.referralCode === 'string' ? storedUser.referralCode.trim().toUpperCase() : '';
+  return /^(TGB|TB)[A-Z0-9]{5,}$/.test(code) ? code : '';
+}
+
+function generateReferralCode() {
+  const storedUserCode = getStoredUserReferralCode();
+  if (storedUserCode) {
+    return storedUserCode;
+  }
+
+  const stored = (localStorage.getItem('referralCode') || '').trim().toUpperCase();
+  if (/^(TGB|TB)[A-Z0-9]{5,}$/.test(stored)) {
+    return stored;
+  }
+
+  const channelId = localStorage.getItem('selectedChannelId') || '';
+  const code = channelId
+    ? `TGB${channelId.substring(0, 8).toUpperCase()}`
+    : `TGB${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+
+  localStorage.setItem('referralCode', code);
+  return code;
+}
+
+function getReferralData() {
+  const storedData = JSON.parse(localStorage.getItem('referralData')) || {
+    code: generateReferralCode(),
+    referred: 0,
+    earnings: 0
+  };
+
+  const currentCode = generateReferralCode();
+  if (!/^(TGB|TB)[A-Z0-9]{5,}$/.test((storedData.code || '').trim().toUpperCase()) || storedData.code !== currentCode) {
+    storedData.code = currentCode;
+  }
+
+  saveReferralData(storedData);
+  return storedData;
+}
+
+function saveReferralData(data) {
+  localStorage.setItem('referralData', JSON.stringify(data));
+}
+
+function updateReferralUI() {
+  const data = getReferralData();
+  const codeInput = document.getElementById('referralCode');
+  const countEl = document.getElementById('referralCount');
+  const earningsEl = document.getElementById('referralEarnings');
+
+  if (codeInput) codeInput.value = data.code;
+  if (countEl) countEl.textContent = data.referred || 0;
+  if (earningsEl) earningsEl.textContent = (data.earnings || 0) + ' Credits';
+}
+
+function copyReferralCode() {
+  const codeInput = document.getElementById('referralCode');
+  if (!codeInput) return;
+
+  codeInput.select();
+  document.execCommand('copy');
+  showToast('bi-check-circle-fill', 'Copied!', 'Referral code copied to clipboard');
+}
+
+function shareReferralCode() {
+  const data = getReferralData();
+  const shareUrl = `${window.location.origin}/?ref=${data.code}`;
+
+  if (navigator.share) {
+    navigator.share({
+      title: 'Join TubeBoost',
+      text: 'Get 30 credits when you join with my referral code!',
+      url: shareUrl
+    }).catch(() => {
+      copyReferralCode();
+    });
+  } else {
+    const textarea = document.createElement('textarea');
+    textarea.value = shareUrl;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    showToast('bi-link-45deg', 'Link Copied!', 'Share this link to earn referral credits');
+  }
+}
+
 function verifyReferralCode(referralCode) {
   if (!referralCode || typeof referralCode !== 'string') {
     return { valid: false, error: 'Invalid referral code format' };
   }
 
-  if (!referralCode.toUpperCase().startsWith('TGB')) {
-    return { valid: false, error: 'Invalid referral code - must start with TGB' };
-  }
-
-  if (referralCode.length < 7) {
-    return { valid: false, error: 'Invalid referral code - too short' };
+  const normalizedCode = referralCode.trim().toUpperCase();
+  if (!/^(TGB|TB)[A-Z0-9]{5,}$/.test(normalizedCode)) {
+    return { valid: false, error: 'Invalid referral code - use your own referral code from Refer & Earn' };
   }
 
   const usedCode = localStorage.getItem('usedReferralCode');
-  if (usedCode === referralCode.toUpperCase()) {
+  if (usedCode === normalizedCode) {
     return { valid: false, error: 'You already used this referral code' };
   }
 
@@ -240,16 +326,17 @@ function awardReferralCredits(referralCode) {
       return false;
     }
 
+    const normalizedCode = referralCode.trim().toUpperCase();
     userCredits += 30;
     persistCredits();
     updateCreditDisplay();
 
-    localStorage.setItem('usedReferralCode', referralCode.toUpperCase());
+    localStorage.setItem('usedReferralCode', normalizedCode);
     localStorage.setItem('referralTimestamp', new Date().toISOString());
 
     const referralLog = JSON.parse(localStorage.getItem('referralLog')) || [];
     referralLog.push({
-      code: referralCode.toUpperCase(),
+      code: normalizedCode,
       claimedAt: new Date().toISOString(),
       creditsAwarded: 30
     });
@@ -1614,6 +1701,7 @@ function initializeBoostProfile() {
 document.addEventListener('DOMContentLoaded', () => {
   initializeBoostProfile();
   initializeViewPromotions();
+  updateReferralUI();
   const referralCodeFromUrl = new URLSearchParams(window.location.search).get('ref');
   if (referralCodeFromUrl) {
     awardReferralCredits(referralCodeFromUrl);

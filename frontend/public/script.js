@@ -824,6 +824,8 @@ function saveEarnedToday(data) {
 }
 
 // DAILY BONUS FUNCTIONS
+let dailyBonusUiDate = null;
+
 function getDailyBonusData() {
   const today = new Date().toDateString();
   let storedData = {};
@@ -878,6 +880,13 @@ function getTimeUntilReset() {
 
 function updateDailyBonusTimer() {
   try {
+    const today = new Date().toDateString();
+    if (dailyBonusUiDate && dailyBonusUiDate !== today) {
+      // Day rolled over while page stayed open; rebuild bonus state and controls.
+      updateDailyBonusUI();
+      return;
+    }
+
     const { hours, minutes } = getTimeUntilReset();
     const safeHours = Math.max(0, hours || 0);
     const safeMinutes = Math.max(0, minutes || 0);
@@ -896,6 +905,7 @@ function updateDailyBonusTimer() {
 function updateDailyBonusUI() {
   try {
     const bonusData = getDailyBonusData();
+    dailyBonusUiDate = bonusData.date || new Date().toDateString();
     const actionsCountEl = document.getElementById('dailyActionsCount');
     const dashActionsCountEl = document.getElementById('dashDailyActionsCount');
     const bonusBtn = document.getElementById('claimBonusBtn');
@@ -1001,19 +1011,25 @@ function claimDailyBonus() {
 }
 
 // REFERRAL SYSTEM
+function getStoredUserReferralCode() {
+  const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+  const code = typeof storedUser?.referralCode === 'string' ? storedUser.referralCode.trim().toUpperCase() : '';
+  return /^(TGB|TB)[A-Z0-9]{5,}$/.test(code) ? code : '';
+}
+
 function generateReferralCode() {
-  const stored = localStorage.getItem('referralCode');
-  if (stored) return stored;
-  
-  // Generate code from channel ID or create random code
-  const channelId = localStorage.getItem('selectedChannelId') || '';
-  let code;
-  
-  if (channelId) {
-    code = 'TGB' + channelId.substring(0, 8).toUpperCase();
-  } else {
-    code = 'TGB' + Math.random().toString(36).substring(2, 10).toUpperCase();
+  const storedUserCode = getStoredUserReferralCode();
+  if (storedUserCode) return storedUserCode;
+
+  const stored = (localStorage.getItem('referralCode') || '').trim().toUpperCase();
+  if (/^(TGB|TB)[A-Z0-9]{5,}$/.test(stored)) {
+    return stored;
   }
+  
+  const channelId = localStorage.getItem('selectedChannelId') || '';
+  const code = channelId
+    ? `TGB${channelId.substring(0, 8).toUpperCase()}`
+    : `TGB${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
   
   localStorage.setItem('referralCode', code);
   return code;
@@ -1025,6 +1041,11 @@ function getReferralData() {
     referred: 0,
     earnings: 0
   };
+
+  const currentCode = generateReferralCode();
+  if (!/^(TGB|TB)[A-Z0-9]{5,}$/.test((storedData.code || '').trim().toUpperCase()) || storedData.code !== currentCode) {
+    storedData.code = currentCode;
+  }
 
   saveReferralData(storedData);
   return storedData;
@@ -1085,19 +1106,13 @@ function verifyReferralCode(referralCode) {
     return { valid: false, error: 'Invalid referral code format' };
   }
 
-  // Validate code format (should start with TGB)
-  if (!referralCode.toUpperCase().startsWith('TGB')) {
-    return { valid: false, error: 'Invalid referral code - must start with TGB' };
+  const normalizedCode = referralCode.trim().toUpperCase();
+  if (!/^(TGB|TB)[A-Z0-9]{5,}$/.test(normalizedCode)) {
+    return { valid: false, error: 'Invalid referral code - use your own referral code from Refer & Earn' };
   }
 
-  // Check if code length is reasonable (TGB + at least 4 characters)
-  if (referralCode.length < 7) {
-    return { valid: false, error: 'Invalid referral code - too short' };
-  }
-
-  // Check if already used
   const usedCode = localStorage.getItem('usedReferralCode');
-  if (usedCode === referralCode.toUpperCase()) {
+  if (usedCode === normalizedCode) {
     return { valid: false, error: 'You already used this referral code' };
   }
 
@@ -1114,20 +1129,19 @@ function awardReferralCredits(referralCode) {
       return false;
     }
 
-    // Award 30 credits to the new user
+    const normalizedCode = referralCode.trim().toUpperCase();
+    
     const previousCredits = userCredits;
     userCredits += 30;
     persistCredits();
     updateCreditDisplay();
 
-    // Mark this code as used
-    localStorage.setItem('usedReferralCode', referralCode.toUpperCase());
+    localStorage.setItem('usedReferralCode', normalizedCode);
     localStorage.setItem('referralTimestamp', new Date().toISOString());
 
-    // Log the referral for tracking
     const referralLog = JSON.parse(localStorage.getItem('referralLog')) || [];
     referralLog.push({
-      code: referralCode.toUpperCase(),
+      code: normalizedCode,
       claimedAt: new Date().toISOString(),
       creditsAwarded: 30,
       creditsBefore: previousCredits

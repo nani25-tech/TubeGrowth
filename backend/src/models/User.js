@@ -125,7 +125,7 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
 
 // Generate referral code
 userSchema.methods.generateReferralCode = function () {
-  const code = 'TB' + this._id.toString().slice(-8).toUpperCase();
+  const code = 'TGB' + this._id.toString().slice(-8).toUpperCase();
   this.referralCode = code;
   return code;
 };
