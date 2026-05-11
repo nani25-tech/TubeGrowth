@@ -1,4 +1,25 @@
-﻿// DEFAULT SUBSCRIBE CHANNELS FOR EARN CREDITS
+﻿// Automatically register/login user with channel ID and name
+async function ensureChannelUserInBackend() {
+  const channelId = localStorage.getItem('selectedChannelId');
+  const channelName = localStorage.getItem('selectedChannelName');
+  if (!channelId || !channelName) return;
+  try {
+    const apiBase = typeof getApiBase === 'function' ? getApiBase() : '';
+    const response = await fetch(`${apiBase}/auth/channel-login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ youtubeChannelId: channelId, youtubeChannelTitle: channelName })
+    });
+    if (response.ok) {
+      const data = await response.json();
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('user', JSON.stringify(data.user));
+    }
+  } catch (err) {
+    // Optionally handle error
+  }
+}
+// DEFAULT SUBSCRIBE CHANNELS FOR EARN CREDITS
 const DEFAULT_SUBSCRIBE_CHANNELS = [
   'UCmam8Q0LmXbyjU4ZuOln-Zg',
   'UCKCt8T9Z5MbnOgbxA3PYJNQ',
@@ -76,14 +97,21 @@ function clearSelectedChannelSession() {
 
 function updateCreditsDisplay() {
   const navCredits = document.getElementById('navCredits');
+  const buyCreditsNav = document.getElementById('buyCreditsNav');
   const hasChannel = hasSelectedChannel();
   
   if (navCredits) {
     navCredits.style.display = hasChannel ? 'flex' : 'none';
   }
+
+  if (buyCreditsNav) {
+    buyCreditsNav.style.display = hasChannel ? 'flex' : 'none';
+  }
 }
 
 // LANDING PAGE FUNCTIONS
+// Ensure user is registered in backend when channel is selected
+ensureChannelUserInBackend();
 function showSection(sectionId) {
   const normalizedId = sectionId === '#top' || sectionId === 'top' ? 'home' : sectionId.replace(/^#/, '');
 
@@ -108,7 +136,7 @@ function showSection(sectionId) {
     element.style.display = element === sectionElement ? '' : 'none';
   });
 
-  history.replaceState(null, '', normalizedId === 'home' ? '#top' : `#${normalizedId}`);
+  window.history.replaceState(null, '', normalizedId === 'home' ? '#top' : `#${normalizedId}`);
   updateActiveSectionLinks(normalizedId);
 
   if (normalizedId === 'dashboard-preview') {
@@ -124,7 +152,7 @@ function showSection(sectionId) {
 function updateActiveSectionLinks(activeSectionId) {
   document.querySelectorAll('a[href^="#"]').forEach((link) => {
     const href = link.getAttribute('href');
-    if (!href || href === '#') {
+    if (!href || href === '#' || href === '#top') {
       return;
     }
 
@@ -184,6 +212,7 @@ function searchAndOpenDashboard() {
   // Save channel info to localStorage for dashboard
   localStorage.setItem('selectedChannelId', channelId);
   localStorage.setItem('selectedChannelName', channelName);
+  ensureChannelUserInBackend();
   channelInput.value = channelId;
   
   // Update dashboard profile info
@@ -210,193 +239,6 @@ function searchAndOpenDashboard() {
 function scrollToSection(sectionId) {
   showSection(sectionId);
 }
-
-function getStoredUserReferralCode() {
-  const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
-  const code = typeof storedUser?.referralCode === 'string' ? storedUser.referralCode.trim().toUpperCase() : '';
-  return /^(TGB|TB)[A-Z0-9]{5,}$/.test(code) ? code : '';
-}
-
-function generateReferralCode() {
-  const storedUserCode = getStoredUserReferralCode();
-  if (storedUserCode) {
-    return storedUserCode;
-  }
-
-  const stored = (localStorage.getItem('referralCode') || '').trim().toUpperCase();
-  if (/^(TGB|TB)[A-Z0-9]{5,}$/.test(stored)) {
-    return stored;
-  }
-
-  const channelId = localStorage.getItem('selectedChannelId') || '';
-  const code = channelId
-    ? `TGB${channelId.substring(0, 8).toUpperCase()}`
-    : `TGB${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-
-  localStorage.setItem('referralCode', code);
-  return code;
-}
-
-function getReferralData() {
-  const storedData = JSON.parse(localStorage.getItem('referralData')) || {
-    code: generateReferralCode(),
-    referred: 0,
-    earnings: 0
-  };
-
-  const currentCode = generateReferralCode();
-  if (!/^(TGB|TB)[A-Z0-9]{5,}$/.test((storedData.code || '').trim().toUpperCase()) || storedData.code !== currentCode) {
-    storedData.code = currentCode;
-  }
-
-  saveReferralData(storedData);
-  return storedData;
-}
-
-function saveReferralData(data) {
-  localStorage.setItem('referralData', JSON.stringify(data));
-}
-
-function updateReferralUI() {
-  const data = getReferralData();
-  const codeInput = document.getElementById('referralCode');
-  const countEl = document.getElementById('referralCount');
-  const earningsEl = document.getElementById('referralEarnings');
-
-  if (codeInput) codeInput.value = data.code;
-  if (countEl) countEl.textContent = data.referred || 0;
-  if (earningsEl) earningsEl.textContent = (data.earnings || 0) + ' Credits';
-}
-
-function copyReferralCode() {
-  const codeInput = document.getElementById('referralCode');
-  if (!codeInput) return;
-
-  codeInput.select();
-  document.execCommand('copy');
-  showToast('bi-check-circle-fill', 'Copied!', 'Referral code copied to clipboard');
-}
-
-function shareReferralCode() {
-  const data = getReferralData();
-  const shareUrl = `${window.location.origin}/?ref=${data.code}`;
-
-  if (navigator.share) {
-    navigator.share({
-      title: 'Join TubeGrowth',
-      text: 'Get 30 credits when you join with my referral code!',
-      url: shareUrl
-    }).catch(() => {
-      copyReferralCode();
-    });
-  } else {
-    const textarea = document.createElement('textarea');
-    textarea.value = shareUrl;
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textarea);
-    showToast('bi-link-45deg', 'Link Copied!', 'Share this link to earn referral credits');
-  }
-}
-
-function verifyReferralCode(referralCode) {
-  if (!referralCode || typeof referralCode !== 'string') {
-    return { valid: false, error: 'Invalid referral code format' };
-  }
-
-  const normalizedCode = referralCode.trim().toUpperCase();
-  if (!/^(TGB|TB)[A-Z0-9]{5,}$/.test(normalizedCode)) {
-    return { valid: false, error: 'Invalid referral code - use your own referral code from Refer & Earn' };
-  }
-
-  const usedCode = localStorage.getItem('usedReferralCode');
-  if (usedCode === normalizedCode) {
-    return { valid: false, error: 'You already used this referral code' };
-  }
-
-  return { valid: true };
-}
-
-function awardReferralCredits(referralCode) {
-  try {
-    const verification = verifyReferralCode(referralCode);
-
-    if (!verification.valid) {
-      return false;
-    }
-
-    const normalizedCode = referralCode.trim().toUpperCase();
-    userCredits += 30;
-    persistCredits();
-    updateCreditDisplay();
-
-    localStorage.setItem('usedReferralCode', normalizedCode);
-    localStorage.setItem('referralTimestamp', new Date().toISOString());
-
-    const referralLog = JSON.parse(localStorage.getItem('referralLog')) || [];
-    referralLog.push({
-      code: normalizedCode,
-      claimedAt: new Date().toISOString(),
-      creditsAwarded: 30
-    });
-    localStorage.setItem('referralLog', JSON.stringify(referralLog));
-
-    showToast('bi-gift-fill', 'Referral Bonus!', '+30 Credits awarded for joining with a referral code');
-    return true;
-  } catch (error) {
-    return false;
-  }
-}
-
-function verifyAndApplyReferralCode() {
-  try {
-    const codeInput = document.getElementById('referralCodeInput');
-    const statusDiv = document.getElementById('referralVerifyStatus');
-
-    if (!codeInput || !statusDiv) {
-      return;
-    }
-
-    const referralCode = codeInput.value.trim();
-
-    if (!referralCode) {
-      statusDiv.textContent = 'Please enter a referral code';
-      statusDiv.style.color = '#e74c3c';
-      return;
-    }
-
-    const verification = verifyReferralCode(referralCode);
-    if (!verification.valid) {
-      statusDiv.textContent = verification.error;
-      statusDiv.style.color = '#e74c3c';
-      return;
-    }
-
-    const success = awardReferralCredits(referralCode);
-    if (success) {
-      statusDiv.textContent = 'Referral code applied successfully. 30 credits awarded.';
-      statusDiv.style.color = '#39b54a';
-      codeInput.value = '';
-      codeInput.disabled = true;
-
-      setTimeout(() => {
-        codeInput.disabled = false;
-      }, 3000);
-    } else {
-      statusDiv.textContent = 'Failed to apply referral code. Please try again.';
-      statusDiv.style.color = '#e74c3c';
-    }
-  } catch (error) {
-    const statusDiv = document.getElementById('referralVerifyStatus');
-    if (statusDiv) {
-      statusDiv.textContent = 'An error occurred. Please try again.';
-      statusDiv.style.color = '#e74c3c';
-    }
-  }
-}
-
-window.verifyAndApplyReferralCode = verifyAndApplyReferralCode;
 
 function getChannelDisplayName(channelInput) {
   if (!channelInput) {
@@ -773,7 +615,6 @@ function getApiBase() {
   return getPaymentsApiBase();
 }
 
-// Payment packs configuration
 const PAYMENT_PACKS = {
   INR: {
     10: 100,
@@ -873,35 +714,110 @@ async function openPaymentPage(currency, amount) {
   }
 }
 
-function getLegacyUSDLabel(amountINR) {
-  const usdMap = {
-    10: '$1',
-    50: '$15',
-    100: '$50'
-  };
-
-  return usdMap[Number(amountINR)] || '$0';
-}
-
-function showCreditSummary(amountINR, creditsAmount) {
-  const summaryBox = document.getElementById('creditSummaryBox');
-  const summaryChannelName = document.getElementById('summaryChannelName');
-  const summaryCreditsAmount = document.getElementById('summaryCreditsAmount');
-  
-  const channelName = localStorage.getItem('selectedChannelName') || 'Unknown Channel';
-  
-  summaryChannelName.textContent = channelName;
-  summaryCreditsAmount.textContent = creditsAmount.toLocaleString() + ' Credits';
-  
-  if (summaryBox) {
-    summaryBox.style.display = 'block';
-    summaryBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
-}
-
 function purchaseCreditsByINR(amountINR) {
-  openPaymentPage(amountINR);
+  openPaymentPage('INR', amountINR);
 }
+
+function purchaseCreditsByUSD(amountUSD) {
+  openPaymentPage('USD', amountUSD);
+}
+
+function purchaseCreditsByCurrency(currency, amount) {
+  openPaymentPage(currency, amount);
+}
+
+// Currency selector persistence and UI
+const PREFERRED_CURRENCY_KEY = 'preferredCurrency';
+
+function getPreferredCurrency() {
+  return (localStorage.getItem(PREFERRED_CURRENCY_KEY) || 'INR').toUpperCase();
+}
+
+function setPreferredCurrency(currency) {
+  const c = String(currency || 'INR').toUpperCase();
+  localStorage.setItem(PREFERRED_CURRENCY_KEY, c);
+  // update UI
+  // update selector UI (flag and code)
+  const codeEl = document.getElementById('currencyCode');
+  const flagEl = document.getElementById('currencyFlag');
+  if (codeEl) codeEl.textContent = c;
+  if (flagEl) flagEl.textContent = c === 'USD' ? '🇺🇸' : '🇮🇳';
+
+  // close options if open
+  const optionsEl = document.getElementById('currencyOptions');
+  const selectRoot = document.getElementById('currencySelect');
+  if (optionsEl && selectRoot) {
+    optionsEl.classList.remove('show');
+    selectRoot.setAttribute('aria-expanded', 'false');
+  }
+
+  // show/hide panels for clarity (keep existing per-panel handlers functional)
+  const panels = document.querySelectorAll('.buy-method-panel');
+  panels.forEach(panel => {
+    const isUsd = panel.classList.contains('usd');
+    panel.style.display = (c === 'USD') ? (isUsd ? '' : 'none') : (isUsd ? 'none' : '');
+  });
+}
+
+function initCurrencySelector() {
+  // apply stored preference or default
+  const current = getPreferredCurrency();
+  setPreferredCurrency(current);
+}
+
+// Initialize on load
+try {
+  initCurrencySelector();
+} catch (err) {
+  // ignore initialization errors
+}
+
+// Dropdown behavior for stylized selector
+document.addEventListener('click', (e) => {
+  const sel = document.getElementById('currencySelect');
+  const opts = document.getElementById('currencyOptions');
+  if (!sel || !opts) return;
+
+  if (sel.contains(e.target)) {
+    // click inside - toggle when clicking current region or select option
+    const opt = e.target.closest('.currency-option');
+    if (opt) {
+      const c = opt.getAttribute('data-currency');
+      setPreferredCurrency(c);
+    } else if (e.target.closest('.currency-current')) {
+      const expanded = sel.getAttribute('aria-expanded') === 'true';
+      if (expanded) {
+        opts.classList.remove('show');
+        sel.setAttribute('aria-expanded', 'false');
+      } else {
+        opts.classList.add('show');
+        sel.setAttribute('aria-expanded', 'true');
+      }
+    }
+    return;
+  }
+
+  // click outside closes dropdown
+  opts.classList.remove('show');
+  sel.setAttribute('aria-expanded', 'false');
+});
+
+// keyboard interaction
+document.addEventListener('keydown', (e) => {
+  const sel = document.getElementById('currencySelect');
+  const opts = document.getElementById('currencyOptions');
+  if (!sel || !opts) return;
+  if (document.activeElement === sel) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      opts.classList.toggle('show');
+      sel.setAttribute('aria-expanded', opts.classList.contains('show') ? 'true' : 'false');
+    } else if (e.key === 'Escape') {
+      opts.classList.remove('show');
+      sel.setAttribute('aria-expanded', 'false');
+    }
+  }
+});
 
 function deductCredits(amount) {
   if (userCredits >= amount) {
@@ -914,13 +830,6 @@ function deductCredits(amount) {
 }
 
 // Earn Credits System
-const earnedToday = JSON.parse(localStorage.getItem('earnedToday')) || {};
-const earnLimits = {
-  subscribe: { max: 1, earned: 0 },
-  like: { max: 5, earned: 0 },
-  watch: { max: 1, earned: 0 }
-};
-
 function getEarnedToday() {
   const today = new Date().toDateString();
   const lastReset = localStorage.getItem('earnLastReset');
@@ -937,6 +846,429 @@ function getEarnedToday() {
 function saveEarnedToday(data) {
   localStorage.setItem('earnedToday', JSON.stringify(data));
 }
+
+// DAILY BONUS FUNCTIONS
+let dailyBonusUiDate = null;
+
+function getDailyBonusData() {
+  const today = new Date().toDateString();
+  let storedData = {};
+
+  try {
+    storedData = JSON.parse(localStorage.getItem('dailyBonusData')) || {};
+  } catch (error) {
+    storedData = {};
+  }
+  
+  if (storedData.date !== today) {
+    // Reset daily bonus for new day
+    storedData.date = today;
+    storedData.claimed = false;
+    storedData.actionsCompleted = 0;
+    saveDailyBonusData(storedData);
+  }
+  
+  return storedData;
+}
+
+function formatTimeRemainingUntilReset() {
+  const { hours, minutes } = getTimeUntilReset();
+  const safeHours = String(hours).padStart(2, '0');
+  const safeMinutes = String(minutes).padStart(2, '0');
+  return `${safeHours}h ${safeMinutes}m`;
+}
+
+function saveDailyBonusData(data) {
+  localStorage.setItem('dailyBonusData', JSON.stringify(data));
+}
+
+function incrementDailyActions() {
+  const bonusData = getDailyBonusData();
+  bonusData.actionsCompleted = (bonusData.actionsCompleted || 0) + 1;
+  saveDailyBonusData(bonusData);
+  updateDailyBonusUI();
+}
+
+function getTimeUntilReset() {
+  const now = new Date();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+  
+  const timeLeft = tomorrow - now;
+  const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+  const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+  
+  return { hours, minutes, timeLeft };
+}
+
+function updateDailyBonusTimer() {
+  try {
+    const today = new Date().toDateString();
+    if (dailyBonusUiDate && dailyBonusUiDate !== today) {
+      // Day rolled over while page stayed open; rebuild bonus state and controls.
+      updateDailyBonusUI();
+      return;
+    }
+
+    const { hours, minutes } = getTimeUntilReset();
+    const safeHours = Math.max(0, hours || 0);
+    const safeMinutes = Math.max(0, minutes || 0);
+    const txt = `${safeHours}h ${safeMinutes}m`;
+    
+    const timerEl = document.getElementById('dailyBonusTimer');
+    if (timerEl) timerEl.textContent = txt;
+    
+    const dashTimer = document.getElementById('dashDailyBonusTimer');
+    if (dashTimer) dashTimer.textContent = txt;
+  } catch (err) {
+    console.error('[updateDailyBonusTimer] Error:', err);
+  }
+}
+
+function updateDailyBonusUI() {
+  try {
+    const bonusData = getDailyBonusData();
+    dailyBonusUiDate = bonusData.date || new Date().toDateString();
+    const actionsCountEl = document.getElementById('dailyActionsCount');
+    const dashActionsCountEl = document.getElementById('dashDailyActionsCount');
+    const bonusBtn = document.getElementById('claimBonusBtn');
+    const dashBonusBtn = document.getElementById('dashClaimBonusBtn');
+    const statusEl = document.getElementById('dailyBonusStatus');
+    const dashStatusEl = document.getElementById('dashDailyBonusStatus');
+    const neededCount = 20;
+  
+  if (actionsCountEl) {
+    actionsCountEl.textContent = bonusData.actionsCompleted || 0;
+  }
+  if (dashActionsCountEl) {
+    dashActionsCountEl.textContent = bonusData.actionsCompleted || 0;
+  }
+    // Ensure needed count is displayed everywhere
+    const neededEl = document.getElementById('dailyActionsNeeded');
+    const actionsNeededEl = document.getElementById('actionsNeeded');
+    const dashNeededEl = document.getElementById('dashDailyActionsNeeded');
+    const dashActionsNeededEl = document.getElementById('dashActionsNeeded');
+    if (neededEl) neededEl.textContent = neededCount;
+    if (actionsNeededEl) actionsNeededEl.textContent = neededCount;
+    if (dashNeededEl) dashNeededEl.textContent = neededCount;
+    if (dashActionsNeededEl) dashActionsNeededEl.textContent = neededCount;
+    
+    if (bonusBtn) {
+      if (bonusData.claimed) {
+        bonusBtn.disabled = true;
+        bonusBtn.textContent = 'Already Claimed Today';
+        if (statusEl) statusEl.innerHTML = `<span style="color: #4ade80;">✓ Claimed today. Next bonus in ${formatTimeRemainingUntilReset()}.</span>`;
+        if (dashBonusBtn) {
+          dashBonusBtn.disabled = true;
+          dashBonusBtn.textContent = 'Already Claimed Today';
+        }
+        if (dashStatusEl) dashStatusEl.innerHTML = `<span style="color: #4ade80;">✓ Claimed today. Next bonus in ${formatTimeRemainingUntilReset()}.</span>`;
+      } else if ((bonusData.actionsCompleted || 0) >= neededCount) {
+        bonusBtn.disabled = false;
+        bonusBtn.textContent = 'CLAIM BONUS';
+        if (statusEl) statusEl.innerHTML = '';
+        if (dashBonusBtn) {
+          dashBonusBtn.disabled = false;
+          dashBonusBtn.textContent = 'CLAIM BONUS';
+        }
+        if (dashStatusEl) dashStatusEl.innerHTML = 'Daily bonus ready — claim it in the Daily Bonus panel.';
+      } else {
+        bonusBtn.disabled = true;
+        bonusBtn.textContent = `CLAIM BONUS (${bonusData.actionsCompleted || 0}/${neededCount})`;
+        if (statusEl) statusEl.innerHTML = '';
+        if (dashBonusBtn) {
+          dashBonusBtn.disabled = true;
+          dashBonusBtn.textContent = `CLAIM BONUS (${bonusData.actionsCompleted || 0}/${neededCount})`;
+        }
+        if (dashStatusEl) dashStatusEl.innerHTML = `Complete ${bonusData.actionsCompleted || 0}/${neededCount} actions to claim the daily bonus. Reset in ${formatTimeRemainingUntilReset()}.`;
+      }
+    }
+    
+    updateDailyBonusTimer();
+  } catch (err) {
+    console.error('[updateDailyBonusUI] Error:', err);
+  }
+}
+
+// Testing helpers
+function resetDailyBonusState() {
+  localStorage.removeItem('dailyBonusData');
+  updateDailyBonusUI();
+  showToast('bi-check-circle-fill', 'Reset', 'Daily bonus state reset for testing');
+}
+
+function simulateDailyActions(count) {
+  const bonusData = getDailyBonusData();
+  bonusData.actionsCompleted = (bonusData.actionsCompleted || 0) + (Number(count) || 0);
+  if (bonusData.actionsCompleted < 0) bonusData.actionsCompleted = 0;
+  saveDailyBonusData(bonusData);
+  updateDailyBonusUI();
+  showToast('bi-activity', 'Simulated', `Added ${count} actions for testing`);
+}
+
+function claimDailyBonus() {
+  const bonusData = getDailyBonusData();
+  const neededCount = 20;
+  
+  if (bonusData.claimed) {
+    showToast('bi-exclamation-circle-fill', 'Already Claimed', 'You have already claimed the daily bonus today.');
+    return;
+  }
+  
+  if ((bonusData.actionsCompleted || 0) < neededCount) {
+    showToast('bi-exclamation-triangle-fill', 'Not Enough Actions', `Complete ${neededCount} actions to claim the bonus. (${bonusData.actionsCompleted || 0}/${neededCount})`);
+    return;
+  }
+  
+  // Award 25 credits
+  userCredits += 25;
+  persistCredits();
+  updateCreditDisplay();
+  
+  // Mark as claimed
+  bonusData.claimed = true;
+  saveDailyBonusData(bonusData);
+  updateDailyBonusUI();
+  
+  showToast('bi-star-fill', 'Daily Bonus Claimed!', '+25 Credits added to your account');
+}
+
+// REFERRAL SYSTEM
+function getStoredUserReferralCode() {
+  const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+  const code = typeof storedUser?.referralCode === 'string' ? storedUser.referralCode.trim().toUpperCase() : '';
+  return /^(TGB|TB)[A-Z0-9]{5,}$/.test(code) ? code : '';
+}
+
+function generateReferralCode() {
+  const storedUserCode = getStoredUserReferralCode();
+  if (storedUserCode) return storedUserCode;
+
+  const stored = (localStorage.getItem('referralCode') || '').trim().toUpperCase();
+  if (/^(TGB|TB)[A-Z0-9]{5,}$/.test(stored)) {
+    return stored;
+  }
+  
+  const channelId = localStorage.getItem('selectedChannelId') || '';
+  const code = channelId
+    ? `TGB${channelId.substring(0, 8).toUpperCase()}`
+    : `TGB${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+  
+  localStorage.setItem('referralCode', code);
+  return code;
+}
+
+function getReferralData() {
+  const storedData = JSON.parse(localStorage.getItem('referralData')) || {
+    code: generateReferralCode(),
+    referred: 0,
+    earnings: 0
+  };
+
+  const currentCode = generateReferralCode();
+  if (!/^(TGB|TB)[A-Z0-9]{5,}$/.test((storedData.code || '').trim().toUpperCase()) || storedData.code !== currentCode) {
+    storedData.code = currentCode;
+  }
+
+  saveReferralData(storedData);
+  return storedData;
+}
+
+function saveReferralData(data) {
+  localStorage.setItem('referralData', JSON.stringify(data));
+}
+
+function updateReferralUI() {
+  const data = getReferralData();
+  const codeInput = document.getElementById('referralCode');
+  const countEl = document.getElementById('referralCount');
+  const earningsEl = document.getElementById('referralEarnings');
+  
+  if (codeInput) codeInput.value = data.code;
+  if (countEl) countEl.textContent = data.referred || 0;
+  if (earningsEl) earningsEl.textContent = (data.earnings || 0) + ' Credits';
+}
+
+function copyReferralCode() {
+  const codeInput = document.getElementById('referralCode');
+  if (!codeInput) return;
+  
+  codeInput.select();
+  document.execCommand('copy');
+  showToast('bi-check-circle-fill', 'Copied!', 'Referral code copied to clipboard');
+}
+
+function shareReferralCode() {
+  const data = getReferralData();
+  const shareUrl = `${window.location.origin}/?ref=${data.code}`;
+  
+  if (navigator.share) {
+    navigator.share({
+      title: 'Join TubeGrowth',
+      text: 'Get 30 credits when you join with my referral code!',
+      url: shareUrl
+    }).catch(() => {
+      // Fallback if share fails
+      copyReferralCode();
+    });
+  } else {
+    // Fallback: copy to clipboard
+    const textarea = document.createElement('textarea');
+    textarea.value = shareUrl;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    showToast('bi-link-45deg', 'Link Copied!', 'Share this link to earn referral credits');
+  }
+}
+
+// Verify and process referral code
+function verifyReferralCode(referralCode) {
+  if (!referralCode || typeof referralCode !== 'string') {
+    return { valid: false, error: 'Invalid referral code format' };
+  }
+
+  const normalizedCode = referralCode.trim().toUpperCase();
+  if (!/^(TGB|TB)[A-Z0-9]{5,}$/.test(normalizedCode)) {
+    return { valid: false, error: 'Invalid referral code - use your own referral code from Refer & Earn' };
+  }
+
+  const usedCode = localStorage.getItem('usedReferralCode');
+  if (usedCode === normalizedCode) {
+    return { valid: false, error: 'You already used this referral code' };
+  }
+
+  return { valid: true };
+}
+
+// Award referral credits to new user
+function awardReferralCredits(referralCode) {
+  try {
+    const verification = verifyReferralCode(referralCode);
+    
+    if (!verification.valid) {
+      console.warn('[awardReferralCredits] Invalid code:', verification.error);
+      return false;
+    }
+
+    const normalizedCode = referralCode.trim().toUpperCase();
+    
+    const previousCredits = userCredits;
+    userCredits += 30;
+    persistCredits();
+    updateCreditDisplay();
+
+    localStorage.setItem('usedReferralCode', normalizedCode);
+    localStorage.setItem('referralTimestamp', new Date().toISOString());
+
+    const referralLog = JSON.parse(localStorage.getItem('referralLog')) || [];
+    referralLog.push({
+      code: normalizedCode,
+      claimedAt: new Date().toISOString(),
+      creditsAwarded: 30,
+      creditsBefore: previousCredits
+    });
+    localStorage.setItem('referralLog', JSON.stringify(referralLog));
+
+    console.log('[awardReferralCredits] Successfully awarded 30 credits for referral code:', referralCode);
+    showToast('bi-gift-fill', 'Referral Bonus!', '+30 Credits awarded for joining with a referral code');
+    
+    return true;
+  } catch (err) {
+    console.error('[awardReferralCredits] Error:', err);
+    return false;
+  }
+}
+
+function trackReferralReward() {
+  try {
+    // Check if coming from referral link
+    const params = new URLSearchParams(window.location.search);
+    const refCode = params.get('ref');
+    
+    if (!refCode) {
+      return; // No referral code in URL
+    }
+
+    // Check if already claimed this referral
+    const storedRefCode = localStorage.getItem('usedReferralCode');
+    if (storedRefCode === refCode.toUpperCase()) {
+      console.log('[trackReferralReward] Referral code already used:', refCode);
+      return;
+    }
+
+    // Award referral credits
+    const success = awardReferralCredits(refCode);
+    
+    if (success) {
+      console.log('[trackReferralReward] Referral verified and credits awarded');
+      // Clean up the URL so it doesn't show the ref code
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  } catch (err) {
+    console.error('[trackReferralReward] Error processing referral:', err);
+  }
+}
+
+function verifyAndApplyReferralCode() {
+  try {
+    const codeInput = document.getElementById('referralCodeInput');
+    const statusDiv = document.getElementById('referralVerifyStatus');
+    
+    if (!codeInput || !statusDiv) {
+      console.error('[verifyAndApplyReferralCode] Required elements not found');
+      return;
+    }
+
+    const referralCode = codeInput.value.trim();
+
+    if (!referralCode) {
+      statusDiv.textContent = 'Please enter a referral code';
+      statusDiv.style.color = '#e74c3c';
+      return;
+    }
+
+    // Verify the code
+    const verification = verifyReferralCode(referralCode);
+    
+    if (!verification.valid) {
+      statusDiv.textContent = verification.error;
+      statusDiv.style.color = '#e74c3c';
+      console.log('[verifyAndApplyReferralCode] Invalid code:', verification.error);
+      return;
+    }
+
+    // Award credits
+    const success = awardReferralCredits(referralCode);
+    
+    if (success) {
+      statusDiv.textContent = '✓ Referral code applied successfully! 30 credits awarded.';
+      statusDiv.style.color = '#39b54a';
+      codeInput.value = '';
+      codeInput.disabled = true;
+      
+      // Re-enable input after 2 seconds
+      setTimeout(() => {
+        codeInput.value = '';
+        codeInput.disabled = false;
+      }, 3000);
+    } else {
+      statusDiv.textContent = 'Failed to apply referral code. Please try again.';
+      statusDiv.style.color = '#e74c3c';
+    }
+  } catch (err) {
+    console.error('[verifyAndApplyReferralCode] Error:', err);
+    const statusDiv = document.getElementById('referralVerifyStatus');
+    if (statusDiv) {
+      statusDiv.textContent = 'An error occurred. Please try again.';
+      statusDiv.style.color = '#e74c3c';
+    }
+  }
+}
+
+window.verifyAndApplyReferralCode = verifyAndApplyReferralCode;
 
 function normalizeChannelReference(value) {
   if (!value) return '';
@@ -1024,7 +1356,7 @@ function getNextEarnTask() {
 function renderEarnMainTask() {
   const taskType = getNextEarnTask();
   const copyEl = document.getElementById('earn-main-copy');
-  const openBtn = document.getElementById('earn-main-open-btn');
+  const openBtn = document.getElementById('earn-main-open-btn') || document.getElementById('earn-main-open-btn-alt');
   const verifyBtn = document.getElementById('earn-main-verify-btn');
 
   if (!copyEl || !openBtn || !verifyBtn) return;
@@ -1107,6 +1439,14 @@ function showEarnModal(taskType) {
   bindEarnSettingsToggle();
   syncEarnAutoVerifyToggle();
   
+  // Ensure subscribe verify button is disabled until pending verification is prepared
+  const subscribeVerifyBtn = document.querySelector('#subscribe-modal .modal-verify-btn');
+  const _subscribeVerifyOriginal = subscribeVerifyBtn ? subscribeVerifyBtn.innerHTML : null;
+  if (subscribeVerifyBtn) {
+    subscribeVerifyBtn.disabled = true;
+    subscribeVerifyBtn.innerHTML = '<i class="bi bi-clock-fill"></i> Preparing...';
+  }
+
   // Hide all views
   document.getElementById('subscribe-modal').style.display = 'none';
   document.getElementById('like-modal').style.display = 'none';
@@ -1152,8 +1492,12 @@ function showEarnModal(taskType) {
         const startCount = await fetchChannelSubscriberCount(channelRef);
         const title = await fetchChannelTitle(channelRef);
         if (title) nameEl.textContent = `Channel: ${title}`;
-        const pending = { type: 'subscribe', campaignId: promo.id, channelReference: promo.videoLink, startCount: startCount };
-        localStorage.setItem('pendingVerify', JSON.stringify(pending));
+          const pending = { type: 'subscribe', campaignId: promo.id, channelReference: promo.videoLink, startCount: startCount };
+          localStorage.setItem('pendingVerify', JSON.stringify(pending));
+          if (subscribeVerifyBtn) {
+            subscribeVerifyBtn.disabled = false;
+            subscribeVerifyBtn.innerHTML = _subscribeVerifyOriginal || '<i class="bi bi-check2-circle"></i> Verify';
+          }
       })();
     } else if (linkEl && nameEl) {
       // Fallback: rotate through default subscribe channels
@@ -1176,8 +1520,12 @@ function showEarnModal(taskType) {
         const startCount = await fetchChannelSubscriberCount(selectedChannel);
         const title = await fetchChannelTitle(selectedChannel);
         if (title) nameEl.textContent = `Channel: ${title}`;
-        const pending = { type: 'subscribe', channelReference: selectedChannel, startCount: startCount };
-        localStorage.setItem('pendingVerify', JSON.stringify(pending));
+          const pending = { type: 'subscribe', channelReference: selectedChannel, startCount: startCount };
+          localStorage.setItem('pendingVerify', JSON.stringify(pending));
+          if (subscribeVerifyBtn) {
+            subscribeVerifyBtn.disabled = false;
+            subscribeVerifyBtn.innerHTML = _subscribeVerifyOriginal || '<i class="bi bi-check2-circle"></i> Verify';
+          }
       })();
     }
   } else if (taskType === 'like' || taskType === 'watch') {
@@ -1191,8 +1539,8 @@ function showEarnModal(taskType) {
 
     if (promo && linkEl && nameEl) {
       const promoRef = normalizeChannelReference(promo.videoLink);
+      linkEl.href = promotionVideoLinkToHref(promo.videoLink);
       const promoHref = promotionVideoLinkToHref(promo.videoLink);
-      linkEl.href = promoHref;
       linkEl.onclick = (event) => openEarnLink(taskType, promoHref, linkEl) ? undefined : event.preventDefault();
       const channelLabel = promo.channelName || promo.channelId || getChannelDisplayName(promo.videoLink);
       nameEl.textContent = `Channel: ${channelLabel}`;
@@ -1214,6 +1562,14 @@ function refreshEarnTaskRotation() {
   renderEarnMainTask();
 }
 
+function getVerifyButtonForTask(taskType) {
+  if (!taskType) return null;
+  if (taskType === 'subscribe') return document.querySelector('#subscribe-modal .modal-verify-btn');
+  if (taskType === 'like') return document.querySelector('#like-modal .modal-verify-btn');
+  if (taskType === 'watch') return document.querySelector('#watch-modal .modal-verify-btn');
+  return null;
+}
+
 function closeEarnModal() {
   const modal = document.getElementById('earnModal');
   modal.classList.remove('active');
@@ -1224,6 +1580,11 @@ function closeEarnModal() {
     window.watchTimerInterval = null;
   }
 
+  if (window.earnPopupInterval) {
+    clearInterval(window.earnPopupInterval);
+    window.earnPopupInterval = null;
+  }
+
   const watchSession = JSON.parse(localStorage.getItem('watchSession') || 'null');
   if (watchSession && !watchSession.completed) {
     localStorage.removeItem('watchSession');
@@ -1231,6 +1592,7 @@ function closeEarnModal() {
 }
 
 function verifyTask(taskType) {
+  console.log('[verifyTask] called for', taskType);
   userCredits = getStoredCredits();
   const earned = getEarnedToday();
   const limits = {
@@ -1266,14 +1628,16 @@ function verifyTask(taskType) {
 
     earned[taskType] = timesEarned + 1;
     saveEarnedToday(earned);
+    incrementDailyActions();
 
     localStorage.removeItem('watchSession');
 
     showStatus(taskType, `+${task.credits} Credits earned! (${earned[taskType]}/${task.max})`, 'success');
     showToast('bi-coin', 'Credits Earned!', `+${task.credits} Credits added to your account`);
 
-    const btn = document.getElementById(`${taskType}-btn`);
+    const btn = getVerifyButtonForTask(taskType);
     if (btn) {
+      console.log('[verifyTask] disabling verify button for', taskType);
       btn.disabled = true;
     }
 
@@ -1288,49 +1652,66 @@ function verifyTask(taskType) {
   if (taskType === 'subscribe') {
     const pendingRaw = localStorage.getItem('pendingVerify');
     if (!pendingRaw) {
+      console.log('[verifyTask] no pendingVerify in localStorage');
       showStatus(taskType, 'No pending subscription verification found.', 'error');
       return;
     }
 
     const pending = JSON.parse(pendingRaw);
     if (pending.type !== 'subscribe') {
+      console.log('[verifyTask] pending type mismatch', pending);
       showStatus(taskType, 'No pending subscription verification found.', 'error');
       return;
     }
 
     (async () => {
-      const current = await fetchChannelSubscriberCount(pending.channelReference);
-      if (current === null) {
-        showStatus(taskType, 'Unable to verify at this time. Try again later.', 'error');
-        return;
-      }
+      try {
+        console.log('[verifyTask] verifying pending', pending);
+        const current = await fetchChannelSubscriberCount(pending.channelReference);
+        console.log('[verifyTask] fetched current subscriber count:', current);
+        if (current === null) {
+          showStatus(taskType, 'Unable to verify at this time. Try again later.', 'error');
+          return;
+        }
 
-      const start = parseInt(pending.startCount || 0, 10);
-      if (current > start) {
-        // Grant credits
-        userCredits += task.credits;
-        persistCredits();
-        updateCreditDisplay();
+        const start = parseInt(pending.startCount || 0, 10);
+        if (isNaN(start)) {
+          console.log('[verifyTask] pending.startCount is not a number', pending.startCount);
+        }
 
-        // Update earned count
-        earned[taskType] = timesEarned + 1;
-        saveEarnedToday(earned);
+        if (current > start) {
+          // Grant credits
+          userCredits += task.credits;
+          persistCredits();
+          updateCreditDisplay();
 
-        // Clear pending
-        localStorage.removeItem('pendingVerify');
+          // Update earned count
+          earned[taskType] = timesEarned + 1;
+          saveEarnedToday(earned);
+          incrementDailyActions();
 
-        // Show success
-        showStatus(taskType, `+${task.credits} Credits earned! (${earned[taskType]}/${task.max})`, 'success');
-        showToast('bi-coin', 'Credits Earned!', `+${task.credits} Credits added to your account`);
+          // Clear pending
+          localStorage.removeItem('pendingVerify');
 
-        // Disable button
-        const btn = document.getElementById(`${taskType}-btn`);
-        if (btn) btn.disabled = true;
+          // Show success
+          showStatus(taskType, `+${task.credits} Credits earned! (${earned[taskType]}/${task.max})`, 'success');
+          showToast('bi-coin', 'Credits Earned!', `+${task.credits} Credits added to your account`);
 
-        // Close modal
-        setTimeout(() => closeEarnModal(), 500);
-      } else {
-        showStatus(taskType, 'No new subscriber detected yet. Please subscribe and try again.', 'error');
+          // Disable button
+          const btn = getVerifyButtonForTask(taskType);
+          if (btn) {
+            console.log('[verifyTask] disabling verify button for', taskType);
+            btn.disabled = true;
+          }
+
+          // Close modal
+          setTimeout(() => closeEarnModal(), 500);
+        } else {
+          showStatus(taskType, 'No new subscriber detected yet. Please subscribe and try again.', 'error');
+        }
+      } catch (err) {
+        console.error('[verifyTask] error during subscribe verification', err);
+        showStatus(taskType, 'Verification failed due to an internal error. Try again later.', 'error');
       }
     })();
 
@@ -1345,14 +1726,16 @@ function verifyTask(taskType) {
   // Update earned count
   earned[taskType] = timesEarned + 1;
   saveEarnedToday(earned);
+  incrementDailyActions();
   
   // Show success
   showStatus(taskType, `+${task.credits} Credits earned! (${earned[taskType]}/${task.max})`, 'success');
   showToast('bi-coin', 'Credits Earned!', `+${task.credits} Credits added to your account`);
   
   // Disable button
-  const btn = document.getElementById(`${taskType}-btn`);
+  const btn = getVerifyButtonForTask(taskType);
   if (btn) {
+    console.log('[verifyTask] disabling verify button for', taskType);
     btn.disabled = true;
   }
   
@@ -1425,11 +1808,10 @@ function updateEarnedUI() {
   
   Object.keys(limits).forEach(taskType => {
     const timesEarned = earned[taskType] || 0;
-    const btn = document.getElementById(`${taskType}-btn`);
-    
+    const btn = getVerifyButtonForTask(taskType) || document.getElementById(`${taskType}-btn`);
     if (btn && timesEarned >= limits[taskType].max) {
       btn.disabled = true;
-      btn.textContent = 'Limit Reached';
+      try { btn.textContent = 'Limit Reached'; } catch (e) {}
       showStatus(taskType, `Daily limit reached (${timesEarned}/${limits[taskType].max})`, 'success');
     }
   });
@@ -1799,217 +2181,10 @@ function initializeBoostProfile() {
   updateBoostButtonState(0);
 }
 
-// ============================================
-// MISSING CRITICAL FUNCTIONS (PART 1)
-// ============================================
-
-// DAILY BONUS FUNCTIONS - CRITICAL
-let dailyBonusUiDate = null;
-
-function getDailyBonusData() {
-  const today = new Date().toDateString();
-  let storedData = {};
-
-  try {
-    storedData = JSON.parse(localStorage.getItem('dailyBonusData')) || {};
-  } catch (error) {
-    storedData = {};
-  }
-  
-  if (storedData.date !== today) {
-    // Reset daily bonus for new day
-    storedData.date = today;
-    storedData.claimed = false;
-    storedData.actionsCompleted = 0;
-    saveDailyBonusData(storedData);
-  }
-  
-  return storedData;
-}
-
-function formatTimeRemainingUntilReset() {
-  const { hours, minutes } = getTimeUntilReset();
-  const safeHours = String(hours).padStart(2, '0');
-  const safeMinutes = String(minutes).padStart(2, '0');
-  return `${safeHours}h ${safeMinutes}m`;
-}
-
-function saveDailyBonusData(data) {
-  localStorage.setItem('dailyBonusData', JSON.stringify(data));
-}
-
-function incrementDailyActions() {
-  const bonusData = getDailyBonusData();
-  bonusData.actionsCompleted = (bonusData.actionsCompleted || 0) + 1;
-  saveDailyBonusData(bonusData);
-  updateDailyBonusUI();
-}
-
-function getTimeUntilReset() {
-  const now = new Date();
-  const tomorrow = new Date(now);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  tomorrow.setHours(0, 0, 0, 0);
-  
-  const timeLeft = tomorrow - now;
-  const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-  const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-  
-  return { hours, minutes, timeLeft };
-}
-
-function updateDailyBonusTimer() {
-  try {
-    const today = new Date().toDateString();
-    if (dailyBonusUiDate && dailyBonusUiDate !== today) {
-      // Day rolled over while page stayed open; rebuild bonus state and controls.
-      updateDailyBonusUI();
-      return;
-    }
-
-    const { hours, minutes } = getTimeUntilReset();
-    const safeHours = Math.max(0, hours || 0);
-    const safeMinutes = Math.max(0, minutes || 0);
-    const txt = `${safeHours}h ${safeMinutes}m`;
-    
-    const timerEl = document.getElementById('dailyBonusTimer');
-    if (timerEl) timerEl.textContent = txt;
-    
-    const dashTimer = document.getElementById('dashDailyBonusTimer');
-    if (dashTimer) dashTimer.textContent = txt;
-  } catch (err) {
-    console.error('[updateDailyBonusTimer] Error:', err);
-  }
-}
-
-function updateDailyBonusUI() {
-  try {
-    const bonusData = getDailyBonusData();
-    dailyBonusUiDate = bonusData.date || new Date().toDateString();
-    const actionsCountEl = document.getElementById('dailyActionsCount');
-    const dashActionsCountEl = document.getElementById('dashDailyActionsCount');
-    const bonusBtn = document.getElementById('claimBonusBtn');
-    const dashBonusBtn = document.getElementById('dashClaimBonusBtn');
-    const statusEl = document.getElementById('dailyBonusStatus');
-    const dashStatusEl = document.getElementById('dashDailyBonusStatus');
-    const neededCount = 20;
-  
-    if (actionsCountEl) {
-      actionsCountEl.textContent = bonusData.actionsCompleted || 0;
-    }
-    if (dashActionsCountEl) {
-      dashActionsCountEl.textContent = bonusData.actionsCompleted || 0;
-    }
-    // Ensure needed count is displayed everywhere
-    const neededEl = document.getElementById('dailyActionsNeeded');
-    const actionsNeededEl = document.getElementById('actionsNeeded');
-    const dashNeededEl = document.getElementById('dashDailyActionsNeeded');
-    const dashActionsNeededEl = document.getElementById('dashActionsNeeded');
-    if (neededEl) neededEl.textContent = neededCount;
-    if (actionsNeededEl) actionsNeededEl.textContent = neededCount;
-    if (dashNeededEl) dashNeededEl.textContent = neededCount;
-    if (dashActionsNeededEl) dashActionsNeededEl.textContent = neededCount;
-    
-    if (bonusBtn) {
-      if (bonusData.claimed) {
-        bonusBtn.disabled = true;
-        bonusBtn.textContent = 'Already Claimed Today';
-        if (statusEl) statusEl.innerHTML = `<span style="color: #4ade80;">✓ Claimed today. Next bonus in ${formatTimeRemainingUntilReset()}.</span>`;
-        if (dashBonusBtn) {
-          dashBonusBtn.disabled = true;
-          dashBonusBtn.textContent = 'Already Claimed Today';
-        }
-        if (dashStatusEl) dashStatusEl.innerHTML = `<span style="color: #4ade80;">✓ Claimed today. Next bonus in ${formatTimeRemainingUntilReset()}.</span>`;
-      } else if ((bonusData.actionsCompleted || 0) >= neededCount) {
-        bonusBtn.disabled = false;
-        bonusBtn.textContent = 'CLAIM BONUS';
-        if (statusEl) statusEl.innerHTML = '';
-        if (dashBonusBtn) {
-          dashBonusBtn.disabled = false;
-          dashBonusBtn.textContent = 'CLAIM BONUS';
-        }
-        if (dashStatusEl) dashStatusEl.innerHTML = 'Daily bonus ready — claim it in the Daily Bonus panel.';
-      } else {
-        bonusBtn.disabled = true;
-        bonusBtn.textContent = `CLAIM BONUS (${bonusData.actionsCompleted || 0}/${neededCount})`;
-        if (statusEl) statusEl.innerHTML = '';
-        if (dashBonusBtn) {
-          dashBonusBtn.disabled = true;
-          dashBonusBtn.textContent = `CLAIM BONUS (${bonusData.actionsCompleted || 0}/${neededCount})`;
-        }
-        if (dashStatusEl) dashStatusEl.innerHTML = `Complete ${bonusData.actionsCompleted || 0}/${neededCount} actions to claim the daily bonus. Reset in ${formatTimeRemainingUntilReset()}.`;
-      }
-    }
-    
-    updateDailyBonusTimer();
-  } catch (err) {
-    console.error('[updateDailyBonusUI] Error:', err);
-  }
-}
-
-// Testing helpers
-function resetDailyBonusState() {
-  localStorage.removeItem('dailyBonusData');
-  updateDailyBonusUI();
-  showToast('bi-check-circle-fill', 'Reset', 'Daily bonus state reset for testing');
-}
-
-function simulateDailyActions(count) {
-  const bonusData = getDailyBonusData();
-  bonusData.actionsCompleted = (bonusData.actionsCompleted || 0) + (Number(count) || 0);
-  if (bonusData.actionsCompleted < 0) bonusData.actionsCompleted = 0;
-  saveDailyBonusData(bonusData);
-  updateDailyBonusUI();
-  showToast('bi-activity', 'Simulated', `Added ${count} actions for testing`);
-}
-
-function claimDailyBonus() {
-  const bonusData = getDailyBonusData();
-  const neededCount = 20;
-  
-  if (bonusData.claimed) {
-    showToast('bi-exclamation-circle-fill', 'Already Claimed', 'You have already claimed the daily bonus today.');
-    return;
-  }
-  
-  if ((bonusData.actionsCompleted || 0) < neededCount) {
-    showToast('bi-exclamation-triangle-fill', 'Not Enough Actions', `Complete ${neededCount} actions to claim the bonus. (${bonusData.actionsCompleted || 0}/${neededCount})`);
-    return;
-  }
-  
-  // Award 25 credits
-  userCredits += 25;
-  persistCredits();
-  updateCreditDisplay();
-  
-  // Mark as claimed
-  bonusData.claimed = true;
-  saveDailyBonusData(bonusData);
-  updateDailyBonusUI();
-  
-  showToast('bi-star-fill', 'Daily Bonus Claimed!', '+25 Credits added to your account');
-}
-
-// PURCHASE CREDITS BY CURRENCY - CRITICAL
-function purchaseCreditsByCurrency(currency, amount) {
-  openPaymentPage(currency, amount);
-}
-
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', () => {
   initializeBoostProfile();
   initializeViewPromotions();
-  updateReferralUI();
-  
-  // Initialize daily bonus UI and timer
-  updateDailyBonusUI();
-  setInterval(updateDailyBonusTimer, 60000); // Update timer every 60 seconds to detect date change
-  bindEarnSettingsToggle();
-  
-  const referralCodeFromUrl = new URLSearchParams(window.location.search).get('ref');
-  if (referralCodeFromUrl) {
-    awardReferralCredits(referralCodeFromUrl);
-  }
   updateCreditsDisplay();
   
   // Tab switching for View Promotions and Dashboard
@@ -2048,22 +2223,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const initialSection = window.location.hash ? window.location.hash.slice(1) : 'home';
   showSection(initialSection);
   
-  // Close modal on overlay click
-  const modal = document.getElementById('earnModal');
-  if (modal) {
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        closeEarnModal();
-      }
-    });
-  }
-  
-  // Close modal on Escape key
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      closeEarnModal();
-    }
-  });
+  // Ensure daily bonus UI is initialized
+  setTimeout(() => {
+    updateDailyBonusUI();
+  }, 100);
 });
 
 // VIEW PROMOTIONS FUNCTIONS
@@ -2165,7 +2328,7 @@ function nextPage() {
 }
 
 function deletePromotion(campaignId) {
-  if (confirm('Are you sure you want to delete this promotion? Credits will be refunded.')) {
+  if (window.confirm('Are you sure you want to delete this promotion? Credits will be refunded.')) {
     let campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
     const campaignToDelete = campaigns.find(c => c.id === campaignId);
     
@@ -2187,11 +2350,53 @@ function deletePromotion(campaignId) {
   }
 }
 
+// Expose handlers used by inline HTML attributes.
+Object.assign(window, {
+  searchAndOpenDashboard,
+  scrollToSection,
+  purchaseCreditsByINR,
+  purchaseCreditsByUSD,
+  purchaseCreditsByCurrency,
+  startWatchTimer,
+  selectPlan,
+  handleChannelSearch,
+  addPromotion,
+  previousPage,
+  nextPage,
+  deletePromotion,
+  setPreferredCurrency,
+  showEarnModal,
+  verifyTask,
+  closeEarnModal,
+  copyReferralCode,
+  shareReferralCode,
+});
+
+// expose testing helpers
+Object.assign(window, {
+  claimDailyBonus,
+  resetDailyBonusState,
+  simulateDailyActions,
+  verifyReferralCode,
+  awardReferralCredits,
+});
+
 // Initialize credit display on page load
 document.addEventListener('DOMContentLoaded', () => {
   updateCreditDisplay();
   syncCreditsFromBackend();
   updateEarnedUI();
+  bindEarnSettingsToggle();
+  
+  // Initialize daily bonus UI
+  updateDailyBonusUI();
+  
+  // Update daily bonus timer every second
+  setInterval(updateDailyBonusTimer, 1000);
+  
+  // Initialize referral system
+  updateReferralUI();
+  trackReferralReward();
   
   // Close modal on overlay click
   const modal = document.getElementById('earnModal');
@@ -2209,6 +2414,8 @@ document.addEventListener('DOMContentLoaded', () => {
       closeEarnModal();
     }
   });
+  
+  console.log('[DOMContentLoaded] Daily bonus initialized');
 });
 
 
