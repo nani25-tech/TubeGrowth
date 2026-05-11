@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import campaignRoutes from './routes/campaignRoutes.js';
@@ -10,9 +12,14 @@ import adminRoutes from './routes/adminRoutes.js';
 import paymentRoutes, { paymentWebhookHandler } from './routes/paymentRoutes.js';
 
 const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const publicDir = path.join(__dirname, '..', 'public');
 const configuredOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
+  'http://localhost:5000',
+  'http://127.0.0.1:5000',
   'http://localhost:5173',
   'https://tubegrowth.zone.id',
   'https://www.tubegrowth.zone.id',
@@ -59,6 +66,11 @@ app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), pay
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(publicDir));
+
+app.get(['/admin', '/admin.html'], (req, res) => {
+  res.sendFile(path.join(publicDir, 'admin.html'));
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
