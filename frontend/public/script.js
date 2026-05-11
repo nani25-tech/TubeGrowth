@@ -1,11 +1,15 @@
 ﻿// Automatically register/login user with channel ID and name
 async function ensureChannelUserInBackend() {
-  const channelId = restoreSelectedChannelSession();
+  let channelId = restoreSelectedChannelSession();
   if (!channelId) return;
 
   let channelName = (localStorage.getItem('selectedChannelName') || '').trim() || getChannelDisplayName(channelId);
   try {
     const profile = await fetchChannelProfile(channelId);
+    if (profile?.channelId) {
+      channelId = normalizeChannelInput(profile.channelId) || channelId;
+      localStorage.setItem('selectedChannelId', channelId);
+    }
     if (profile?.title) {
       channelName = profile.title.trim();
     }
@@ -14,6 +18,12 @@ async function ensureChannelUserInBackend() {
   }
 
   localStorage.setItem('selectedChannelName', channelName);
+  const syncSignature = `${channelId}::${channelName.toLowerCase()}`;
+  const existingToken = localStorage.getItem('accessToken') || '';
+  if (existingToken && localStorage.getItem(CHANNEL_SYNC_SIGNATURE_KEY) === syncSignature) {
+    return;
+  }
+
   try {
     const apiBase = typeof getApiBase === 'function' ? getApiBase() : '';
     const response = await fetch(`${apiBase}/auth/channel-login`, {
@@ -25,6 +35,7 @@ async function ensureChannelUserInBackend() {
       const data = await response.json();
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem(CHANNEL_SYNC_SIGNATURE_KEY, syncSignature);
       if (data?.user && typeof data.user.credits === 'number') {
         localStorage.setItem(getCreditStorageKey(), String(data.user.credits));
       }
@@ -43,6 +54,7 @@ const DEFAULT_SUBSCRIBE_CHANNELS = [
 
 const PROTECTED_SECTION_IDS = new Set(['dashboard-preview', 'earn-credits', 'get-started', 'services']);
 const LOGOUT_STATE_KEY = 'isExplicitlyLoggedOut';
+const CHANNEL_SYNC_SIGNATURE_KEY = 'lastSyncedChannelSignature';
 
 function isExplicitlyLoggedOut() {
   return localStorage.getItem(LOGOUT_STATE_KEY) === 'true';
@@ -142,6 +154,7 @@ function clearSelectedChannelSession() {
   localStorage.removeItem('selectedChannelId');
   localStorage.removeItem('selectedChannelName');
   localStorage.removeItem('selectedChannelLogo');
+  localStorage.removeItem(CHANNEL_SYNC_SIGNATURE_KEY);
 
   const dashboardSearchInput = document.getElementById('channelSearchInput');
   if (dashboardSearchInput) {
@@ -275,18 +288,21 @@ function searchAndOpenDashboard() {
   setExplicitLogoutState(false);
   localStorage.setItem('selectedChannelId', channelId);
   localStorage.setItem('selectedChannelName', channelName);
-  ensureChannelUserInBackend();
   channelInput.value = channelId;
   
   // Update dashboard profile info
   // Try to resolve a real channel title via YouTube Data API (falls back to provided name)
   fetchChannelProfile(channelId).then(profile => {
+    const resolvedChannelId = normalizeChannelInput(profile?.channelId || channelId) || channelId;
     const finalName = profile?.title || channelName;
+    localStorage.setItem('selectedChannelId', resolvedChannelId);
     localStorage.setItem('selectedChannelName', finalName);
     localStorage.setItem('selectedChannelLogo', profile?.thumbnail || '');
-    updateDashboardChannel(channelId, finalName, profile?.thumbnail || '');
+    updateDashboardChannel(resolvedChannelId, finalName, profile?.thumbnail || '');
+    ensureChannelUserInBackend();
   }).catch(() => {
     updateDashboardChannel(channelId, channelName, '');
+    ensureChannelUserInBackend();
   });
   
   // Show toast
@@ -371,7 +387,7 @@ async function fetchChannelTitle(input) {
 }
 
 async function fetchChannelProfile(input) {
-  if (!input) return { title: null, thumbnail: '' };
+  if (!input) return { title: null, thumbnail: '', channelId: null };
 
   try {
     const isChannelId = /^UC[a-zA-Z0-9_-]{10,}$/.test(input);
@@ -381,27 +397,28 @@ async function fetchChannelProfile(input) {
       const query = input.replace(/https?:\/\//, '').replace(/^www\./, '');
       const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${encodeURIComponent(query)}&maxResults=1&key=${YOUTUBE_API_KEY}`;
       const searchRes = await fetch(searchUrl);
-      if (!searchRes.ok) return { title: null, thumbnail: '' };
+      if (!searchRes.ok) return { title: null, thumbnail: '', channelId: null };
       const searchData = await searchRes.json();
       channelId = searchData.items && searchData.items.length ? (searchData.items[0].snippet.channelId || searchData.items[0].id.channelId) : null;
-      if (!channelId) return { title: null, thumbnail: '' };
+      if (!channelId) return { title: null, thumbnail: '', channelId: null };
     }
 
     const url = `https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${encodeURIComponent(channelId)}&key=${YOUTUBE_API_KEY}`;
     const res = await fetch(url);
-    if (!res.ok) return { title: null, thumbnail: '' };
+    if (!res.ok) return { title: null, thumbnail: '', channelId: null };
     const data = await res.json();
     if (data.items && data.items.length) {
       const snippet = data.items[0].snippet || {};
       return {
         title: snippet.title || null,
-        thumbnail: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url || ''
+        thumbnail: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url || '',
+        channelId,
       };
     }
 
-    return { title: null, thumbnail: '' };
+    return { title: null, thumbnail: '', channelId: null };
   } catch (error) {
-    return { title: null, thumbnail: '' };
+    return { title: null, thumbnail: '', channelId: null };
   }
 }
 
@@ -519,12 +536,13 @@ async function loadDashboardProfile(channelId, channelName) {
 
   try {
     const profile = await fetchChannelProfile(normalizedChannelId);
+    const resolvedChannelId = normalizeChannelInput(profile?.channelId || normalizedChannelId) || normalizedChannelId;
     const finalName = profile?.title || channelName || getChannelDisplayName(normalizedChannelId);
     const finalLogo = profile?.thumbnail || '';
-    localStorage.setItem('selectedChannelId', normalizedChannelId);
+    localStorage.setItem('selectedChannelId', resolvedChannelId);
     localStorage.setItem('selectedChannelName', finalName);
     localStorage.setItem('selectedChannelLogo', finalLogo);
-    updateDashboardChannel(normalizedChannelId, finalName, finalLogo, subscriberCount, watchTimeHours);
+    updateDashboardChannel(resolvedChannelId, finalName, finalLogo, subscriberCount, watchTimeHours);
   } catch (error) {
     updateDashboardChannel(normalizedChannelId, channelName || getChannelDisplayName(normalizedChannelId), '', subscriberCount, watchTimeHours);
   }
@@ -740,7 +758,7 @@ function getPaymentsApiBase() {
     return 'http://localhost:5000/api';
   }
 
-  return 'https://tubegrowth.onrender.com/api';
+  return 'https://tubegrowth.zone.id/api';
 }
 
 function getApiBase() {

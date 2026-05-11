@@ -59,16 +59,20 @@
       <div id="editUserModal" class="modal" style="display:none;">
         <div class="modal-content">
           <span id="closeEditModal" class="close">&times;</span>
-          <h3>Edit User Credits</h3>
+          <h3>Edit User Details</h3>
           <form id="editUserForm">
             <input type="hidden" id="editUserId">
             <div>
+              <label>Name</label>
+              <input type="text" id="editName" required>
+            </div>
+            <div>
               <label>Channel Name</label>
-              <input type="text" id="editChannelName" readonly>
+              <input type="text" id="editChannelName">
             </div>
             <div>
               <label>Channel ID</label>
-              <input type="text" id="editChannelId" readonly>
+              <input type="text" id="editChannelId">
             </div>
             <div>
               <label>Credits</label>

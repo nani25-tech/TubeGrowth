@@ -7,6 +7,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
+    "cleanup:users:dry-run": "node scripts/mergeDuplicateUsersByChannelId.js --dry-run",
+    "cleanup:users": "node scripts/mergeDuplicateUsersByChannelId.js",
     "test": "jest --detectOpenHandles",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix"

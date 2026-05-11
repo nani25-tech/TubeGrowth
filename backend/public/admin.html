@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>TubeGrowth Admin</title>
-  <link rel="stylesheet" href="/admin.css">
+  <link rel="stylesheet" href="admin.css">
 </head>
 <body>
   <main class="shell">
@@ -44,23 +44,47 @@
         <table>
           <thead>
             <tr>
-              <th>Name</th>
               <th>Channel Name</th>
               <th>Channel ID</th>
               <th>Credits</th>
-              <th>Email</th>
-              <th>Admin</th>
-              <th>Banned</th>
+                <th>Actions</th>
             </tr>
           </thead>
           <tbody id="usersTable">
-            <tr><td colspan="7">Sign in to load users.</td></tr>
+              <tr><td colspan="4">Sign in to load users.</td></tr>
           </tbody>
         </table>
+      </div>
+      <!-- Edit User Modal -->
+      <div id="editUserModal" class="modal" style="display:none;">
+        <div class="modal-content">
+          <span id="closeEditModal" class="close">&times;</span>
+          <h3>Edit User Details</h3>
+          <form id="editUserForm">
+            <input type="hidden" id="editUserId">
+            <div>
+              <label>Name</label>
+              <input type="text" id="editName" required>
+            </div>
+            <div>
+              <label>Channel Name</label>
+              <input type="text" id="editChannelName">
+            </div>
+            <div>
+              <label>Channel ID</label>
+              <input type="text" id="editChannelId">
+            </div>
+            <div>
+              <label>Credits</label>
+              <input type="number" id="editCredits" min="0" required>
+            </div>
+            <button type="submit">Save</button>
+          </form>
+        </div>
       </div>
     </section>
   </main>
 
-  <script src="/admin.js"></script>
+  <script src="admin.js"></script>
 </body>
 </html>

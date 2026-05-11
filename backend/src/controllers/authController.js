@@ -2,41 +2,49 @@
 export const channelLogin = async (req, res) => {
   try {
     const { youtubeChannelId, youtubeChannelTitle } = req.body;
-    if (!youtubeChannelId || !youtubeChannelTitle) {
+    const canonicalChannelId = String(youtubeChannelId || '').trim();
+    const canonicalTitle = String(youtubeChannelTitle || '').trim();
+
+    if (!canonicalChannelId || !canonicalTitle) {
       return res.status(400).json({ message: 'Channel ID and Channel Name are required' });
     }
 
-    const canonicalTitle = String(youtubeChannelTitle).trim();
-    const dummyEmail = `${youtubeChannelId}@channel.tubegrowth`;
-    let user = await User.findOne({ youtubeChannelId });
+    const dummyEmail = `${canonicalChannelId}@channel.tubegrowth`;
+    let user = await User.findOne({ youtubeChannelId: canonicalChannelId });
 
     if (!user) {
       user = await User.findOne({ email: dummyEmail });
     }
 
     if (!user) {
+      user = await User.findOne({
+        youtubeChannelId: { $regex: `^${canonicalChannelId}$`, $options: 'i' },
+      });
+    }
+
+    if (!user) {
       user = new User({
         name: canonicalTitle,
-        youtubeChannelId,
+        youtubeChannelId: canonicalChannelId,
         youtubeChannelTitle: canonicalTitle,
         email: dummyEmail,
-        password: youtubeChannelId, // Not used, but required by schema
+        password: canonicalChannelId, // Not used, but required by schema
         credits: 0,
         isAdmin: false,
       });
       user.generateReferralCode?.();
     } else {
       user.name = canonicalTitle;
-      user.youtubeChannelId = youtubeChannelId;
+      user.youtubeChannelId = canonicalChannelId;
       user.youtubeChannelTitle = canonicalTitle;
       if (!user.email || user.email.endsWith('@channel.tubegrowth')) {
         user.email = dummyEmail;
       }
     }
 
-    await user.save();
     user.lastLogin = new Date();
     await user.save();
+
     const accessToken = signAccessToken({ userId: user._id });
     const refreshToken = signRefreshToken({ userId: user._id });
     res.json({

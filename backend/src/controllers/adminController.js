@@ -85,7 +85,11 @@ export const editUserCredits = async (req, res) => {
     }
 
     const { userId } = req.params;
-    const { credits } = req.body;
+    const credits = Number(req.body?.credits);
+
+    if (!Number.isFinite(credits) || credits < 0) {
+      return res.status(400).json({ message: 'Credits must be a non-negative number' });
+    }
 
     const user = await User.findByIdAndUpdate(
       userId,
@@ -100,6 +104,68 @@ export const editUserCredits = async (req, res) => {
     res.json({ message: 'Credits updated', user });
   } catch (error) {
     console.error('Edit user credits error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const editUserDetails = async (req, res) => {
+  try {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ message: 'Admin only' });
+    }
+
+    const { userId } = req.params;
+    const { name, youtubeChannelTitle, youtubeChannelId } = req.body || {};
+    const updates = {};
+
+    if (name !== undefined) {
+      const normalizedName = String(name).trim();
+      if (!normalizedName) {
+        return res.status(400).json({ message: 'Name cannot be empty' });
+      }
+      updates.name = normalizedName;
+    }
+
+    if (youtubeChannelTitle !== undefined) {
+      updates.youtubeChannelTitle = String(youtubeChannelTitle).trim();
+    }
+
+    if (youtubeChannelId !== undefined) {
+      const normalizedChannelId = String(youtubeChannelId).trim();
+      if (normalizedChannelId) {
+        const existingUser = await User.findOne({
+          _id: { $ne: userId },
+          youtubeChannelId: normalizedChannelId,
+        }).select('_id');
+
+        if (existingUser) {
+          return res.status(409).json({ message: 'Channel ID already exists for another user' });
+        }
+      }
+      updates.youtubeChannelId = normalizedChannelId;
+    }
+
+    if (req.body?.credits !== undefined) {
+      const normalizedCredits = Number(req.body.credits);
+      if (!Number.isFinite(normalizedCredits) || normalizedCredits < 0) {
+        return res.status(400).json({ message: 'Credits must be a non-negative number' });
+      }
+      updates.credits = normalizedCredits;
+    }
+
+    if (!Object.keys(updates).length) {
+      return res.status(400).json({ message: 'No valid fields provided for update' });
+    }
+
+    const user = await User.findByIdAndUpdate(userId, updates, { new: true });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({ message: 'User updated', user });
+  } catch (error) {
+    console.error('Edit user details error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
