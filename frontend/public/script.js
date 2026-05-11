@@ -382,7 +382,7 @@ function updateDashboardChannel(channelId, channelName = getChannelDisplayName(c
   if (profileWatchTime) profileWatchTime.textContent = `Watch Time : ${watchHours}h`;
   if (profileAvatarImg) {
     const logoUrl = channelLogo || localStorage.getItem('selectedChannelLogo') || '';
-    const fallbackInitial = ((channelName || 'TubeBoost').trim().charAt(0) || 'T').toUpperCase();
+    const fallbackInitial = ((channelName || 'TubeGrowth').trim().charAt(0) || 'T').toUpperCase();
     const fallbackLogo = `data:image/svg+xml,${encodeURIComponent(
       `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
         <defs>
@@ -646,7 +646,7 @@ async function openPaymentPage(currency, amount) {
       key: data.keyId || window.RAZORPAY_KEY_ID || '',
       amount: data.order.amount,
       currency: data.order.currency,
-      name: 'TubeBoost',
+      name: 'TubeGrowth',
       description: `Buy ${creditsToAdd} Credits (${selectedCurrency})`,
       order_id: data.order.id,
       prefill: {
@@ -1081,7 +1081,7 @@ function shareReferralCode() {
   
   if (navigator.share) {
     navigator.share({
-      title: 'Join TubeBoost',
+      title: 'Join TubeGrowth',
       text: 'Get 30 credits when you join with my referral code!',
       url: shareUrl
     }).catch(() => {
@@ -1527,7 +1527,7 @@ function showEarnModal(taskType) {
         savePromotionHistory(historyKey, history);
       }
     } else if (linkEl && nameEl) {
-      linkEl.href = 'https://youtube.com/@TubeBoost';
+      linkEl.href = 'https://youtube.com/@TubeGrowth';
       linkEl.onclick = (event) => openEarnLink(taskType, linkEl.href, linkEl) ? undefined : event.preventDefault();
       nameEl.textContent = 'Channel: Add a promotion in Boost Profile';
     }
@@ -1895,7 +1895,7 @@ function showToast(icon, title, msg) {
 const notifications = [
   { name: 'Rohan M.', action: 'just ordered Pro Growth - 2,000 Subscribers', time: '2 min ago' },
   { name: 'Sarah K.', action: 'just signed up for Channel Boss package', time: '5 min ago' },
-  { name: 'Daniel T.', action: 'hit 10K subscribers with TubeBoost!', time: '8 min ago' },
+  { name: 'Daniel T.', action: 'hit 10K subscribers with TubeGrowth!', time: '8 min ago' },
   { name: 'Lena R.', action: 'just ordered 5,000 Video Likes', time: '11 min ago' },
   { name: 'Marcus J.', action: 'just reached monetization - 4,000 Watch Hours!', time: '14 min ago' },
 ];
