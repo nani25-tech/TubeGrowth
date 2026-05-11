@@ -121,7 +121,6 @@ async function updateUserCredits(userId, credits) {
   }
   return response.json();
 }
-}
 
 async function fetchAdminUsers() {
   const token = getToken();
