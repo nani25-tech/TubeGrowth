@@ -222,6 +222,78 @@
   line-height: 1.6;
 }
 
+.ads-section {
+  background: #f8fafc;
+  color: #111;
+  padding: 80px 20px;
+  text-align: center;
+  border-top: 2px solid #e5e7eb;
+}
+
+.ads-grid {
+  max-width: 1100px;
+  margin: 40px auto 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.ad-card {
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.ad-slot-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 1px;
+  color: #0f172a;
+  margin-bottom: 16px;
+}
+
+.ad-slot {
+  min-height: 120px;
+  border: 2px dashed #94a3b8;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f8fafc, #eef2ff);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  color: #334155;
+}
+
+.ad-slot p {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.ad-slot small {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.ad-slot-vertical {
+  min-height: 250px;
+}
+
+@media (max-width: 768px) {
+  .ads-section {
+    padding: 60px 16px;
+  }
+
+  .ads-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ad-card {
+    padding: 18px;
+  }
+}
+
 @media (max-width: 768px) {
   .free-boost-section { padding: 30px 0 60px; }
   .free-boost-banner { font-size: 20px; padding: 12px 24px; margin-bottom: 30px; }
