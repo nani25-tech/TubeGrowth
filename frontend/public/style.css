@@ -4001,7 +4001,16 @@ nav,
   section {
     padding: 40px 16px !important;
   }
-  
+}
+
+/* Dashboard Tab Content Visibility */
+.dashboard-tab-content {
+  display: none;
+}
+
+.dashboard-tab-content.active {
+  display: block;
+}
   .section-label {
     font-size: 11px;
   }

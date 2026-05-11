@@ -3061,6 +3061,15 @@ nav ul a,
   margin: 0 auto;
 }
 
+/* Dashboard Tab Content Visibility */
+.dashboard-tab-content {
+  display: none;
+}
+
+.dashboard-tab-content.active {
+  display: block;
+}
+
 .dashboard-layout {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;

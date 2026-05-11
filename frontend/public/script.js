@@ -2162,6 +2162,40 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeBoostProfile();
   initializeViewPromotions();
   updateCreditsDisplay();
+  
+  // Tab switching for View Promotions and Dashboard
+  const viewPromoTabs = document.querySelectorAll('.view-promo-shell-tab');
+  viewPromoTabs.forEach(tab => {
+    tab.addEventListener('click', (e) => {
+      const dataTab = tab.getAttribute('data-tab');
+      const href = tab.getAttribute('href');
+      
+      if (dataTab) {
+        // Internal dashboard tab switching
+        e.preventDefault();
+        
+        // Update active tab styling
+        viewPromoTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        // Show/hide tab content
+        const dashboardContent = document.getElementById('dashboard-content');
+        const promotionsContent = document.getElementById('promotions-content');
+        
+        if (dataTab === 'dashboard') {
+          if (dashboardContent) dashboardContent.classList.add('active');
+          if (promotionsContent) promotionsContent.classList.remove('active');
+        } else if (dataTab === 'promotions') {
+          if (dashboardContent) dashboardContent.classList.remove('active');
+          if (promotionsContent) promotionsContent.classList.add('active');
+        }
+      } else if (href && (href === '#earn-credits' || href === '#get-started' || href === '#top')) {
+        // External navigation - allow default behavior
+        return;
+      }
+    });
+  });
+  
   const initialSection = window.location.hash ? window.location.hash.slice(1) : 'home';
   showSection(initialSection);
   

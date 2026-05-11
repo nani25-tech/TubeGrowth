@@ -323,18 +323,27 @@
   <div class="view-promo-credit-chip">Your Credits : 0</div>
 
   <div class="view-promo-shell reveal">
-    <div class="view-promo-shell-topbar">VIEW PROMOTIONS</div>
+    <div class="view-promo-shell-topbar">DashBoard</div>
     <div class="view-promo-shell-tabs">
-      <a class="view-promo-shell-tab" href="#services" aria-label="Go to dashboard">DASHBOARD</a>
+      <a class="view-promo-shell-tab" href="#dashboard-preview" aria-label="Go to dashboard">DASHBOARD</a>
       <a class="view-promo-shell-tab" href="#earn-credits" aria-label="Go to earn credits">EARN CREDITS</a>
       <a class="view-promo-shell-tab" href="#get-started" aria-label="Go to boost profile">BOOST PROFILE</a>
-      <a class="view-promo-shell-tab active" href="#view-promotions" aria-current="page" aria-label="Go to view promotions">VIEW PROMOTIONS</a>
+      <a class="view-promo-shell-tab active" href="#services" aria-label="Go to view promotions">VIEW PROMOTIONS</a>
       <a class="view-promo-shell-tab" href="#top" aria-label="Back to top">LOGOUT</a>
       <li><a href="#buy-credits" class="nav-cta">Buy Credits</a></li>
     </div>
   </div>
 
-  <section id="view-promotions">
+  <!-- DASHBOARD CONTENT -->
+  <div id="dashboard-content" class="dashboard-tab-content active">
+    <div class="view-promo-layout reveal">
+      <!-- Add Dashboard content here later if needed -->
+      <p style="text-align: center; padding: 40px; color: #999;">Dashboard content area</p>
+    </div>
+  </div>
+
+  <!-- VIEW PROMOTIONS CONTENT -->
+  <div id="promotions-content" class="dashboard-tab-content">
     <div class="view-promo-layout reveal">
       <div class="view-promo-search-bar">
         <input type="text" id="promoSearch" placeholder="Search..." />
@@ -437,7 +446,8 @@
         </div>
       </article>
     </div>
-  </section>
+  </div>
+  </div>
 </section>
 
 <!-- HOW IT WORKS -->
