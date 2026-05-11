@@ -1,8 +1,11 @@
 ﻿// Automatically register/login user with channel ID and name
 async function ensureChannelUserInBackend() {
-  const channelId = localStorage.getItem('selectedChannelId');
-  const channelName = localStorage.getItem('selectedChannelName');
-  if (!channelId || !channelName) return;
+  const channelId = restoreSelectedChannelSession();
+  const channelName = (localStorage.getItem('selectedChannelName') || '').trim() || getChannelDisplayName(channelId);
+  if (!channelId) return;
+  if (!localStorage.getItem('selectedChannelName')) {
+    localStorage.setItem('selectedChannelName', channelName);
+  }
   try {
     const apiBase = typeof getApiBase === 'function' ? getApiBase() : '';
     const response = await fetch(`${apiBase}/auth/channel-login`, {
@@ -28,9 +31,18 @@ const DEFAULT_SUBSCRIBE_CHANNELS = [
 ];
 
 const PROTECTED_SECTION_IDS = new Set(['dashboard-preview', 'earn-credits', 'get-started', 'services']);
+const LOGOUT_STATE_KEY = 'isExplicitlyLoggedOut';
+
+function isExplicitlyLoggedOut() {
+  return localStorage.getItem(LOGOUT_STATE_KEY) === 'true';
+}
+
+function setExplicitLogoutState(isLoggedOut) {
+  localStorage.setItem(LOGOUT_STATE_KEY, isLoggedOut ? 'true' : 'false');
+}
 
 function hasSelectedChannel() {
-  return Boolean((localStorage.getItem('selectedChannelId') || '').trim());
+  return Boolean(restoreSelectedChannelSession());
 }
 
 function normalizeChannelInput(value) {
@@ -76,7 +88,46 @@ function normalizeChannelInput(value) {
   return raw.split(/\s+/)[0];
 }
 
+function restoreSelectedChannelSession() {
+  if (isExplicitlyLoggedOut()) {
+    return '';
+  }
+
+  const existingChannelId = normalizeChannelInput(localStorage.getItem('selectedChannelId') || '');
+  if (existingChannelId) {
+    localStorage.setItem('selectedChannelId', existingChannelId);
+    return existingChannelId;
+  }
+
+  try {
+    const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+    const fallbackChannelId = normalizeChannelInput(
+      storedUser?.youtubeChannelId || storedUser?.channelId || ''
+    );
+
+    if (!fallbackChannelId) {
+      return '';
+    }
+
+    const fallbackChannelName = (
+      storedUser?.youtubeChannelTitle ||
+      storedUser?.name ||
+      getChannelDisplayName(fallbackChannelId)
+    ).trim();
+
+    localStorage.setItem('selectedChannelId', fallbackChannelId);
+    if (fallbackChannelName) {
+      localStorage.setItem('selectedChannelName', fallbackChannelName);
+    }
+
+    return fallbackChannelId;
+  } catch (error) {
+    return '';
+  }
+}
+
 function clearSelectedChannelSession() {
+  setExplicitLogoutState(true);
   localStorage.removeItem('selectedChannelId');
   localStorage.removeItem('selectedChannelName');
   localStorage.removeItem('selectedChannelLogo');
@@ -210,6 +261,7 @@ function searchAndOpenDashboard() {
   }
   
   // Save channel info to localStorage for dashboard
+  setExplicitLogoutState(false);
   localStorage.setItem('selectedChannelId', channelId);
   localStorage.setItem('selectedChannelName', channelName);
   ensureChannelUserInBackend();
@@ -1870,6 +1922,7 @@ function handleChannelSearch() {
   }
 
   document.getElementById('channelUrl').value = query;
+  setExplicitLogoutState(false);
   localStorage.setItem('selectedChannelId', query);
   localStorage.setItem('selectedChannelName', getChannelDisplayName(query));
   channelSearch.value = query;
@@ -2186,43 +2239,67 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeBoostProfile();
   initializeViewPromotions();
   updateCreditsDisplay();
-  
+
   // Tab switching for View Promotions and Dashboard
   const viewPromoTabs = document.querySelectorAll('.view-promo-shell-tab');
+  const dashboardContent = document.getElementById('dashboard-content');
+  const promotionsContent = document.getElementById('promotions-content');
+
+  function activateTab(tabName) {
+    viewPromoTabs.forEach(t => t.classList.remove('active'));
+    if (tabName === 'dashboard') {
+      const dashTab = Array.from(viewPromoTabs).find(t => t.getAttribute('data-tab') === 'dashboard');
+      if (dashTab) dashTab.classList.add('active');
+      dashboardContent?.classList.add('active');
+      promotionsContent?.classList.remove('active');
+    } else if (tabName === 'promotions') {
+      const promoTab = Array.from(viewPromoTabs).find(t => t.getAttribute('data-tab') === 'promotions');
+      if (promoTab) promoTab.classList.add('active');
+      dashboardContent?.classList.remove('active');
+      promotionsContent?.classList.add('active');
+    }
+  }
+
   viewPromoTabs.forEach(tab => {
     tab.addEventListener('click', (e) => {
       const dataTab = tab.getAttribute('data-tab');
       const href = tab.getAttribute('href');
-      
-      if (dataTab) {
-        // Internal dashboard tab switching
+      if (dataTab === 'dashboard' || dataTab === 'promotions') {
         e.preventDefault();
-        
-        // Update active tab styling
-        viewPromoTabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        
-        // Show/hide tab content
-        const dashboardContent = document.getElementById('dashboard-content');
-        const promotionsContent = document.getElementById('promotions-content');
-        
-        if (dataTab === 'dashboard') {
-          if (dashboardContent) dashboardContent.classList.add('active');
-          if (promotionsContent) promotionsContent.classList.remove('active');
-        } else if (dataTab === 'promotions') {
-          if (dashboardContent) dashboardContent.classList.remove('active');
-          if (promotionsContent) promotionsContent.classList.add('active');
+        activateTab(dataTab);
+        if (dataTab === 'promotions') {
+          window.location.hash = '#services';
+        } else if (dataTab === 'dashboard') {
+          window.location.hash = '#dashboard-preview';
         }
       } else if (href && (href === '#earn-credits' || href === '#get-started' || href === '#top')) {
-        // External navigation - allow default behavior
         return;
       }
     });
   });
-  
-  const initialSection = window.location.hash ? window.location.hash.slice(1) : 'home';
-  showSection(initialSection);
-  
+
+  // On page load, show correct tab/content based on hash or active tab
+  if (window.location.hash === '#services') {
+    activateTab('promotions');
+    // Ensure the promotions tab and content are visually active even if not in HTML
+    const promoTab = Array.from(viewPromoTabs).find(t => t.getAttribute('data-tab') === 'promotions');
+    if (promoTab) promoTab.classList.add('active');
+    promotionsContent?.classList.add('active');
+  } else if (window.location.hash === '#dashboard-preview') {
+    activateTab('dashboard');
+  } else {
+    // If hash is missing, check which tab is active in HTML
+    const promoTab = Array.from(viewPromoTabs).find(t => t.classList.contains('active') && t.getAttribute('data-tab') === 'promotions');
+    if (promoTab) {
+      activateTab('promotions');
+      promotionsContent?.classList.add('active');
+      window.location.hash = '#services';
+    } else {
+      activateTab('dashboard');
+      window.location.hash = '#dashboard-preview';
+    }
+  }
+
   // Ensure daily bonus UI is initialized
   setTimeout(() => {
     updateDailyBonusUI();
@@ -2249,7 +2326,7 @@ function loadPromotions() {
   const tableBody = document.getElementById('promoTableBody');
   
   if (campaigns.length === 0) {
-    tableBody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 20px; color: #999;">No promotions yet. Go to Boost Profile to create one!</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 32px; color: #FFD700; font-size: 20px; font-weight: bold;">No promotions found.<br>Add a campaign to see it here.</td></tr>';
     return;
   }
   

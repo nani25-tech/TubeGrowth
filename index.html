@@ -160,32 +160,6 @@
         </div>
       </article>
 
-      <article class="dash-card bonus-card">
-        <header class="dash-card-head bonus-head">DAILY BONUS <span>25 CREDITS</span></header>
-        <div class="dash-card-body bonus-body">
-          <div id="dashDailyBonusContainer">
-            <div class="daily-actions-box">
-              <strong>DAILY ACTIONS COMPLETED:</strong>
-              <span id="dashDailyActionsCount">0</span> / <span id="dashDailyActionsNeeded">20</span>
-            </div>
-
-            <div class="daily-bonus-info">
-              <h4>HOW TO CLAIM DAILY BONUS?</h4>
-              <p>Complete <span id="dashActionsNeeded">20</span> daily actions before the end of timer and you will be able to claim daily bonus. Every Like or Subscribe that you perform is counted as 1 daily action.</p>
-            </div>
-
-            <div class="daily-bonus-timer">
-              Daily Bonus Reset in: <span id="dashDailyBonusTimer">--:--</span>
-            </div>
-
-            <p class="daily-bonus-note" id="dashDailyBonusNote">Make sure you perform 20 actions before this time to claim bonus credits.</p>
-
-            <button id="dashClaimBonusBtn" class="earn-btn" onclick="claimDailyBonus()" disabled>CLAIM BONUS</button>
-            <div id="dashDailyBonusStatus" class="earn-status"></div>
-          </div>
-        </div>
-      </article>
-
       <article class="dash-card refer-card">
         <header class="dash-card-head">REFER &amp; EARN <span style="color: #FFD700; font-size: 14px; background: rgba(255,215,0,0.2); padding: 2px 8px; border-radius: 3px; margin-left: 6px;">+30 CREDITS</span></header>
         <div class="dash-card-body refer-body">
@@ -324,27 +298,33 @@
   <div class="view-promo-credit-chip">Your Credits : 0</div>
 
   <div class="view-promo-shell reveal">
-    <div class="view-promo-shell-topbar">DashBoard</div>
+    <div class="view-promo-shell-topbar">View Promotions</div>
     <div class="view-promo-shell-tabs">
-      <a class="view-promo-shell-tab" href="#dashboard-preview" aria-label="Go to dashboard">DASHBOARD</a>
+      <a class="view-promo-shell-tab" href="#dashboard-preview" aria-current="page" aria-label="Go to dashboard">DASHBOARD</a>
       <a class="view-promo-shell-tab" href="#earn-credits" aria-label="Go to earn credits">EARN CREDITS</a>
       <a class="view-promo-shell-tab" href="#get-started" aria-label="Go to boost profile">BOOST PROFILE</a>
-      <a class="view-promo-shell-tab active" href="#services" aria-label="Go to view promotions">VIEW PROMOTIONS</a>
+      <a class="view-promo-shell-tab active" href="#services" data-tab="promotions" aria-label="Go to view promotions">VIEW PROMOTIONS</a>
       <a class="view-promo-shell-tab" href="#top" aria-label="Back to top">LOGOUT</a>
       <li><a href="#buy-credits" class="nav-cta">Buy Credits</a></li>
     </div>
   </div>
 
   <!-- DASHBOARD CONTENT -->
-  <div id="dashboard-content" class="dashboard-tab-content active">
-    <div class="view-promo-layout reveal">
-      <!-- Add Dashboard content here later if needed -->
-      <p style="text-align: center; padding: 40px; color: #999;">Dashboard content area</p>
-    </div>
-  </div>
+  <div id="dashboard-content" class="dashboard-tab-content"></div>
 
   <!-- VIEW PROMOTIONS CONTENT -->
   <div id="promotions-content" class="dashboard-tab-content">
+    <script>
+    // Fallback: Always force 'active' class on promotions-content if hash is #services
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.location.hash === '#services') {
+        var promoContent = document.getElementById('promotions-content');
+        if (promoContent && !promoContent.classList.contains('active')) {
+          promoContent.classList.add('active');
+        }
+      }
+    });
+    </script>
     <div class="view-promo-layout reveal">
       <div class="view-promo-search-bar">
         <input type="text" id="promoSearch" placeholder="Search..." />

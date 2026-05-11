@@ -1,8 +1,11 @@
 ﻿// Automatically register/login user with channel ID and name
 async function ensureChannelUserInBackend() {
-  const channelId = localStorage.getItem('selectedChannelId');
-  const channelName = localStorage.getItem('selectedChannelName');
-  if (!channelId || !channelName) return;
+  const channelId = restoreSelectedChannelSession();
+  const channelName = (localStorage.getItem('selectedChannelName') || '').trim() || getChannelDisplayName(channelId);
+  if (!channelId) return;
+  if (!localStorage.getItem('selectedChannelName')) {
+    localStorage.setItem('selectedChannelName', channelName);
+  }
   try {
     const apiBase = typeof getApiBase === 'function' ? getApiBase() : '';
     const response = await fetch(`${apiBase}/auth/channel-login`, {
@@ -28,9 +31,18 @@ const DEFAULT_SUBSCRIBE_CHANNELS = [
 ];
 
 const PROTECTED_SECTION_IDS = new Set(['dashboard-preview', 'earn-credits', 'get-started', 'services']);
+const LOGOUT_STATE_KEY = 'isExplicitlyLoggedOut';
+
+function isExplicitlyLoggedOut() {
+  return localStorage.getItem(LOGOUT_STATE_KEY) === 'true';
+}
+
+function setExplicitLogoutState(isLoggedOut) {
+  localStorage.setItem(LOGOUT_STATE_KEY, isLoggedOut ? 'true' : 'false');
+}
 
 function hasSelectedChannel() {
-  return Boolean((localStorage.getItem('selectedChannelId') || '').trim());
+  return Boolean(restoreSelectedChannelSession());
 }
 
 function normalizeChannelInput(value) {
@@ -76,7 +88,46 @@ function normalizeChannelInput(value) {
   return raw.split(/\s+/)[0];
 }
 
+function restoreSelectedChannelSession() {
+  if (isExplicitlyLoggedOut()) {
+    return '';
+  }
+
+  const existingChannelId = normalizeChannelInput(localStorage.getItem('selectedChannelId') || '');
+  if (existingChannelId) {
+    localStorage.setItem('selectedChannelId', existingChannelId);
+    return existingChannelId;
+  }
+
+  try {
+    const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+    const fallbackChannelId = normalizeChannelInput(
+      storedUser?.youtubeChannelId || storedUser?.channelId || ''
+    );
+
+    if (!fallbackChannelId) {
+      return '';
+    }
+
+    const fallbackChannelName = (
+      storedUser?.youtubeChannelTitle ||
+      storedUser?.name ||
+      getChannelDisplayName(fallbackChannelId)
+    ).trim();
+
+    localStorage.setItem('selectedChannelId', fallbackChannelId);
+    if (fallbackChannelName) {
+      localStorage.setItem('selectedChannelName', fallbackChannelName);
+    }
+
+    return fallbackChannelId;
+  } catch (error) {
+    return '';
+  }
+}
+
 function clearSelectedChannelSession() {
+  setExplicitLogoutState(true);
   localStorage.removeItem('selectedChannelId');
   localStorage.removeItem('selectedChannelName');
   localStorage.removeItem('selectedChannelLogo');
@@ -210,6 +261,7 @@ function searchAndOpenDashboard() {
   }
   
   // Save channel info to localStorage for dashboard
+  setExplicitLogoutState(false);
   localStorage.setItem('selectedChannelId', channelId);
   localStorage.setItem('selectedChannelName', channelName);
   ensureChannelUserInBackend();
@@ -1870,6 +1922,7 @@ function handleChannelSearch() {
   }
 
   document.getElementById('channelUrl').value = query;
+  setExplicitLogoutState(false);
   localStorage.setItem('selectedChannelId', query);
   localStorage.setItem('selectedChannelName', getChannelDisplayName(query));
   channelSearch.value = query;
