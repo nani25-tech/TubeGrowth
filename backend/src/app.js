@@ -48,7 +48,23 @@ function isAllowedOrigin(origin) {
 }
 
 // Middleware
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", 'https://pagead2.googlesyndication.com', 'https://checkout.razorpay.com', 'https://fonts.googleapis.com', 'https://www.googleapis.com'],
+      scriptSrcAttr: ["'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
+      connectSrc: ["'self'", 'https://pagead2.googlesyndication.com', 'https://checkout.razorpay.com', 'https://www.googleapis.com', 'https://maps.googleapis.com'],
+      frameSrc: ["'self'", 'https://checkout.razorpay.com'],
+      formAction: ["'self'"],
+      frameAncestors: ["'self'"],
+      upgradeInsecureRequests: [],
+    },
+  },
+}));
 app.use(cors({
   origin(origin, callback) {
     if (isAllowedOrigin(origin)) {
