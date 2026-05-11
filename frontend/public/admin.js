@@ -37,23 +37,90 @@ function renderUsers(users) {
   usersTable.innerHTML = '';
 
   if (!users.length) {
-    usersTable.innerHTML = '<tr><td colspan="7">No users found.</td></tr>';
+    usersTable.innerHTML = '<tr><td colspan="3">No users found.</td></tr>';
     return;
   }
 
   users.forEach((user) => {
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td>${formatValue(user.name)}</td>
       <td>${formatValue(user.youtubeChannelTitle)}</td>
       <td>${formatValue(user.youtubeChannelId)}</td>
       <td>${formatValue(user.credits)}</td>
-      <td>${formatValue(user.email)}</td>
-      <td>${formatValue(user.isAdmin)}</td>
-      <td>${formatValue(user.isBanned)}</td>
+      <td><button class="edit-btn" data-id="${user._id}" data-channel-name="${user.youtubeChannelTitle}" data-channel-id="${user.youtubeChannelId}" data-credits="${user.credits}">Edit</button></td>
     `;
     usersTable.appendChild(row);
   });
+
+  // Add event listeners for edit buttons
+  document.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const id = btn.getAttribute('data-id');
+      const channelName = btn.getAttribute('data-channel-name');
+      const channelId = btn.getAttribute('data-channel-id');
+      const credits = btn.getAttribute('data-credits');
+      openEditModal(id, channelName, channelId, credits);
+    });
+  });
+}
+
+// Modal logic
+const editUserModal = document.getElementById('editUserModal');
+const closeEditModalBtn = document.getElementById('closeEditModal');
+const editUserForm = document.getElementById('editUserForm');
+const editUserId = document.getElementById('editUserId');
+const editChannelName = document.getElementById('editChannelName');
+const editChannelId = document.getElementById('editChannelId');
+const editCredits = document.getElementById('editCredits');
+
+function openEditModal(id, channelName, channelId, credits) {
+  editUserId.value = id;
+  editChannelName.value = channelName;
+  editChannelId.value = channelId;
+  editCredits.value = credits;
+  editUserModal.style.display = 'block';
+}
+
+closeEditModalBtn.onclick = function() {
+  editUserModal.style.display = 'none';
+}
+
+window.onclick = function(event) {
+  if (event.target === editUserModal) {
+    editUserModal.style.display = 'none';
+  }
+}
+
+editUserForm.onsubmit = async function(e) {
+  e.preventDefault();
+  const id = editUserId.value;
+  const credits = editCredits.value;
+  try {
+    await updateUserCredits(id, credits);
+    setMessage('Credits updated!', 'success');
+    editUserModal.style.display = 'none';
+    loadUsers();
+  } catch (err) {
+    setMessage('Failed to update credits', 'error');
+  }
+}
+
+async function updateUserCredits(userId, credits) {
+  const token = getToken();
+  const apiBase = getApiBase();
+  const response = await fetch(`${apiBase}/admin/users/${userId}/credits`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ credits }),
+  });
+  if (!response.ok) {
+    throw new Error('Failed to update credits');
+  }
+  return response.json();
+}
 }
 
 async function fetchAdminUsers() {

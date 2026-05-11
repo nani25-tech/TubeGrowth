@@ -10,13 +10,14 @@ export const getUsers = async (req, res) => {
 
     const { page = 1, limit = 20 } = req.query;
 
-    const users = await User.find()
+    // Only fetch regular users (not admins)
+    const users = await User.find({ isAdmin: false })
       .select('-password')
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
 
-    const total = await User.countDocuments();
+    const total = await User.countDocuments({ isAdmin: false });
 
     res.json({
       users,
