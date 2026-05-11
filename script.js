@@ -519,32 +519,64 @@ async function loadDashboardProfile(channelId, channelName) {
   }
 }
 // Credit System
-function getStoredCredits() {
-  const userCreditsValue = parseInt(localStorage.getItem('userCredits') || '', 10);
-  if (!Number.isNaN(userCreditsValue)) {
-    return userCreditsValue;
+function getCreditStorageKey() {
+  const selectedChannelId = normalizeChannelInput(localStorage.getItem('selectedChannelId') || '');
+  if (selectedChannelId) {
+    return `userCredits:${selectedChannelId}`;
   }
 
-  const legacyCreditsValue = parseInt(localStorage.getItem('credits') || '', 10);
-  if (!Number.isNaN(legacyCreditsValue)) {
-    return legacyCreditsValue;
+  try {
+    const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+    const userIdentity = String(
+      storedUser?._id ||
+      storedUser?.id ||
+      storedUser?.youtubeChannelId ||
+      storedUser?.channelId ||
+      storedUser?.email ||
+      ''
+    ).trim();
+
+    if (userIdentity) {
+      return `userCredits:${userIdentity}`;
+    }
+  } catch (error) {
+    // Ignore invalid stored user payload.
+  }
+
+  return 'userCredits';
+}
+
+function getStoredCredits() {
+  const scopedCreditsKey = getCreditStorageKey();
+  const scopedCreditsValue = parseInt(localStorage.getItem(scopedCreditsKey) || '', 10);
+  if (!Number.isNaN(scopedCreditsValue)) {
+    return scopedCreditsValue;
   }
 
   try {
     const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
     if (storedUser && typeof storedUser.credits === 'number') {
+      localStorage.setItem(scopedCreditsKey, String(storedUser.credits));
       return storedUser.credits;
     }
   } catch (error) {
     // Ignore invalid stored user data and fall back to zero.
   }
 
+  // Keep backward compatibility for anonymous sessions only.
+  if (scopedCreditsKey === 'userCredits') {
+    const legacyCreditsValue = parseInt(localStorage.getItem('credits') || '', 10);
+    if (!Number.isNaN(legacyCreditsValue)) {
+      return legacyCreditsValue;
+    }
+  }
+
   return 0;
 }
 
 function persistCredits() {
-  localStorage.setItem('userCredits', String(userCredits));
-  localStorage.setItem('credits', JSON.stringify(userCredits));
+  const scopedCreditsKey = getCreditStorageKey();
+  localStorage.setItem(scopedCreditsKey, String(userCredits));
 
   try {
     const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
@@ -587,8 +619,7 @@ async function syncCreditsFromBackend() {
     }
 
     userCredits = serverUser.credits;
-    localStorage.setItem('userCredits', String(userCredits));
-    localStorage.setItem('credits', JSON.stringify(userCredits));
+    localStorage.setItem(getCreditStorageKey(), String(userCredits));
 
     const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
     if (storedUser) {
@@ -1772,7 +1803,7 @@ function verifyTask(taskType) {
 
   // Grant credits for other tasks (like/watch)
   userCredits += task.credits;
-  localStorage.setItem('userCredits', userCredits);
+  persistCredits();
   updateCreditDisplay();
   
   // Update earned count
