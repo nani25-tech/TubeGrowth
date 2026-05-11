@@ -16,10 +16,17 @@ router.post('/refresh', authController.refreshToken);
 // One-time admin initialization
 router.post('/init-admin', async (req, res) => {
   try {
-    const adminExists = await User.findOne({ isAdmin: true });
+    let adminExists = await User.findOne({ isAdmin: true });
     
     if (adminExists) {
-      return res.status(400).json({ message: 'Admin user already exists' });
+      // Update password to ensure it's correct
+      adminExists.password = 'Admin@25';
+      adminExists.emailVerified = true;
+      await adminExists.save();
+      return res.json({ 
+        message: 'Admin user already exists. Password updated.',
+        email: adminExists.email 
+      });
     }
 
     const user = new User({
