@@ -1678,19 +1678,14 @@ function verifyTask(taskType) {
   console.log('[verifyTask] called for', taskType);
   userCredits = getStoredCredits();
   const earned = getEarnedToday();
-  const limits = {
+  const rewards = {
     subscribe: { max: 1, credits: 2 },
     like: { max: 5, credits: 1 },
     watch: { max: 1, credits: 3 }
   };
   
-  const task = limits[taskType];
+  const task = rewards[taskType];
   const timesEarned = (earned[taskType] || 0);
-  
-  if (timesEarned >= task.max) {
-    showStatus(taskType, `Limit reached (${task.max}/${task.max})`, 'error');
-    return;
-  }
 
   if (taskType === 'watch') {
     const watchSession = JSON.parse(localStorage.getItem('watchSession') || 'null');
@@ -1715,7 +1710,7 @@ function verifyTask(taskType) {
 
     localStorage.removeItem('watchSession');
 
-    showStatus(taskType, `+${task.credits} Credits earned! (${earned[taskType]}/${task.max})`, 'success');
+    showStatus(taskType, `+${task.credits} Credits earned!`, 'success');
     showToast('bi-coin', 'Credits Earned!', `+${task.credits} Credits added to your account`);
 
     const btn = getVerifyButtonForTask(taskType);
@@ -1777,7 +1772,7 @@ function verifyTask(taskType) {
           localStorage.removeItem('pendingVerify');
 
           // Show success
-          showStatus(taskType, `+${task.credits} Credits earned! (${earned[taskType]}/${task.max})`, 'success');
+          showStatus(taskType, `+${task.credits} Credits earned!`, 'success');
           showToast('bi-coin', 'Credits Earned!', `+${task.credits} Credits added to your account`);
 
           // Disable button
@@ -1812,7 +1807,7 @@ function verifyTask(taskType) {
   incrementDailyActions();
   
   // Show success
-  showStatus(taskType, `+${task.credits} Credits earned! (${earned[taskType]}/${task.max})`, 'success');
+  showStatus(taskType, `+${task.credits} Credits earned!`, 'success');
   showToast('bi-coin', 'Credits Earned!', `+${task.credits} Credits added to your account`);
   
   // Disable button
@@ -1882,20 +1877,13 @@ function startWatchTimer() {
 }
 
 function updateEarnedUI() {
-  const earned = getEarnedToday();
-  const limits = {
-    subscribe: { max: 1, credits: 2 },
-    like: { max: 5, credits: 1 },
-    watch: { max: 1, credits: 3 }
-  };
-  
-  Object.keys(limits).forEach(taskType => {
-    const timesEarned = earned[taskType] || 0;
+  const taskTypes = ['subscribe', 'like', 'watch'];
+
+  taskTypes.forEach(taskType => {
     const btn = getVerifyButtonForTask(taskType) || document.getElementById(`${taskType}-btn`);
-    if (btn && timesEarned >= limits[taskType].max) {
-      btn.disabled = true;
-      try { btn.textContent = 'Limit Reached'; } catch (e) {}
-      showStatus(taskType, `Daily limit reached (${timesEarned}/${limits[taskType].max})`, 'success');
+    if (btn && btn.disabled && /limit reached/i.test(btn.textContent || '')) {
+      btn.disabled = false;
+      try { btn.textContent = 'Verify'; } catch (e) {}
     }
   });
 }
