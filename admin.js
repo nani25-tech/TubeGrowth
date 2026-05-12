@@ -15,7 +15,7 @@ function getApiBase() {
     return 'http://localhost:5000/api';
   }
 
-  return 'https://tubegrowth-backend.onrender.com/api';
+  return 'https://tubegrowth.onrender.com/api';
 }
 
 function getToken() {
