@@ -65,15 +65,11 @@ app.use(helmet({
     },
   },
 }));
+// Temporarily allow all origins to avoid CORS blocking when frontend is
+// served from a different host (e.g., GitHub Pages). Revert to stricter
+// configuration once DNS is pointed to Render or proper origins configured.
 app.use(cors({
-  origin(origin, callback) {
-    if (isAllowedOrigin(origin)) {
-      callback(null, true);
-      return;
-    }
-
-    callback(new Error(`CORS blocked for origin ${origin}`));
-  },
+  origin: true,
   credentials: true,
 }));
 app.use(morgan('dev'));
