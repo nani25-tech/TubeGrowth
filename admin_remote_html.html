@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TubeGrowth Admin</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">TubeGrowth Admin</p>
+        <h1>Users</h1>
+        <p class="subhead">All users for tubegrowth.zone.id in one list.</p>
+      </div>
+      <div class="auth-box">
+        <span id="authStatus">Not signed in</span>
+        <button id="logoutBtn" type="button" class="ghost">Logout</button>
+      </div>
+    </header>
+
+    <section class="panel auth-panel">
+      <form id="loginForm" class="login-form">
+        <label>
+          Email
+          <input id="email" type="email" value="admin@tubegrowth.tg" required>
+        </label>
+        <label>
+          Password
+          <input id="password" type="password" value="Admin@25" required>
+        </label>
+        <button type="submit">Sign in</button>
+      </form>
+      <p id="loginMessage" class="message"></p>
+    </section>
+
+    <section class="panel users-panel">
+      <div class="panel-head">
+        <h2>All Users</h2>
+        <button class="ghost" id="refreshBtn" type="button">Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Channel Name</th>
+              <th>Channel ID</th>
+              <th>Credits</th>
+                <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="usersTable">
+              <tr><td colspan="4">Sign in to load users.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- Edit User Modal -->
+      <div id="editUserModal" class="modal" style="display:none;">
+        <div class="modal-content">
+          <span id="closeEditModal" class="close">&times;</span>
+          <h3>Edit User Details</h3>
+          <form id="editUserForm">
+            <input type="hidden" id="editUserId">
+            <div>
+              <label>Name</label>
+              <input type="text" id="editName" required>
+            </div>
+            <div>
+              <label>Channel Name</label>
+              <input type="text" id="editChannelName">
+            </div>
+            <div>
+              <label>Channel ID</label>
+              <input type="text" id="editChannelId">
+            </div>
+            <div>
+              <label>Credits</label>
+              <input type="number" id="editCredits" min="0" required>
+            </div>
+            <button type="submit">Save</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>
