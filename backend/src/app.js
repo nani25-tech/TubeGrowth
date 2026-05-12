@@ -82,19 +82,8 @@ app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), pay
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(publicDir));
 
-app.get(['/admin', '/admin.html'], (req, res) => {
-  res.sendFile(path.join(publicDir, 'admin.html'));
-});
-
-// Favicon route
-app.get('/favicon.ico', (req, res) => {
-  const faviconPath = path.join(publicDir, 'favicon.svg');
-  res.type('image/svg+xml').sendFile(faviconPath, { fallback: (err) => res.status(204).send() });
-});
-
-// Routes
+// Routes BEFORE static files (so /api/* doesn't get caught by static middleware)
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/campaigns', campaignRoutes);
@@ -114,10 +103,23 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
     mongodb: {
-      connected: true, // MongoDB would have failed to connect at startup if there was an issue
+      connected: true,
     },
     uptime: process.uptime(),
   });
+});
+
+// Static files AFTER API routes
+app.use(express.static(publicDir));
+
+app.get(['/admin', '/admin.html'], (req, res) => {
+  res.sendFile(path.join(publicDir, 'admin.html'));
+});
+
+// Favicon route
+app.get('/favicon.ico', (req, res) => {
+  const faviconPath = path.join(publicDir, 'favicon.svg');
+  res.type('image/svg+xml').sendFile(faviconPath, { fallback: (err) => res.status(204).send() });
 });
 
 // 404 handler
