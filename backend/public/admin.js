@@ -11,16 +11,11 @@ function getApiBase() {
   const host = window.location.hostname;
   const port = window.location.port;
   const protocol = window.location.protocol;
-  // Render backend service (fallback when DNS points to GitHub Pages)
-  const RENDER_API = 'https://tubegrowth-backend.onrender.com/api';
-
   if (protocol === 'file:' || host === '' || host === 'localhost' || host === '127.0.0.1' || port === '5000') {
     return 'http://localhost:5000/api';
   }
 
-  // If running on the canonical domain, try using the canonical API path first.
-  // However sometimes the domain routes to GitHub Pages; in that case use Render URL.
-  return `https://${host === 'tubegrowth.zone.id' ? 'tubegrowth.zone.id' : host}/api`;
+  return 'https://tubegrowth-backend.onrender.com/api';
 }
 
 function getToken() {

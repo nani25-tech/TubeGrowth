@@ -11,15 +11,11 @@ function getApiBase() {
   const host = window.location.hostname;
   const port = window.location.port;
   const protocol = window.location.protocol;
-  const RENDER_API = 'https://tubegrowth-backend.onrender.com/api';
-
   if (protocol === 'file:' || host === '' || host === 'localhost' || host === '127.0.0.1' || port === '5000') {
     return 'http://localhost:5000/api';
   }
 
-  if (host === 'tubegrowth.zone.id') return RENDER_API;
-
-  return `https://${host}/api`;
+  return 'https://tubegrowth-backend.onrender.com/api';
 }
 
 function getToken() {
