@@ -487,7 +487,9 @@ function updateDashboardChannel(channelId, channelName = getChannelDisplayName(c
     ? watchTimeHours
     : (typeof storedUser?.watchTimeHours === 'number' ? storedUser.watchTimeHours : 0);
   
-  if (profileName) profileName.textContent = channelName === channelId ? getChannelFallbackName(channelId) : channelName;
+  // Display the stored channel name directly without fallback logic
+  const displayName = (channelName && channelName.trim()) ? channelName : getChannelDisplayName(channelId);
+  if (profileName) profileName.textContent = displayName;
   if (profileChannel) profileChannel.innerHTML = `<strong>YT Channel Link :</strong> ${channelId}`;
   if (profileCredits) profileCredits.textContent = `Your Credits : ${userCredits}`;
   if (profileSubscribers) profileSubscribers.textContent = `Subscribers : ${subscribers}`;
@@ -519,7 +521,7 @@ function updateDashboardChannel(channelId, channelName = getChannelDisplayName(c
   
   // Update channel display in other sections
   const boostChannel = document.querySelector('.boost-your-channel');
-  if (boostChannel) boostChannel.textContent = `Your Channel : ${channelName === channelId ? getChannelFallbackName(channelId) : channelName}`;
+  if (boostChannel) boostChannel.textContent = `Your Channel : ${displayName}`;
 }
 
 async function loadDashboardProfile(channelId, channelName) {
@@ -2286,8 +2288,12 @@ function addPromotion() {
   
   // Save to localStorage
   let campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
-  campaigns.push(campaign);
+  campaigns.unshift(campaign);
   localStorage.setItem('campaigns', JSON.stringify(campaigns));
+  console.log('[addPromotion] Campaign saved to localStorage. Total campaigns:', campaigns.length, 'Campaign:', campaign);
+  currentPage = 1;
+  loadPromotions();
+  initializeViewPromotions();
   
   // Show success
   showToast('bi-check-circle-fill', 'Promotion Added!', `${quantity} ${type} ordered for ${videoLink}`);
@@ -2402,6 +2408,7 @@ let currentPage = 1;
 const itemsPerPage = 4;
 
 function initializeViewPromotions() {
+  currentPage = 1;
   // Update credits display in promotions section
   const creditChip = document.querySelector('.view-promo-credit-chip');
   if (creditChip) {
@@ -2414,7 +2421,14 @@ function initializeViewPromotions() {
 
 function loadPromotions() {
   const campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
+  console.log('[loadPromotions] Loaded campaigns from localStorage. Count:', campaigns.length, 'Campaigns:', campaigns);
   const tableBody = document.getElementById('promoTableBody');
+  
+  // Ensure tableBody exists before proceeding
+  if (!tableBody) {
+    console.error('promoTableBody element not found. Promotions table cannot be loaded.');
+    return;
+  }
   
   if (campaigns.length === 0) {
     tableBody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 32px; color: #FFD700; font-size: 20px; font-weight: bold;">No promotions found.<br>Add a campaign to see it here.</td></tr>';
@@ -2461,6 +2475,13 @@ function loadPromotions() {
 
 function updatePaginationInfo(total, page, totalPages) {
   const paginationDiv = document.querySelector('.view-promo-pagination');
+  
+  // Ensure paginationDiv exists before proceeding
+  if (!paginationDiv) {
+    console.warn('Pagination div not found. Pagination info cannot be updated.');
+    return;
+  }
+  
   const startIdx = (page - 1) * itemsPerPage + 1;
   const endIdx = Math.min(page * itemsPerPage, total);
   
