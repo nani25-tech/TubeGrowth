@@ -2,6 +2,22 @@ import Campaign from '../models/Campaign.js';
 import User from '../models/User.js';
 import { fetchChannelDetails, fetchVideoDetails } from '../utils/youtube.js';
 
+const CAMPAIGN_TYPE_MAP = {
+  subs: 'subscribers',
+  subscriber: 'subscribers',
+  subscribers: 'subscribers',
+  like: 'likes',
+  likes: 'likes',
+  view: 'views',
+  views: 'views',
+  comment: 'comments',
+  comments: 'comments',
+};
+
+function normalizeCampaignType(type) {
+  return CAMPAIGN_TYPE_MAP[String(type || '').trim().toLowerCase()] || null;
+}
+
 export const createCampaign = async (req, res) => {
   try {
     if (req.user.isGuest) {
@@ -10,8 +26,10 @@ export const createCampaign = async (req, res) => {
 
     const { channelUrl, type, targetCount } = req.body;
     const userId = req.user.userId;
+    const normalizedType = normalizeCampaignType(type);
+    const normalizedTargetCount = Number(targetCount);
 
-    if (!channelUrl || !type || !targetCount) {
+    if (!channelUrl || !normalizedType || !Number.isFinite(normalizedTargetCount) || normalizedTargetCount <= 0) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -20,11 +38,23 @@ export const createCampaign = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Fetch channel details from YouTube
-    const channelDetails = await fetchChannelDetails(channelUrl);
+    // Try fetching channel details from YouTube, but keep campaign creation resilient
+    // if external API lookup fails.
+    let channelDetails;
+    try {
+      channelDetails = await fetchChannelDetails(channelUrl);
+    } catch (error) {
+      const fallbackChannelId = String(user.youtubeChannelId || channelUrl || '').trim();
+      const fallbackChannelName = String(user.youtubeChannelTitle || user.name || 'Unknown Channel').trim();
+      channelDetails = {
+        id: fallbackChannelId,
+        name: fallbackChannelName,
+        thumbnail: '',
+      };
+    }
 
     // Calculate cost (simple calculation: 1 credit per target)
-    const cost = targetCount;
+    const cost = normalizedTargetCount;
 
     // Check if user has enough credits
     if (user.credits < cost) {
@@ -37,8 +67,8 @@ export const createCampaign = async (req, res) => {
       channelId: channelDetails.id,
       channelName: channelDetails.name,
       channelThumbnail: channelDetails.thumbnail,
-      type,
-      targetCount,
+      type: normalizedType,
+      targetCount: normalizedTargetCount,
       cost,
     });
 
