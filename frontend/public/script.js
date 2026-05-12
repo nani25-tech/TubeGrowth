@@ -295,21 +295,29 @@ async function searchAndOpenDashboard() {
   showToast('bi-hourglass-split', 'Saving Channel', 'Collecting your channel details...');
 
   try {
-    // Update dashboard profile info
-    // Try to resolve a real channel title via YouTube Data API (falls back to provided name)
-    const profile = await fetchChannelProfile(channelId);
-    const resolvedChannelId = normalizeChannelInput(profile?.channelId || channelId) || channelId;
-    const finalName = profile?.title || channelName;
+    // Try to enrich with YouTube profile data, but always continue to backend sync.
+    let resolvedChannelId = channelId;
+    let finalName = channelName;
+    let finalLogo = '';
+
+    try {
+      const profile = await fetchChannelProfile(channelId);
+      resolvedChannelId = normalizeChannelInput(profile?.channelId || channelId) || channelId;
+      finalName = profile?.title || channelName;
+      finalLogo = profile?.thumbnail || '';
+    } catch (profileError) {
+      // Keep fallback channel details and still sync with backend.
+    }
+
     localStorage.setItem('selectedChannelId', resolvedChannelId);
     localStorage.setItem('selectedChannelName', finalName);
-    localStorage.setItem('selectedChannelLogo', profile?.thumbnail || '');
-    updateDashboardChannel(resolvedChannelId, finalName, profile?.thumbnail || '');
+    localStorage.setItem('selectedChannelLogo', finalLogo);
+    updateDashboardChannel(resolvedChannelId, finalName, finalLogo);
     await ensureChannelUserInBackend();
     showToast('bi-check-circle-fill', 'Channel Saved', 'Opening your dashboard...');
     updateCreditsDisplay();
     showSection('dashboard-preview');
   } catch (error) {
-    updateDashboardChannel(channelId, channelName, '');
     showToast('bi-exclamation-triangle-fill', 'Could not save channel', 'Please check the channel link/ID and try again.');
   }
 }
