@@ -533,28 +533,43 @@ async function loadDashboardProfile(channelId, channelName) {
   const storedLogo = localStorage.getItem('selectedChannelLogo') || '';
   const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
   const watchTimeHours = typeof storedUser?.watchTimeHours === 'number' ? storedUser.watchTimeHours : 0;
-  const subscriberCount = await fetchChannelSubscriberCount(normalizedChannelId);
-
-  if (Number.isFinite(subscriberCount)) {
-    localStorage.setItem('selectedChannelSubscribers', String(subscriberCount));
-  }
-
-  if (storedLogo) {
-    updateDashboardChannel(normalizedChannelId, channelName, storedLogo, subscriberCount, watchTimeHours);
-    return;
-  }
-
+  
+  // Display immediately with stored name to avoid flashing on refresh
+  const displayName = (channelName && channelName.trim()) ? channelName : getChannelDisplayName(normalizedChannelId);
+  updateDashboardChannel(normalizedChannelId, displayName, storedLogo, 0, watchTimeHours);
+  
+  // Fetch subscriber count and profile in background
   try {
-    const profile = await fetchChannelProfile(normalizedChannelId);
-    const resolvedChannelId = normalizeChannelInput(profile?.channelId || normalizedChannelId) || normalizedChannelId;
-    const finalName = profile?.title || channelName || getChannelDisplayName(normalizedChannelId);
-    const finalLogo = profile?.thumbnail || '';
-    localStorage.setItem('selectedChannelId', resolvedChannelId);
-    localStorage.setItem('selectedChannelName', finalName);
-    localStorage.setItem('selectedChannelLogo', finalLogo);
-    updateDashboardChannel(resolvedChannelId, finalName, finalLogo, subscriberCount, watchTimeHours);
+    const subscriberCount = await fetchChannelSubscriberCount(normalizedChannelId);
+    if (Number.isFinite(subscriberCount)) {
+      localStorage.setItem('selectedChannelSubscribers', String(subscriberCount));
+    }
+    
+    // Only fetch profile if we don't have a stored logo
+    if (!storedLogo) {
+      const profile = await fetchChannelProfile(normalizedChannelId);
+      const resolvedChannelId = normalizeChannelInput(profile?.channelId || normalizedChannelId) || normalizedChannelId;
+      const finalName = profile?.title || channelName || getChannelDisplayName(normalizedChannelId);
+      const finalLogo = profile?.thumbnail || '';
+      
+      // Only update if name or logo changed
+      if (finalName !== displayName || finalLogo !== storedLogo) {
+        localStorage.setItem('selectedChannelId', resolvedChannelId);
+        localStorage.setItem('selectedChannelName', finalName);
+        localStorage.setItem('selectedChannelLogo', finalLogo);
+        updateDashboardChannel(resolvedChannelId, finalName, finalLogo, subscriberCount, watchTimeHours);
+      } else {
+        // Just update subscriber count
+        updateDashboardChannel(normalizedChannelId, displayName, storedLogo, subscriberCount, watchTimeHours);
+      }
+    } else {
+      // Just update with fetched subscriber count
+      updateDashboardChannel(normalizedChannelId, displayName, storedLogo, subscriberCount, watchTimeHours);
+    }
   } catch (error) {
-    updateDashboardChannel(normalizedChannelId, channelName || getChannelDisplayName(normalizedChannelId), '', subscriberCount, watchTimeHours);
+    console.warn('Error loading profile:', error);
+    // UI already updated with stored data, just ensure subscriber count is shown
+    updateDashboardChannel(normalizedChannelId, displayName, storedLogo, 0, watchTimeHours);
   }
 }
 // Credit System
