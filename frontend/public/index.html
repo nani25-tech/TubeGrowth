@@ -133,14 +133,15 @@
 <!-- DASHBOARD PREVIEW -->
 <section id="dashboard-preview">
   <div class="dashboard-shell reveal">
-    <div class="dashboard-topbar" style="display: flex; justify-content: center; align-items: center;">DASHBOARD</div>
+    <div class="section-label">// Dashboard</div>
+    <div class="section-title" style="display: flex; justify-content: center; align-items: center;">DASHBOARD</div>
     <div class="dashboard-tabs">
       <a class="dash-tab active" href="#dashboard-preview" aria-current="page" aria-label="Go to dashboard">DASHBOARD</a>
       <a class="dash-tab" href="#earn-credits" aria-label="Go to earn credits">EARN CREDITS</a>
       <a class="dash-tab" href="#get-started" aria-label="Go to boost profile form">BOOST PROFILE</a>
       <a class="dash-tab" href="#services" aria-label="Go to promotions section">VIEW PROMOTIONS</a>
-      <a class="dash-tab" href="#top" aria-label="Back to top">LOGOUT</a> 
-      <li><a href="#buy-credits" class="nav-cta">Buy Credits</a></li>
+      <a class="dash-tab" href="#top" aria-label="Back to top">LOGOUT</a>
+      <a class="dash-tab" href="#buy-credits" aria-label="Go to buy credits">BUY CREDITS</a>
     </div>
   </div>
 
@@ -298,14 +299,15 @@
   <div class="view-promo-credit-chip">Your Credits : 0</div>
 
   <div class="view-promo-shell reveal">
-    <div class="view-promo-shell-topbar" style="display: flex; justify-content: center; align-items: center;">View Promotions</div>
+    <div class="section-label">// Promotions</div>
+    <div class="section-title" style="display: flex; justify-content: center; align-items: center;">VIEW PROMOTIONS</div>
     <div class="view-promo-shell-tabs">
-      <a class="view-promo-shell-tab" href="#dashboard-preview" aria-current="page" aria-label="Go to dashboard">DASHBOARD</a>
+      <a class="view-promo-shell-tab" href="#dashboard-preview" aria-label="Go to dashboard">DASHBOARD</a>
       <a class="view-promo-shell-tab" href="#earn-credits" aria-label="Go to earn credits">EARN CREDITS</a>
       <a class="view-promo-shell-tab" href="#get-started" aria-label="Go to boost profile">BOOST PROFILE</a>
       <a class="view-promo-shell-tab active" href="#services" data-tab="promotions" aria-label="Go to view promotions">VIEW PROMOTIONS</a>
       <a class="view-promo-shell-tab" href="#top" aria-label="Back to top">LOGOUT</a>
-      <li><a href="#buy-credits" class="nav-cta">Buy Credits</a></li>
+      <a class="view-promo-shell-tab" href="#buy-credits" aria-label="Go to buy credits">BUY CREDITS</a>
     </div>
   </div>
 
@@ -468,6 +470,14 @@
 <section id="buy-credits" style="background: var(--dark);">
   <div class="section-label">// Credit System</div>
   <div class="section-title" style="display: flex; justify-content: center; align-items: center;">BUY CREDITS</div>
+  <div class="buy-quick-links" aria-label="Buy credits quick links">
+    <a class="buy-quick-link" href="#dashboard-preview">Dashboard</a>
+    <a class="buy-quick-link" href="#earn-credits">Earn Credits</a>
+    <a class="buy-quick-link" href="#get-started">Boost Profile</a>
+    <a class="buy-quick-link" href="#services">View Promotions</a>
+    <a class="buy-quick-link" href="#top">Logout</a>
+    <a class="buy-quick-link active" href="#buy-credits" aria-current="page">Buy Credits</a>
+  </div>
   <p class="section-sub">Choose a payment method below. INR uses Razorpay in rupees, USD uses a separate dollar checkout flow.</p>
   <div class="currency-selector">
     <div id="currencySelect" class="currency-select" role="combobox" aria-expanded="false" tabindex="0" aria-label="Select currency">
@@ -559,14 +569,15 @@
 <!-- EARN CREDITS -->
 <section id="earn-credits">
   <div class="earn-shell reveal">
-    <div class="earn-shell-topbar" style="display: flex; justify-content: center; align-items: center;">EARN CREDITS</div>
+    <div class="section-label">// Earn System</div>
+    <div class="section-title" style="display: flex; justify-content: center; align-items: center;">EARN CREDITS</div>
     <div class="earn-shell-tabs">
       <a class="earn-shell-tab" href="#dashboard-preview" aria-label="Go to dashboard">DASHBOARD</a>
       <a class="earn-shell-tab active" href="#earn-credits" aria-current="page" aria-label="Go to earn credits">EARN CREDITS</a>
       <a class="earn-shell-tab" href="#get-started" aria-label="Go to boost profile form">BOOST PROFILE</a>
       <a class="earn-shell-tab" href="#services" aria-label="Go to promotions section">VIEW PROMOTIONS</a>
       <a class="earn-shell-tab" href="#top" aria-label="Back to top">LOGOUT</a>
-      <li><a href="#buy-credits" class="nav-cta">Buy Credits</a></li>
+      <a class="earn-shell-tab" href="#buy-credits" aria-label="Go to buy credits">BUY CREDITS</a>
     </div>
   </div>
 
@@ -750,14 +761,15 @@
   <div class="boost-credit-chip">Your Credits : 0</div>
 
   <div class="boost-shell reveal">
-    <div class="boost-shell-topbar" style="display: flex; justify-content: center; align-items: center;">BOOST PROFILE</div>
+    <div class="section-label">// Boost System</div>
+    <div class="section-title" style="display: flex; justify-content: center; align-items: center;">BOOST PROFILE</div>
     <div class="boost-shell-tabs">
       <a class="boost-shell-tab" href="#dashboard-preview" aria-label="Go to dashboard">DASHBOARD</a>
       <a class="boost-shell-tab" href="#earn-credits" aria-label="Go to earn credits">EARN CREDITS</a>
       <a class="boost-shell-tab active" href="#get-started" aria-current="page" aria-label="Go to boost profile">BOOST PROFILE</a>
       <a class="boost-shell-tab" href="#services" aria-label="Go to promotions section">VIEW PROMOTIONS</a>
       <a class="boost-shell-tab" href="#top" aria-label="Back to top">LOGOUT</a>
-      <li><a href="#buy-credits" class="nav-cta">Buy Credits</a></li>
+      <a class="boost-shell-tab" href="#buy-credits" aria-label="Go to buy credits">BUY CREDITS</a>
     </div>
   </div>
 

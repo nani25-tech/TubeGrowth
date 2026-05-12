@@ -754,9 +754,6 @@ async function syncCreditsFromBackend() {
       return false;
     }
 
-      if (data?.user && typeof data.user.credits === 'number') {
-        localStorage.setItem(getCreditStorageKey(), String(data.user.credits));
-      }
     const data = await response.json();
     const serverUser = data?.user;
     if (!serverUser || typeof serverUser.credits !== 'number') {

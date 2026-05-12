@@ -957,6 +957,48 @@ section { padding: 100px 60px; }
 /* BUY CREDITS */
 #buy-credits { background: var(--dark); }
 
+.buy-quick-links {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  max-width: 1200px;
+  margin: 18px auto 0;
+}
+
+.buy-quick-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 140px;
+  padding: 14px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(180deg, rgba(25, 31, 45, 0.98), rgba(12, 16, 25, 0.98));
+  color: #d8dee9;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-decoration: none;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  white-space: nowrap;
+}
+
+.buy-quick-link:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.24);
+}
+
+.buy-quick-link.active {
+  background: linear-gradient(180deg, rgba(255, 228, 153, 0.96), rgba(126, 159, 223, 0.96));
+  color: #111;
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 12px 28px rgba(255, 214, 102, 0.16);
+}
+
 .buy-methods {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -1475,7 +1517,7 @@ section { padding: 100px 60px; }
 }
 
 .earn-panel-head.green { background: #48ad4f; }
-.earn-panel-head.purple { background: #972db9; }
+.earn-panel-head.purple { background: #FFFFFF; color: #000; }
 .earn-panel-head.gray { background: #e8e8e8; color: #444; }
 
 .earn-panel-head span {
@@ -1712,10 +1754,10 @@ section { padding: 100px 60px; }
 }
 
 .earn-step-box {
-  background: #bcd0ee;
-  border: 1px solid #9db2d6;
+  background: #2c3e50;
+  border: 1px solid #1a252f;
   padding: 10px;
-  color: #234f87;
+  color: #fff;
   display: grid;
   gap: 4px;
 }
@@ -1730,9 +1772,9 @@ section { padding: 100px 60px; }
 }
 
 .earn-bonus-note {
-  background: #bcd0ee;
-  border: 1px solid #9db2d6;
-  color: #234f87;
+  background: #2c3e50;
+  border: 1px solid #1a252f;
+  color: #fff;
   text-align: center;
   font-size: 12px;
   line-height: 1.3;
