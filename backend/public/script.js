@@ -814,7 +814,7 @@ async function createCampaignOnBackend({ channelUrl, type, targetCount }) {
     throw new Error('Please login to create campaigns');
   }
 
-  const response = await fetch(`${getApiBase()}/campaign/create`, {
+  const response = await fetch(`${getApiBase()}/campaigns/create`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
