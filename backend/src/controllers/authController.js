@@ -137,15 +137,18 @@ export const login = async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) {
+      console.log(`[AUTH] Login attempt with non-existent email: ${email}`);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
+      console.log(`[AUTH] Login attempt with invalid password for: ${email}`);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
     if (user.isBanned) {
+      console.log(`[AUTH] Login attempt with banned account: ${email}`);
       return res.status(403).json({ message: 'Account is banned' });
     }
 
@@ -155,6 +158,7 @@ export const login = async (req, res) => {
     const accessToken = signAccessToken({ userId: user._id });
     const refreshToken = signRefreshToken({ userId: user._id });
 
+    console.log(`[AUTH] Successful login: ${email} (${user._id})`);
     res.json({
       message: 'Login successful',
       accessToken,
@@ -174,7 +178,7 @@ export const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('[AUTH] Login error:', error.message);
     res.status(500).json({ message: 'Server error' });
   }
 };
