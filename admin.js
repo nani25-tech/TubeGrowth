@@ -11,10 +11,17 @@ function getApiBase() {
   const host = window.location.hostname;
   const port = window.location.port;
   const protocol = window.location.protocol;
+  const RENDER_API = 'https://tubegrowth-backend.onrender.com/api';
+
   if (protocol === 'file:' || host === '' || host === 'localhost' || host === '127.0.0.1' || port === '5000') {
     return 'http://localhost:5000/api';
   }
-  return 'https://tubegrowth.zone.id/api';
+
+  // If the site is served from the public repo (GitHub Pages) the domain may
+  // not forward API requests to the backend. Use Render backend URL as fallback.
+  if (host === 'tubegrowth.zone.id') return RENDER_API;
+
+  return `https://${host}/api`;
 }
 
 function getToken() {
