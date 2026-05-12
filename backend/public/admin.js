@@ -6,6 +6,7 @@ const refreshBtn = document.getElementById('refreshBtn');
 const usersTable = document.getElementById('usersTable');
 
 const TOKEN_KEY = 'accessToken';
+let currentUsers = [];
 
 function getApiBase() {
   const host = window.location.hostname;
@@ -74,16 +75,18 @@ function renderUsers(users) {
   }
 
   uniqueUsers.forEach((user) => {
-    const channelName = user.youtubeChannelTitle || user.name || '—';
+    const channelTitle = user.youtubeChannelTitle || '—';
+    const channelName = user.name && user.youtubeChannelTitle && user.name !== user.youtubeChannelTitle
+      ? `${user.name} (${user.youtubeChannelTitle})`
+      : (user.name || user.youtubeChannelTitle || '—');
     const channelId = user.youtubeChannelId || '—';
-    const userName = user.name || channelName;
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>${formatValue(channelName)}</td>
       <td>${formatValue(channelId)}</td>
       <td>${formatValue(user.credits)}</td>
       <td>
-        <button class="edit-btn" data-id="${escapeAttr(user._id)}" data-name="${escapeAttr(userName)}" data-channel-name="${escapeAttr(channelName)}" data-channel-id="${escapeAttr(channelId)}" data-credits="${escapeAttr(user.credits)}">Edit</button>
+        <button class="edit-btn" data-id="${escapeAttr(user._id)}" data-name="${escapeAttr(user.name || '')}" data-channel-name="${escapeAttr(channelTitle)}" data-channel-id="${escapeAttr(channelId)}" data-credits="${escapeAttr(user.credits)}">Edit</button>
         <button class="delete-btn" data-id="${escapeAttr(user._id)}" data-channel-name="${escapeAttr(channelName)}">Delete</button>
       </td>
     `;
@@ -234,6 +237,11 @@ async function updateUserDetails(userId, payload) {
     throw new Error(data.message || 'Failed to update user details');
   }
 
+  if (data.user?._id) {
+    currentUsers = currentUsers.map((user) => (user._id === data.user._id ? data.user : user));
+    renderUsers(currentUsers);
+  }
+
   return data;
 }
 
@@ -292,7 +300,8 @@ async function loadUsers() {
   setMessage('Loading users...');
   try {
     const users = await fetchAdminUsers();
-    renderUsers(users);
+    currentUsers = users;
+    renderUsers(currentUsers);
     setMessage(`Loaded ${users.length} users.`, 'success');
   } catch (error) {
     setMessage(error.message, 'error');
