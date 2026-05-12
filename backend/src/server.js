@@ -10,17 +10,22 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/tubegr
 
 const startServer = async () => {
   try {
+    console.log('[SERVER] Starting TubeGrowth backend...');
+    console.log(`[SERVER] Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`[SERVER] Port: ${PORT}`);
+    console.log(`[SERVER] MongoDB URI: ${MONGODB_URI.replace(/mongodb\+srv:\/\/.*@/, 'mongodb+srv://***@')}`);
+    
     // Connect to MongoDB
     await connectDB(MONGODB_URI);
 
     // Start server
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`[SERVER] ✅ Server running on port ${PORT}`);
+      console.log(`[SERVER] Ready to accept requests`);
       startYouTubeSyncJob();
     });
   } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error('[SERVER] ❌ Failed to start server:', error.message);
     process.exit(1);
   }
 };
