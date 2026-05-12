@@ -5,7 +5,7 @@ const logoutBtn = document.getElementById('logoutBtn');
 const refreshBtn = document.getElementById('refreshBtn');
 const usersTable = document.getElementById('usersTable');
 
-const TOKEN_KEY = 'accessToken';
+const TOKEN_KEY = 'adminAccessToken';
 let currentUsers = [];
 
 function getApiBase() {
