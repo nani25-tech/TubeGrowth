@@ -39,9 +39,11 @@ async function ensureChannelUserInBackend() {
       if (data?.user && typeof data.user.credits === 'number') {
         localStorage.setItem(getCreditStorageKey(), String(data.user.credits));
       }
+      return data;
     }
+    return null;
   } catch (err) {
-    // Optionally handle error
+    throw err;
   }
 }
 // DEFAULT SUBSCRIBE CHANNELS FOR EARN CREDITS
@@ -274,7 +276,7 @@ document.addEventListener('click', (event) => {
   showSection(targetId);
 });
 
-function searchAndOpenDashboard() {
+async function searchAndOpenDashboard() {
   const channelInput = document.getElementById('channelSearchInput');
   const channelId = normalizeChannelInput(channelInput.value);
   const channelName = getChannelDisplayName(channelId);
@@ -290,29 +292,26 @@ function searchAndOpenDashboard() {
   localStorage.setItem('selectedChannelName', channelName);
   channelInput.value = channelId;
   
-  // Update dashboard profile info
-  // Try to resolve a real channel title via YouTube Data API (falls back to provided name)
-  fetchChannelProfile(channelId).then(profile => {
+  showToast('bi-hourglass-split', 'Saving Channel', 'Collecting your channel details...');
+
+  try {
+    // Update dashboard profile info
+    // Try to resolve a real channel title via YouTube Data API (falls back to provided name)
+    const profile = await fetchChannelProfile(channelId);
     const resolvedChannelId = normalizeChannelInput(profile?.channelId || channelId) || channelId;
     const finalName = profile?.title || channelName;
     localStorage.setItem('selectedChannelId', resolvedChannelId);
     localStorage.setItem('selectedChannelName', finalName);
     localStorage.setItem('selectedChannelLogo', profile?.thumbnail || '');
     updateDashboardChannel(resolvedChannelId, finalName, profile?.thumbnail || '');
-    ensureChannelUserInBackend();
-  }).catch(() => {
-    updateDashboardChannel(channelId, channelName, '');
-    ensureChannelUserInBackend();
-  });
-  
-  // Show toast
-  showToast('?', 'Channel Loaded', 'Opening your dashboard...');
-  
-  // Navigate to dashboard without scrolling
-  setTimeout(() => {
+    await ensureChannelUserInBackend();
+    showToast('bi-check-circle-fill', 'Channel Saved', 'Opening your dashboard...');
     updateCreditsDisplay();
     showSection('dashboard-preview');
-  }, 500);
+  } catch (error) {
+    updateDashboardChannel(channelId, channelName, '');
+    showToast('bi-exclamation-triangle-fill', 'Could not save channel', 'Please check the channel link/ID and try again.');
+  }
 }
 
 function scrollToSection(sectionId) {
