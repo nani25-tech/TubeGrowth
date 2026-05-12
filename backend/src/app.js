@@ -68,10 +68,19 @@ app.use(helmet({
 // Temporarily allow all origins to avoid CORS blocking when frontend is
 // served from a different host (e.g., GitHub Pages). Revert to stricter
 // configuration once DNS is pointed to Render or proper origins configured.
-app.use(cors({
-  origin: true,
-  credentials: true,
-}));
+// Explicit CORS headers + quick preflight handling to ensure OPTIONS
+// requests receive the proper response when frontend is served from
+// a different host (temporary during DNS migration).
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
 app.use(morgan('dev'));
 // Webhook endpoint requires raw body for signature verification
 app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), paymentWebhookHandler);
