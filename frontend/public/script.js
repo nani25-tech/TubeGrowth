@@ -1039,6 +1039,67 @@ function purchaseCreditsByCurrency(currency, amount) {
   openPaymentPage(currency, amount);
 }
 
+// Feedback modal and button handler — modal-based UI for bug reports (works from file://)
+function showFeedbackModal() {
+  const modal = document.createElement('div');
+  modal.id = 'feedback-modal';
+  modal.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+    z-index: 10000; font-family: inherit;
+  `;
+  modal.innerHTML = `
+    <div style="background: white; border-radius: 8px; padding: 20px; max-width: 500px; width: 90%; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+      <h3 style="margin: 0 0 10px 0; font-size: 18px;">Send Feedback / Report Bug</h3>
+      <textarea id="feedback-msg" placeholder="Please enter your feedback or bug report..." style="width: 100%; height: 80px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; resize: vertical;"></textarea>
+      <input id="feedback-email" type="email" placeholder="Optional: your email" style="width: 100%; margin-top: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit;">
+      <div style="display: flex; gap: 10px; margin-top: 15px; justify-content: flex-end;">
+        <button id="feedback-cancel" style="padding: 8px 16px; border: 1px solid #ccc; border-radius: 4px; background: #f0f0f0; cursor: pointer;">Cancel</button>
+        <button id="feedback-send" style="padding: 8px 16px; border: none; border-radius: 4px; background: #FBBF24; color: #000; cursor: pointer; font-weight: bold;">Send</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  document.getElementById('feedback-cancel').onclick = () => modal.remove();
+  document.getElementById('feedback-send').onclick = async () => {
+    const message = document.getElementById('feedback-msg').value.trim();
+    const email = document.getElementById('feedback-email').value.trim();
+    if (!message) {
+      showToast('bi-exclamation-triangle-fill', 'Required', 'Please enter feedback');
+      return;
+    }
+    try {
+      const apiBase = getApiBase();
+      const accessToken = localStorage.getItem('accessToken');
+      const resp = await fetch(`${apiBase}/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        body: JSON.stringify({ message, email, page: window.location.href }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) throw new Error(data?.message || 'Unable to send feedback');
+      modal.remove();
+      showToast('bi-chat-right-text', 'Feedback Sent', 'Thanks — we received your feedback');
+    } catch (err) {
+      console.error('Send feedback failed', err);
+      showToast('bi-x-circle', 'Feedback Failed', err.message || 'Unable to send feedback');
+    }
+  };
+}
+
+function initFeedbackButtons() {
+  document.querySelectorAll('.feedback-btn').forEach((btn) => {
+    btn.addEventListener('click', showFeedbackModal);
+  });
+}
+
+// Initialize feedback buttons and other UI
+initFeedbackButtons && initFeedbackButtons();
+
 // Currency selector persistence and UI
 const PREFERRED_CURRENCY_KEY = 'preferredCurrency';
 
@@ -2224,6 +2285,11 @@ const notifications = [
   { name: 'Daniel T.', action: 'hit 10K subscribers with TubeGrowth!', time: '8 min ago' },
   { name: 'Lena R.', action: 'just ordered 5,000 Video Likes', time: '11 min ago' },
   { name: 'Marcus J.', action: 'just reached monetization - 4,000 Watch Hours!', time: '14 min ago' },
+  { name: 'Priya S.', action: 'purchased Watch Time boost - 1,000 hours', time: '18 min ago' },
+  { name: 'Alex B.', action: 'just bought the Viral Shorts pack', time: '20 min ago' },
+  { name: 'Nina P.', action: 'upgraded to Growth Plus subscription', time: '24 min ago' },
+  { name: 'Omar L.', action: 'purchased 500 comments package', time: '30 min ago' },
+  { name: 'Zoe Q.', action: 'just booked a Channel Audit service', time: '35 min ago' },
 ];
 let nIdx = 0;
 
@@ -2246,6 +2312,19 @@ function syncEarnAutoVerifyToggle() {
   toggle.classList.toggle('active', enabled);
   toggle.setAttribute('aria-checked', String(enabled));
   toggle.setAttribute('title', enabled ? 'Auto verify enabled' : 'Auto verify disabled');
+}
+
+function showNotification() {
+  const n = notifications[nIdx % notifications.length];
+  const signature = `${n.name}|${n.action}`;
+  if (window.lastNotificationSignature === signature) {
+    nIdx++;
+    return;
+  }
+
+  window.lastNotificationSignature = signature;
+  showToast('bi-bell-fill', n.name, n.action);
+  nIdx++;
 }
 
 function toggleEarnAutoVerify() {
@@ -2308,12 +2387,23 @@ function bindEarnSettingsToggle() {
   syncEarnAutoVerifyToggle();
 }
 
-function showNotification() {
-  const n = notifications[nIdx % notifications.length];
-  showToast('bi-bell-fill', n.name, n.action);
-  nIdx++;
+function startNotificationTicker() {
+  if (window.notificationTickerStarted) return;
+
+  window.notificationTickerStarted = true;
+  if (window.notificationTickerId) {
+    clearInterval(window.notificationTickerId);
+    window.notificationTickerId = null;
+  }
+
+  // Start first notification after 5s, then repeat every 30s
+  setTimeout(() => {
+    showNotification();
+    window.notificationTickerId = setInterval(showNotification, 30000);
+  }, 5000);
 }
-setTimeout(() => { showNotification(); setInterval(showNotification, 12000); }, 5000);
+
+startNotificationTicker();
 
 // BOOST PROFILE FUNCTIONS
 const boostCosts = {
@@ -2419,12 +2509,12 @@ function addPromotion() {
     showToast('bi-exclamation-triangle-fill', 'Invalid Input', 'Please fill all fields correctly');
     return;
   }
-  
+
   if (creditsNeeded > userCredits) {
     showToast('bi-x-circle-fill', 'Insufficient Credits', `You need ${creditsNeeded} credits but only have ${userCredits}`);
     return;
   }
-  
+
   // Deduct credits
   deductCredits(creditsNeeded);
   
