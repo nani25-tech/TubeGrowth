@@ -88,6 +88,12 @@ app.get(['/admin', '/admin.html'], (req, res) => {
   res.sendFile(path.join(publicDir, 'admin.html'));
 });
 
+// Favicon route
+app.get('/favicon.ico', (req, res) => {
+  const faviconPath = path.join(publicDir, 'favicon.svg');
+  res.type('image/svg+xml').sendFile(faviconPath, { fallback: (err) => res.status(204).send() });
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
