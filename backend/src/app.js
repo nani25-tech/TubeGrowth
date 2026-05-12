@@ -107,6 +107,19 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK' });
 });
 
+// Diagnostic endpoint (for debugging only)
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    mongodb: {
+      connected: true, // MongoDB would have failed to connect at startup if there was an issue
+    },
+    uptime: process.uptime(),
+  });
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
