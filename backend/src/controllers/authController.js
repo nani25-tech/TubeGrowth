@@ -54,9 +54,15 @@ export const channelLogin = async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
+        email: user.email,
         credits: user.credits,
+        subscribers: user.subscribers,
+        watchTimeHours: user.watchTimeHours,
+        isAdmin: user.isAdmin,
+        referralCode: user.referralCode,
         youtubeChannelId: user.youtubeChannelId,
         youtubeChannelTitle: user.youtubeChannelTitle,
+        youtubeConnected: !!user.youtubeChannelId,
       },
     });
   } catch (error) {

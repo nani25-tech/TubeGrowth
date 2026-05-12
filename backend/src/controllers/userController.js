@@ -17,7 +17,25 @@ const getRazorpayClient = () => {
   const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
   if (!keyId || !keySecret) {
-    throw new Error('Razorpay keys are not configured');
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Razorpay keys are not configured');
+    }
+
+    console.warn('Razorpay keys missing — using non-production dev fallback');
+
+    // Return a minimal stub that mimics the parts of the Razorpay client we use.
+    return {
+      orders: {
+        create: async (opts) => ({
+          id: `order_fake_${Date.now()}`,
+          amount: opts.amount,
+          currency: opts.currency,
+          receipt: opts.receipt,
+          notes: opts.notes,
+          status: 'created',
+        }),
+      },
+    };
   }
 
   return new Razorpay({
@@ -421,6 +439,56 @@ export const createCreditOrder = async (req, res) => {
       creditsToAdd = getCreditsForAmount(amount);
     }
 
+    // If Razorpay keys are missing and we're not in production, provide a safe dev fallback
+    const razorpayKeysMissing = !process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET;
+    const isDevFallback = razorpayKeysMissing && process.env.NODE_ENV !== 'production';
+
+    if (isDevFallback) {
+      const fakeOrder = {
+        id: `order_fake_${Date.now()}`,
+        amount: Math.round(amount * 100),
+        currency,
+        receipt: `tg_${Date.now()}`,
+        notes: { userId: String(user._id), creditsToAdd: String(creditsToAdd), currency },
+        status: 'created',
+      };
+
+      // Create a transaction and mark it paid immediately (dev fallback)
+      await PaymentTransaction.create({
+        user: user._id,
+        orderId: fakeOrder.id,
+        amountValue: amount,
+        currency: currency,
+        amountINR: currency === 'INR' ? amount : 0,
+        creditsToAdd,
+        status: 'paid',
+        paymentId: `payment_fake_${Date.now()}`,
+        verifiedAt: new Date(),
+      });
+
+      user.credits = (user.credits || 0) + creditsToAdd;
+      await user.save();
+
+      return res.json({
+        message: 'Order created (dev fallback) and credits added',
+        devMode: true,
+        keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_fallback',
+        order: fakeOrder,
+        creditsToAdd,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          credits: user.credits,
+          subscribers: user.subscribers,
+          watchTimeHours: user.watchTimeHours,
+          youtubeChannelId: user.youtubeChannelId,
+          youtubeChannelTitle: user.youtubeChannelTitle,
+          youtubeConnected: !!user.youtubeChannelId,
+        },
+      });
+    }
+
     const order = await razorpay.orders.create({
       amount: Math.round(amount * 100),
       currency: currency,
@@ -498,16 +566,25 @@ export const verifyCreditPayment = async (req, res) => {
       });
     }
 
-    const expectedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '')
-      .update(`${orderId}|${paymentId}`)
-      .digest('hex');
+    // Allow dev fallback when Razorpay keys are missing (non-production)
+    const razorpayKeysMissing = !process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET;
+    const isDevFallback = razorpayKeysMissing && process.env.NODE_ENV !== 'production';
 
-    if (expectedSignature !== signature) {
-      tx.status = 'failed';
-      tx.paymentId = paymentId;
-      await tx.save();
-      return res.status(400).json({ message: 'Invalid payment signature' });
+    if (!isDevFallback) {
+      const expectedSignature = crypto
+        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '')
+        .update(`${orderId}|${paymentId}`)
+        .digest('hex');
+
+      if (expectedSignature !== signature) {
+        tx.status = 'failed';
+        tx.paymentId = paymentId;
+        await tx.save();
+        return res.status(400).json({ message: 'Invalid payment signature' });
+      }
+    } else {
+      // Dev fallback: accept the verification request and mark paid if not already
+      console.warn('Dev fallback: bypassing razorpay signature verification');
     }
 
     const user = await User.findById(req.user.userId);

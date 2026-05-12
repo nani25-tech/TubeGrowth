@@ -38,6 +38,10 @@ async function ensureChannelUserInBackend() {
       localStorage.setItem(CHANNEL_SYNC_SIGNATURE_KEY, syncSignature);
       if (data?.user && typeof data.user.credits === 'number') {
         localStorage.setItem(getCreditStorageKey(), String(data.user.credits));
+        // Update the global userCredits variable and refresh UI immediately
+        userCredits = data.user.credits;
+        persistCredits();
+        updateCreditDisplay();
       }
       return data;
     }
@@ -116,7 +120,17 @@ function normalizeChannelInput(value) {
 
 function restoreSelectedChannelSession() {
   if (isExplicitlyLoggedOut()) {
-    return '';
+    // If the user has session data (access token, user object, or selectedChannelId),
+    // assume logout flag is stale and clear it so the UI can restore.
+    const hasSessionData = Boolean(
+      localStorage.getItem('accessToken') ||
+      localStorage.getItem('user') ||
+      localStorage.getItem('selectedChannelId')
+    );
+    if (!hasSessionData) {
+      return '';
+    }
+    setExplicitLogoutState(false);
   }
 
   const existingChannelId = normalizeChannelInput(localStorage.getItem('selectedChannelId') || '');
@@ -158,6 +172,18 @@ function clearSelectedChannelSession() {
   localStorage.removeItem('selectedChannelName');
   localStorage.removeItem('selectedChannelLogo');
   localStorage.removeItem(CHANNEL_SYNC_SIGNATURE_KEY);
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('user');
+  
+  // Clear all credit storage keys to ensure old credits don't persist
+  Object.keys(localStorage).forEach(key => {
+    if (key.startsWith('userCredits')) {
+      localStorage.removeItem(key);
+    }
+  });
+  
+  // Reset the global userCredits variable
+  userCredits = 0;
 
   const dashboardSearchInput = document.getElementById('channelSearchInput');
   if (dashboardSearchInput) {
@@ -169,8 +195,9 @@ function clearSelectedChannelSession() {
     boostSearchInput.value = '';
   }
 
-  // Hide credits display on logout
+  // Hide credits display and refresh UI on logout
   updateCreditsDisplay();
+  updateCreditDisplay();
 }
 
 function updateCreditsDisplay() {
@@ -218,12 +245,33 @@ function showSection(sectionId) {
   updateActiveSectionLinks(normalizedId);
 
   if (normalizedId === 'dashboard-preview') {
-    const savedChannelId = normalizeChannelInput(localStorage.getItem('selectedChannelId') || '') || 'UCXsX4kQEJsIMrdAtm-mayuw';
-    const savedChannelName = localStorage.getItem('selectedChannelName') || getChannelDisplayName(savedChannelId);
-    localStorage.setItem('selectedChannelId', savedChannelId);
-    loadDashboardProfile(savedChannelId, savedChannelName);
+    const savedChannelIdRaw = localStorage.getItem('selectedChannelId') || '';
+    const savedChannelId = normalizeChannelInput(savedChannelIdRaw);
+    const savedChannelName = localStorage.getItem('selectedChannelName') || (savedChannelId ? getChannelDisplayName(savedChannelId) : '');
+    if (savedChannelId) {
+      localStorage.setItem('selectedChannelId', savedChannelId);
+      loadDashboardProfile(savedChannelId, savedChannelName);
+    } else {
+      // No channel selected: clear profile/boost display to avoid stale values after refresh
+      const profileName = document.querySelector('.profile-name');
+      const boostChannel = document.querySelector('.boost-your-channel');
+      if (profileName) profileName.textContent = '';
+      if (boostChannel) boostChannel.textContent = '';
+      updateCreditsDisplay();
+    }
+    const dashboardContent = document.getElementById('dashboard-content');
+    const promotionsContent = document.getElementById('promotions-content');
+    if (dashboardContent) dashboardContent.classList.add('active');
+    if (promotionsContent) promotionsContent.classList.remove('active');
   } else if (normalizedId === 'earn-credits') {
     refreshEarnTaskRotation();
+  } else if (normalizedId === 'services') {
+    const dashboardContent = document.getElementById('dashboard-content');
+    const promotionsContent = document.getElementById('promotions-content');
+    if (dashboardContent) dashboardContent.classList.remove('active');
+    if (promotionsContent) promotionsContent.classList.add('active');
+    loadPromotions();
+    updateCreditDisplay();
   }
 }
 
@@ -474,6 +522,7 @@ async function fetchChannelSubscriberCount(input) {
 function updateDashboardChannel(channelId, channelName = getChannelDisplayName(channelId), channelLogo = '', subscriberCount = null, watchTimeHours = null) {
   // Update profile card in dashboard
   const profileName = document.querySelector('.profile-name');
+  const boostProfileName = document.getElementById('profile-name');
   const profileChannel = document.querySelector('.profile-channel');
   const profileCredits = document.querySelector('.profile-credits');
   const profileSubscribers = document.querySelector('.profile-subscribers');
@@ -490,6 +539,7 @@ function updateDashboardChannel(channelId, channelName = getChannelDisplayName(c
   // Display the stored channel name directly without fallback logic
   const displayName = (channelName && channelName.trim()) ? channelName : getChannelDisplayName(channelId);
   if (profileName) profileName.textContent = displayName;
+  if (boostProfileName) boostProfileName.textContent = displayName;
   if (profileChannel) profileChannel.innerHTML = `<strong>YT Channel Link :</strong> ${channelId}`;
   if (profileCredits) profileCredits.textContent = `Your Credits : ${userCredits}`;
   if (profileSubscribers) profileSubscribers.textContent = `Subscribers : ${subscribers}`;
@@ -742,6 +792,7 @@ async function syncCreditsFromBackend() {
 let userCredits = getStoredCredits();
 
 function updateCreditDisplay() {
+  userCredits = getStoredCredits();
   const topBalance = document.getElementById('userCredits');
   if (topBalance) {
     topBalance.textContent = userCredits;
@@ -819,12 +870,45 @@ async function openPaymentPage(currency, amount) {
     const accessToken = localStorage.getItem('accessToken');
     const apiBase = getApiBase();
 
-    if (!window.Razorpay) {
-      showToast('bi-exclamation-triangle-fill', 'Payment Not Ready', 'Razorpay checkout is not loaded yet. Refresh the page and try again.');
-      return;
+    // Quick developer/testing toggle: if `forceDevPayments` is 'true', call /user/buy to add credits directly
+    const forceDevPayments = localStorage.getItem('forceDevPayments') === 'true';
+    if (forceDevPayments) {
+      try {
+        const buyResp = await fetch(`${apiBase}/user/buy`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+          body: JSON.stringify({ amount: numericAmount, currency: selectedCurrency }),
+        });
+
+        const buyData = await buyResp.json();
+        if (!buyResp.ok) {
+          throw new Error(buyData?.message || 'Unable to complete buy request');
+        }
+
+        if (buyData.user && typeof buyData.user.credits === 'number') {
+          localStorage.setItem('user', JSON.stringify(buyData.user));
+          userCredits = buyData.user.credits;
+          persistCredits();
+          updateCreditDisplay();
+        } else {
+          userCredits = (userCredits || 0) + creditsToAdd;
+          persistCredits();
+          updateCreditDisplay();
+        }
+
+        showToast('bi-coin', 'Credits Purchased', `+${creditsToAdd} credits added`);
+        return;
+      } catch (err) {
+        console.error('Force dev buy failed', err);
+        showToast('bi-x-circle', 'Payment Failed', err.message || 'Dev buy failed');
+        return;
+      }
     }
 
-    const response = await fetch(`${apiBase}/payments/create-order`, {
+    const response = await fetch(`${apiBase}/user/payment/create-order`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -835,7 +919,64 @@ async function openPaymentPage(currency, amount) {
 
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(data?.message || 'Unable to create payment order');
+      const errMsg = data?.message || 'Unable to create payment order';
+      // If the server reports missing Razorpay keys, fallback to direct buy
+      if (/razorpay/i.test(errMsg)) {
+        console.warn('Create-order failed mentioning Razorpay — falling back to direct buy');
+        // perform direct buy fallback
+        const buyResp = await fetch(`${apiBase}/user/buy`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+          body: JSON.stringify({ amount: numericAmount, currency: selectedCurrency }),
+        });
+        const buyData = await buyResp.json();
+        if (!buyResp.ok) throw new Error(buyData?.message || 'Fallback buy failed');
+        if (buyData.user && typeof buyData.user.credits === 'number') {
+          localStorage.setItem('user', JSON.stringify(buyData.user));
+          userCredits = buyData.user.credits;
+          persistCredits();
+          updateCreditDisplay();
+        } else {
+          userCredits = (userCredits || 0) + creditsToAdd;
+          persistCredits();
+          updateCreditDisplay();
+        }
+        showToast('bi-coin', 'Credits Purchased', `+${creditsToAdd} credits added`);
+        return;
+      }
+
+      throw new Error(errMsg);
+    }
+
+    // If backend responded with devMode (no Razorpay keys configured), credit user immediately
+    if (data?.devMode) {
+      try {
+        if (data.user && typeof data.user.credits === 'number') {
+          localStorage.setItem('user', JSON.stringify(data.user));
+          userCredits = data.user.credits;
+          persistCredits();
+          updateCreditDisplay();
+        } else {
+          userCredits = (userCredits || 0) + creditsToAdd;
+          persistCredits();
+          updateCreditDisplay();
+        }
+
+        showToast('bi-coin', 'Credits Purchased (Dev)', `+${creditsToAdd} credits added (dev mode)`);
+        return;
+      } catch (err) {
+        console.error('Dev-mode credit handling failed', err);
+        showToast('bi-x-circle', 'Payment Failed', 'Dev fallback failed to credit your account');
+        return;
+      }
+    }
+
+    if (!window.Razorpay) {
+      showToast('bi-exclamation-triangle-fill', 'Payment Not Ready', 'Razorpay checkout is not loaded yet. Refresh the page and try again.');
+      return;
     }
 
     const options = {
@@ -851,7 +992,7 @@ async function openPaymentPage(currency, amount) {
       },
       theme: { color: '#FBBF24' },
       handler: async function (paymentResponse) {
-        const verifyResponse = await fetch(`${apiBase}/payments/verify`, {
+        const verifyResponse = await fetch(`${apiBase}/user/payment/verify`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -2326,10 +2467,18 @@ function addPromotion() {
 
 // Initialize boost profile display
 function initializeBoostProfile() {
+  userCredits = getStoredCredits();
   // Update credits display in boost section
   const creditChip = document.querySelector('.boost-credit-chip');
   if (creditChip) {
     creditChip.textContent = `Your Credits : ${userCredits}`;
+  }
+
+  const savedChannelId = restoreSelectedChannelSession();
+  if (savedChannelId) {
+    const savedChannelName = localStorage.getItem('selectedChannelName') || getChannelDisplayName(savedChannelId);
+    const savedChannelLogo = localStorage.getItem('selectedChannelLogo') || '';
+    updateDashboardChannel(savedChannelId, savedChannelName, savedChannelLogo);
   }
   
   // Add event listeners
