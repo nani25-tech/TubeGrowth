@@ -41,7 +41,8 @@ async function ensureChannelUserInBackend() {
       }
       return data;
     }
-    return null;
+    const errorPayload = await response.json().catch(() => ({}));
+    throw new Error(errorPayload.message || `Channel sync failed (${response.status})`);
   } catch (err) {
     throw err;
   }
