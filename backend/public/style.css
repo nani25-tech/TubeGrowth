@@ -3916,6 +3916,10 @@ nav,
   color: #c7d3e5 !important;
 }
 
+.how-it-works-step p {
+  color: #000 !important;
+}
+
 .status-completed,
 .earn-status.success {
   color: #8de7c0 !important;
