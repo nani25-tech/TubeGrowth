@@ -16,8 +16,21 @@ const CAMPAIGN_TYPE_MAP = {
   comments: 'comments',
 };
 
+// Credit cost rates for each promotion type
+const PROMOTION_COSTS = {
+  subscribers: 2,   // 2 credits per subscriber
+  likes: 1,         // 1 credit per like
+  views: 0.6,       // 0.6 credits per minute (5 min watchtime = 3 credits)
+  comments: 3,      // 3 credits per comment
+};
+
 function normalizeCampaignType(type) {
   return CAMPAIGN_TYPE_MAP[String(type || '').trim().toLowerCase()] || null;
+}
+
+function calculateCampaignCost(normalizedType, targetCount) {
+  const costPerUnit = PROMOTION_COSTS[normalizedType] || 1;
+  return Math.ceil(targetCount * costPerUnit);
 }
 
 export const createCampaign = async (req, res) => {
@@ -62,8 +75,8 @@ export const createCampaign = async (req, res) => {
       };
     }
 
-    // Calculate cost (1 credit per target)
-    const cost = normalizedTargetCount;
+    // Calculate cost based on promotion type and quantity
+    const cost = calculateCampaignCost(normalizedType, normalizedTargetCount);
 
     // Check if user has enough credits
     if (user.credits < cost) {

@@ -814,12 +814,16 @@ let userCredits = 0;
 function updateCreditDisplay() {
   const isAuthenticated = hasAuthenticatedSession();
   const topBalance = document.getElementById('userCredits');
+  const navCredits = document.getElementById('navCredits');
 
   if (!isAuthenticated) {
     userCredits = 0;
     if (topBalance) {
       topBalance.textContent = '';
       topBalance.style.display = 'none';
+    }
+    if (navCredits) {
+      navCredits.style.display = 'none';
     }
 
     updateTextForSelector('.profile-credits', '');
@@ -2446,7 +2450,7 @@ startNotificationTicker();
 const boostCosts = {
   likes: 1,      // 1 credit per like
   subs: 2,       // 2 credits per subscriber
-  views: 0.5,    // 0.5 credits per view
+  views: 0.6,    // 0.6 credits per minute (5 min watchtime = 3 credits)
   comments: 3    // 3 credits per comment
 };
 
