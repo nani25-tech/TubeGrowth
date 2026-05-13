@@ -2782,6 +2782,37 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeBoostProfile();
   initializeViewPromotions();
   updateCreditsDisplay();
+
+  const siteNav = document.querySelector('nav');
+  const navToggle = document.querySelector('.nav-toggle');
+  const navMenu = document.querySelector('.nav-menu');
+
+  if (siteNav && navToggle && navMenu) {
+    const closeNav = () => {
+      siteNav.classList.remove('open');
+      navToggle.setAttribute('aria-expanded', 'false');
+    };
+
+    navToggle.addEventListener('click', () => {
+      const isOpen = siteNav.classList.toggle('open');
+      navToggle.setAttribute('aria-expanded', String(isOpen));
+    });
+
+    navMenu.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+          closeNav();
+        }
+      });
+    });
+
+    document.addEventListener('click', (event) => {
+      if (window.innerWidth > 768) return;
+      if (!siteNav.contains(event.target)) {
+        closeNav();
+      }
+    });
+  }
   
   // Tab switching for View Promotions and Dashboard
   const viewPromoTabs = document.querySelectorAll('.view-promo-shell-tab');

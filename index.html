@@ -26,7 +26,12 @@
     var isNotCustomDomain = currentHost !== canonicalHost && currentHost !== 'localhost' && currentHost !== '127.0.0.1';
     if (isGithubPages || (isNotCustomDomain && currentHost.includes('nani25-tech'))) {
       window.location.replace('https://' + canonicalHost + window.location.pathname + window.location.search + window.location.hash);
-    }
+  <button type="button" class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="site-nav-menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+  <ul class="nav-menu" id="site-nav-menu">
   }());
 </script>
 <script type="application/ld+json">
@@ -49,7 +54,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"> -->
 <link rel="stylesheet" href="admin.css"> <!-- fallback to local or custom icons -->
-<link rel="stylesheet" href="style.css?v=20260513-13">
+<link rel="stylesheet" href="style.css?v=20260514-1">
 <!-- Google AdSense -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8786593139834578" crossorigin="anonymous"></script>
 </head>
