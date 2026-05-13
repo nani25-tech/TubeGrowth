@@ -2531,6 +2531,25 @@ section {
   -webkit-overflow-scrolling: touch;
 }
 
+/* Custom scrollbars for small devices */
+.view-promo-table-wrapper::-webkit-scrollbar {
+  height: 10px;
+}
+.view-promo-table-wrapper::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.02);
+  border-radius: 8px;
+}
+.view-promo-table-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.08);
+  border-radius: 8px;
+}
+@supports (scrollbar-color: auto) {
+  .view-promo-table-wrapper {
+    scrollbar-color: rgba(255,255,255,0.08) rgba(255,255,255,0.02);
+    scrollbar-width: thin;
+  }
+}
+
 .view-promo-table td,
 .view-promo-table th {
   white-space: normal; /* allow wrapping */
