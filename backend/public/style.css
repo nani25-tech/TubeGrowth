@@ -384,12 +384,41 @@ nav {
   nav {
     padding: 12px 16px;
   }
+  .logo-container {
+    gap: 8px;
+  }
+  .logo {
+    font-size: 16px;
+    width: 45px;
+    height: 45px;
+  }
+  .logo-text {
+    font-size: 18px;
+  }
 }
 
 @media (max-width: 768px) and (min-width: 481px) {
   nav {
     padding: 14px 24px;
   }
+  .logo-container {
+    gap: 10px;
+  }
+  .logo {
+    font-size: 18px;
+    width: 48px;
+    height: 48px;
+  }
+  .logo-text {
+    font-size: 22px;
+  }
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s ease;
 }
 
 .logo {
@@ -406,6 +435,7 @@ nav {
   justify-content: center;
   font-weight: 700;
   transition: all 0.3s ease;
+  flex-shrink: 0;
   min-width: auto;
 }
 
@@ -413,6 +443,19 @@ nav {
   border-color: var(--red);
   color: var(--red);
   transform: scale(1.05);
+}
+
+.logo-text {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  letter-spacing: 2px;
+  color: var(--text);
+  font-weight: 700;
+  transition: color 0.3s ease;
+}
+
+.logo-container:hover .logo-text {
+  color: var(--red);
 }
 
 @media (max-width: 480px) {
@@ -2696,6 +2739,12 @@ footer {
   flex-wrap: wrap; gap: 24px;
 }
 
+.footer-logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .footer-logo { 
   font-family: 'Bebas Neue', sans-serif; 
   font-size: 18px; 
@@ -2707,6 +2756,15 @@ footer {
   display: flex;
   align-items: center;
   justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.footer-logo-text {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16px;
+  letter-spacing: 1.5px;
+  color: var(--text);
   font-weight: 700;
 }
 .footer-logo span { color: var(--red); }
