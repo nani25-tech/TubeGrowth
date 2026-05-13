@@ -218,7 +218,7 @@
   font-family: 'Bebas Neue', sans-serif;
   font-size: 22px;
   font-weight: 700;
-  color: #0f172a;
+  color: #000;
   letter-spacing: 1px;
   margin-bottom: 14px;
   -webkit-font-smoothing: antialiased;
@@ -226,7 +226,7 @@
 
 .how-it-works-step p {
   font-size: 15px;
-  color: #1e293b;
+  color: #000;
   line-height: 1.65;
   font-weight: 500;
 }
