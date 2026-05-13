@@ -1,5 +1,8 @@
 import Task from '../models/Task.js';
 import User from '../models/User.js';
+import CreditTransaction from '../models/CreditTransaction.js';
+import creditOps from '../utils/creditOps.js';
+import mongoose from 'mongoose';
 
 export const listTasks = async (req, res) => {
   try {
@@ -46,40 +49,105 @@ export const completeTask = async (req, res) => {
 };
 
 export const verifyTask = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     if (req.user.isGuest) {
+      await session.abortTransaction();
       return res.status(400).json({ message: 'Please login to verify tasks' });
     }
 
     const { id } = req.params;
     const userId = req.user.userId;
 
-    const task = await Task.findById(id);
+    const task = await Task.findById(id).session(session);
     if (!task) {
+      await session.abortTransaction();
       return res.status(404).json({ message: 'Task not found' });
     }
 
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).session(session);
     if (!user) {
+      await session.abortTransaction();
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Award credits
-    user.credits += task.reward;
-    task.verifiedAt = new Date();
-    user.completedTasks.push(task._id);
+    // Idempotency check: if already verified for this user, return existing result
+    if (task.verifiedAt) {
+      // Check if user already claimed this task's reward
+      const existingTransaction = await CreditTransaction.findOne({
+        user: userId,
+        source: 'task_verify',
+        relatedId: task._id,
+        status: 'completed',
+      }).session(session);
 
-    await user.save();
-    await task.save();
+      if (existingTransaction) {
+        await session.abortTransaction();
+        return res.status(409).json({
+          message: 'This task has already been verified for your account',
+          creditsAwarded: 0,
+          newBalance: user.credits,
+        });
+      }
+    }
 
-    res.json({
-      message: 'Task verified! Credits awarded.',
-      creditsAwarded: task.reward,
-      newBalance: user.credits,
-    });
+    // Prevent duplicate in completedTasks array
+    if (user.completedTasks.includes(task._id)) {
+      await session.abortTransaction();
+      return res.status(409).json({
+        message: 'Task already completed by this user',
+        creditsAwarded: 0,
+        newBalance: user.credits,
+      });
+    }
+
+    // Validate reward
+    if (!Number.isInteger(task.reward) || task.reward < 0) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        message: `Invalid task reward: must be non-negative integer, got ${task.reward}`,
+      });
+    }
+
+    // Award credits with transaction logging
+    try {
+      const creditResult = await creditOps.addCredits(
+        userId,
+        task.reward,
+        'task_verify',
+        'Task',
+        task._id.toString(),
+        `Task verified: ${task.type || 'Unknown'} task`,
+        session
+      );
+
+      // Mark task as verified
+      task.verifiedAt = new Date();
+      await task.save({ session });
+
+      // Add to completed tasks
+      user.completedTasks.push(task._id);
+      await user.save({ session });
+
+      await session.commitTransaction();
+
+      res.json({
+        message: 'Task verified! Credits awarded.',
+        creditsAwarded: task.reward,
+        newBalance: creditResult.user.credits,
+      });
+    } catch (creditError) {
+      await session.abortTransaction();
+      throw creditError;
+    }
   } catch (error) {
+    await session.abortTransaction();
     console.error('Verify task error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: error.message || 'Server error' });
+  } finally {
+    await session.endSession();
   }
 };
 

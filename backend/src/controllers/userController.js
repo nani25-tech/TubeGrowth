@@ -1,15 +1,44 @@
 import User from '../models/User.js';
 import EarnAction from '../models/EarnAction.js';
-import { fetchChannelDetails } from '../utils/youtube.js';
+import { fetchChannelDetails, fetchChannelDetailsWithFallback } from '../utils/youtube.js';
 import PaymentTransaction from '../models/PaymentTransaction.js';
+import CreditTransaction from '../models/CreditTransaction.js';
+import creditOps from '../utils/creditOps.js';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
+import mongoose from 'mongoose';
 
 const getCreditsForAmount = (amountINR) => {
-  if (amountINR === 10) return 100;
-  if (amountINR === 50) return 500;
-  if (amountINR === 100) return 1000;
-  return Math.max(0, Math.floor(amountINR));
+  // Strict: only exact mappings allowed
+  const INR_MAP = {
+    10: 100,
+    50: 500,
+    100: 1000,
+  };
+
+  // If exact mapping exists, use it
+  if (INR_MAP[amountINR]) {
+    return INR_MAP[amountINR];
+  }
+
+  // Otherwise, strict ratio: 10 INR = 100 credits
+  // Only allow if it's a multiple of 10
+  if (amountINR % 10 !== 0) {
+    throw new Error(
+      `Invalid amount: ${amountINR} INR. Must be a multiple of 10. ` +
+      `Valid amounts: 10, 50, 100, or multiples of 10.`
+    );
+  }
+
+  // Calculate: 10 INR = 100 credits, so 1 INR = 10 credits
+  const creditsToAdd = Math.floor(amountINR * 10);
+
+  // Ensure result is integer
+  if (!Number.isInteger(creditsToAdd)) {
+    throw new Error(`Credit calculation failed for ${amountINR} INR`);
+  }
+
+  return creditsToAdd;
 };
 
 const getRazorpayClient = () => {
@@ -171,31 +200,58 @@ export const getWallet = async (req, res) => {
 };
 
 export const recordEarnAction = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     if (req.user.isGuest) {
+      await session.abortTransaction();
       return res.status(400).json({ message: 'Please login to store earn actions' });
     }
 
     const { taskKey, taskType, taskName, channelName, reward } = req.body;
 
     if (!taskKey || !taskType || !taskName || !channelName) {
+      await session.abortTransaction();
       return res.status(400).json({
         message: 'taskKey, taskType, taskName, and channelName are required',
       });
     }
 
+    // Validate taskType
+    const validTypes = ['subscribe', 'like', 'watch', 'comment'];
+    if (!validTypes.includes(taskType)) {
+      await session.abortTransaction();
+      return res.status(400).json({ message: `Invalid taskType. Must be one of: ${validTypes.join(', ')}` });
+    }
+
+    // Strict: reward must be integer, no decimals
     const normalizedReward = Number(reward || 0);
-    const user = await User.findById(req.user.userId);
+    if (!Number.isInteger(normalizedReward) || normalizedReward < 0) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        message: `Reward must be a non-negative integer (no decimals). Got: ${reward}`,
+      });
+    }
+
+    const user = await User.findById(req.user.userId).session(session);
 
     if (!user) {
+      await session.abortTransaction();
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const existingAction = await EarnAction.findOne({ user: user._id, taskKey });
+    // Check for duplicate with strict locking
+    const existingAction = await EarnAction.findOne({ user: user._id, taskKey }).session(session);
     if (existingAction) {
-      return res.status(409).json({ message: 'Task already completed', action: existingAction });
+      await session.abortTransaction();
+      return res.status(409).json({
+        message: 'Task already completed',
+        action: existingAction,
+      });
     }
 
+    // Create action record first
     const action = new EarnAction({
       user: user._id,
       taskKey,
@@ -205,30 +261,52 @@ export const recordEarnAction = async (req, res) => {
       reward: normalizedReward,
     });
 
-    user.credits += normalizedReward;
+    await action.save({ session });
 
-    if (taskType === 'subscribe' && !user.subscribedChannels.includes(channelName)) {
-      user.subscribedChannels.push(channelName);
+    // Add credits with transaction logging
+    try {
+      const creditResult = await creditOps.addCredits(
+        user._id.toString(),
+        normalizedReward,
+        'task_earn',
+        'EarnAction',
+        action._id.toString(),
+        `Task completed: ${taskName} (${taskType}) on ${channelName}`,
+        session
+      );
+
+      // Update subscribed channels if applicable
+      if (taskType === 'subscribe' && !user.subscribedChannels.includes(channelName)) {
+        user.subscribedChannels.push(channelName);
+        await user.save({ session });
+      }
+
+      await session.commitTransaction();
+
+      res.status(201).json({
+        message: 'Earn action stored successfully',
+        action,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          credits: creditResult.user.credits,
+          subscribedChannels: user.subscribedChannels,
+          youtubeConnected: !!user.youtubeChannelId,
+        },
+      });
+    } catch (creditError) {
+      await session.abortTransaction();
+      // Clean up action if credit add failed
+      await EarnAction.deleteOne({ _id: action._id });
+      throw creditError;
     }
-
-    await action.save();
-    await user.save();
-
-    res.status(201).json({
-      message: 'Earn action stored successfully',
-      action,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        credits: user.credits,
-        subscribedChannels: user.subscribedChannels,
-        youtubeConnected: !!user.youtubeChannelId,
-      },
-    });
   } catch (error) {
+    await session.abortTransaction();
     console.error('Record earn action error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: error.message || 'Server error' });
+  } finally {
+    await session.endSession();
   }
 };
 
@@ -331,14 +409,49 @@ export const updateProfile = async (req, res) => {
       const trimmedChannelId = String(youtubeChannelId || '').trim();
 
       if (trimmedChannelId) {
-        const channelDetails = await fetchChannelDetails(trimmedChannelId);
+        // Validate channel ID format (must be UC... or @ or URL)
+        const isValidChannelId = /^UC[a-zA-Z0-9_-]{10,}$/.test(trimmedChannelId);
+        const isValidHandle = /^@[a-zA-Z0-9._-]+$/.test(trimmedChannelId);
+        const isValidUrl = trimmedChannelId.includes('youtube.com') || trimmedChannelId.includes('youtu.be');
 
-        user.youtubeChannelId = channelDetails.id;
-        user.youtubeChannelTitle = channelDetails.name;
-        user.subscribers = channelDetails.subscriberCount;
+        if (!isValidChannelId && !isValidHandle && !isValidUrl) {
+          return res.status(400).json({
+            message: 'Invalid channel ID/URL format. Must be channel ID (UC...), handle (@...), or YouTube URL.',
+          });
+        }
 
-        if (!user.youtubeConnectedAt) {
-          user.youtubeConnectedAt = new Date();
+        try {
+          // Try to fetch full channel details from YouTube
+          const channelDetails = await fetchChannelDetails(trimmedChannelId);
+
+          user.youtubeChannelId = channelDetails.id;
+          user.youtubeChannelTitle = channelDetails.name;
+          user.subscribers = channelDetails.subscriberCount;
+
+          if (!user.youtubeConnectedAt) {
+            user.youtubeConnectedAt = new Date();
+          }
+        } catch (youtubeError) {
+          // If YouTube API fails, try fallback
+          console.warn('YouTube API failed, using fallback:', youtubeError.message);
+
+          const channelDetails = await fetchChannelDetailsWithFallback(trimmedChannelId);
+
+          user.youtubeChannelId = channelDetails.id;
+          user.youtubeChannelTitle = channelDetails.name || 'YouTube Channel';
+          user.subscribers = channelDetails.subscriberCount || 0;
+
+          if (!user.youtubeConnectedAt) {
+            user.youtubeConnectedAt = new Date();
+          }
+
+          // Log that we're using fallback data
+          if (channelDetails._isFallback) {
+            console.info(
+              `Channel saved with fallback data (YouTube API unavailable). ` +
+              `Channel ID: ${channelDetails.id}, Error: ${channelDetails._error}`
+            );
+          }
         }
       } else {
         user.youtubeChannelId = '';
@@ -361,7 +474,9 @@ export const updateProfile = async (req, res) => {
     });
   } catch (error) {
     console.error('Update profile error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({
+      message: `Failed to update profile: ${error.message}`,
+    });
   }
 };
 
@@ -369,6 +484,13 @@ export const buyCredits = async (req, res) => {
   try {
     if (req.user.isGuest) {
       return res.status(403).json({ message: 'Please login to buy credits' });
+    }
+
+    // Restrict to dev mode or admin users only
+    if (!req.user.isAdmin && process.env.NODE_ENV === 'production') {
+      return res.status(403).json({
+        message: 'Direct credit purchase is restricted. Use the payment gateway (createCreditOrder).',
+      });
     }
 
     const amount = Number(req.body?.amount || req.body?.amountINR || 0);
@@ -383,16 +505,43 @@ export const buyCredits = async (req, res) => {
     let creditsToAdd = 0;
     if (currency === 'USD') {
       const USD_MAP = { 1: 100, 15: 500, 50: 1000 };
-      creditsToAdd = USD_MAP[amount] || getCreditsForAmount(amount);
+      creditsToAdd = USD_MAP[amount];
+      if (!creditsToAdd) {
+        return res.status(400).json({
+          message: `Invalid USD amount: ${amount}. Valid amounts: 1, 15, 50 USD.`,
+        });
+      }
     } else {
       creditsToAdd = getCreditsForAmount(amount);
     }
+
+    // Strict: creditsToAdd must be integer
+    if (!Number.isInteger(creditsToAdd) || creditsToAdd <= 0) {
+      return res.status(400).json({
+        message: `Credit calculation resulted in invalid amount: ${creditsToAdd}. Must be positive integer.`,
+      });
+    }
+
+    // Log the dev-mode credit addition
+    await CreditTransaction.create({
+      user: user._id,
+      type: 'purchase',
+      amount: creditsToAdd,
+      balanceBefore: user.credits,
+      balanceAfter: user.credits + creditsToAdd,
+      source: 'direct_purchase_dev',
+      description: `DEV/ADMIN: Direct credit purchase - ${creditsToAdd} credits for ${amount} ${currency}`,
+      status: 'completed',
+      metadata: { isDev: process.env.NODE_ENV !== 'production', isAdmin: req.user.isAdmin },
+    });
+
     user.credits = (user.credits || 0) + creditsToAdd;
 
     await user.save();
 
     res.json({
-      message: 'Credits purchased successfully',
+      message: `Credits added (${process.env.NODE_ENV === 'production' ? 'ADMIN' : 'DEV'})`,
+      isDev: process.env.NODE_ENV !== 'production',
       user: {
         id: user._id,
         name: user.name,
@@ -434,9 +583,21 @@ export const createCreditOrder = async (req, res) => {
     let creditsToAdd = 0;
     if (currency === 'USD') {
       const USD_MAP = { 1: 100, 15: 500, 50: 1000 };
-      creditsToAdd = USD_MAP[amount] || getCreditsForAmount(amount);
+      creditsToAdd = USD_MAP[amount];
+      if (!creditsToAdd) {
+        return res.status(400).json({
+          message: `Invalid USD amount: ${amount}. Valid amounts: 1, 15, 50 USD.`,
+        });
+      }
     } else {
       creditsToAdd = getCreditsForAmount(amount);
+    }
+
+    // Strict validation: creditsToAdd must be a positive integer
+    if (!Number.isInteger(creditsToAdd) || creditsToAdd <= 0) {
+      return res.status(400).json({
+        message: `Credit calculation error: ${creditsToAdd}. Must be positive integer.`,
+      });
     }
 
     // If Razorpay keys are missing and we're not in production, provide a safe dev fallback
@@ -524,8 +685,12 @@ export const createCreditOrder = async (req, res) => {
 };
 
 export const verifyCreditPayment = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     if (req.user.isGuest) {
+      await session.abortTransaction();
       return res.status(403).json({ message: 'Please login to verify payment' });
     }
 
@@ -536,19 +701,23 @@ export const verifyCreditPayment = async (req, res) => {
     } = req.body || {};
 
     if (!orderId || !paymentId || !signature) {
+      await session.abortTransaction();
       return res.status(400).json({ message: 'Missing payment verification details' });
     }
 
     const tx = await PaymentTransaction.findOne({
       orderId,
       user: req.user.userId,
-    });
+    }).session(session);
 
     if (!tx) {
+      await session.abortTransaction();
       return res.status(404).json({ message: 'Order not found for user' });
     }
 
+    // Idempotency: if already paid, return current state
     if (tx.status === 'paid') {
+      await session.abortTransaction();
       const existingUser = await User.findById(req.user.userId);
       return res.json({
         message: 'Payment already verified',
@@ -579,45 +748,64 @@ export const verifyCreditPayment = async (req, res) => {
       if (expectedSignature !== signature) {
         tx.status = 'failed';
         tx.paymentId = paymentId;
-        await tx.save();
+        await tx.save({ session });
+        await session.abortTransaction();
         return res.status(400).json({ message: 'Invalid payment signature' });
       }
     } else {
-      // Dev fallback: accept the verification request and mark paid if not already
       console.warn('Dev fallback: bypassing razorpay signature verification');
     }
 
-    const user = await User.findById(req.user.userId);
+    const user = await User.findById(req.user.userId).session(session);
     if (!user) {
+      await session.abortTransaction();
       return res.status(404).json({ message: 'User not found' });
     }
 
-    user.credits = (user.credits || 0) + (tx.creditsToAdd || 0);
-    await user.save();
+    // Add credits with transaction logging
+    try {
+      const creditResult = await creditOps.addCredits(
+        req.user.userId,
+        tx.creditsToAdd || 0,
+        'purchase',
+        'PaymentTransaction',
+        tx._id.toString(),
+        `Payment verified: ${tx.amountValue} ${tx.currency} → ${tx.creditsToAdd} credits`,
+        session
+      );
 
-    tx.status = 'paid';
-    tx.paymentId = paymentId;
-    tx.verifiedAt = new Date();
-    await tx.save();
+      tx.status = 'paid';
+      tx.paymentId = paymentId;
+      tx.verifiedAt = new Date();
+      await tx.save({ session });
 
-    return res.json({
-      message: 'Payment verified and credits added',
-      creditsAdded: tx.creditsToAdd,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        credits: user.credits,
-        subscribers: user.subscribers,
-        watchTimeHours: user.watchTimeHours,
-        youtubeChannelId: user.youtubeChannelId,
-        youtubeChannelTitle: user.youtubeChannelTitle,
-        youtubeConnected: !!user.youtubeChannelId,
-      },
-    });
+      await session.commitTransaction();
+
+      return res.json({
+        message: 'Payment verified and credits added',
+        creditsAdded: tx.creditsToAdd,
+        user: {
+          id: creditResult.user._id,
+          name: creditResult.user.name,
+          email: creditResult.user.email,
+          credits: creditResult.user.credits,
+          subscribers: creditResult.user.subscribers,
+          watchTimeHours: creditResult.user.watchTimeHours,
+          youtubeChannelId: creditResult.user.youtubeChannelId,
+          youtubeChannelTitle: creditResult.user.youtubeChannelTitle,
+          youtubeConnected: !!creditResult.user.youtubeChannelId,
+        },
+      });
+    } catch (creditError) {
+      await session.abortTransaction();
+      throw creditError;
+    }
   } catch (error) {
+    await session.abortTransaction();
     console.error('Verify credit payment error:', error);
     return res.status(500).json({ message: error.message || 'Server error' });
+  } finally {
+    await session.endSession();
   }
 };
 
@@ -659,5 +847,58 @@ export const getPaymentHistory = async (req, res) => {
   } catch (error) {
     console.error('Get payment history error:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+/**
+ * Get comprehensive credit transaction history with audit trail
+ */
+export const getCreditTransactionHistory = async (req, res) => {
+  try {
+    if (req.user.isGuest) {
+      return res.json({ transactions: [] });
+    }
+
+    const { type, source, limit = 50, skip = 0 } = req.query;
+    const filters = { limit: parseInt(limit), skip: parseInt(skip) };
+
+    if (type) filters.type = type;
+    if (source) filters.source = source;
+
+    const transactions = await creditOps.getTransactionHistory(req.user.userId, filters);
+
+    // Get summary stats
+    const balance = await creditOps.getBalance(req.user.userId);
+
+    res.json({
+      summary: balance,
+      transactions,
+    });
+  } catch (error) {
+    console.error('Get credit transaction history error:', error);
+    res.status(500).json({ message: error.message || 'Server error' });
+  }
+};
+
+/**
+ * Get current credit balance and statistics
+ */
+export const getCreditBalance = async (req, res) => {
+  try {
+    if (req.user.isGuest) {
+      return res.json({
+        balance: 0,
+        totalEarned: 0,
+        totalSpent: 0,
+        transactionCount: 0,
+      });
+    }
+
+    const balance = await creditOps.getBalance(req.user.userId);
+
+    res.json(balance);
+  } catch (error) {
+    console.error('Get credit balance error:', error);
+    res.status(500).json({ message: error.message || 'Server error' });
   }
 };

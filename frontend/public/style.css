@@ -19,14 +19,15 @@
   color: #1a1a1a;
   text-align: center;
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 52px;
+  font-size: clamp(28px, 8vw, 52px);
   font-weight: 700;
   letter-spacing: 1px;
-  white-space: nowrap;
-  padding: 24px 64px;
+  padding: clamp(16px, 4vw, 24px) clamp(16px, 8vw, 64px);
   -webkit-font-smoothing: antialiased;
   box-shadow: 0 10px 28px rgba(0,0,0,0.32);
-  line-height: 1;
+  line-height: 1.2;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .free-boost-content {
@@ -304,7 +305,7 @@
 
 @media (max-width: 768px) {
   .free-boost-section { padding: 30px 0 60px; }
-  .free-boost-banner { display: flex; font-size: 34px; padding: 12px 18px; margin: 0 auto 30px; justify-content: center; align-items: center; min-height: 90px; white-space: nowrap; }
+  .free-boost-banner { display: flex; font-size: 34px; padding: 12px 18px; margin: 0 auto 30px; justify-content: center; align-items: center; min-height: 90px; white-space: normal; }
   .free-boost-title { font-size: 32px; }
   .free-boost-subtitle { font-size: 15px; margin-bottom: 30px; }
   .free-boost-form-box { padding: 24px; margin-bottom: 24px; }
@@ -337,10 +338,12 @@ html { scroll-behavior: smooth; }
 
 body {
   font-family: 'DM Sans', sans-serif;
-  font-size: 8px;
+  /* Use a sane base font-size to improve scaling on mobile devices */
+  font-size: 16px;
   background: var(--black);
   color: var(--text);
-  overflow-x: hidden;
+  overflow-x: hidden !important;
+  max-width: 100vw;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -424,6 +427,8 @@ nav ul a:hover { color: var(--text); }
   border-radius: 4px;
   overflow: hidden;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .dashboard-topbar {
@@ -537,7 +542,7 @@ nav ul a:hover { color: var(--text); }
 }
 
 .profile-avatar img {
-  display: none;
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -835,6 +840,17 @@ h1 .accent { color: var(--red); display: block; }
   align-items: center;
   justify-content: center;
   -webkit-font-smoothing: antialiased;
+  white-space: normal;
+  word-wrap: break-word;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 480px) {
+  .btn-primary {
+    padding: 14px 24px;
+    font-size: 14px;
+  }
 }
 .btn-primary:hover {
   background: var(--red-dark);
@@ -862,8 +878,17 @@ h1 .accent { color: var(--red); display: block; }
   padding: 14px 0;
   overflow: hidden;
   position: relative;
+  white-space: normal;
+  word-wrap: break-word;
+  flex-wrap: wrap;
 }
 
+@media (max-width: 480px) {
+  .btn-secondary {
+    padding: 12px 24px;
+    font-size: 13px;
+  }
+}
 .ticker-track {
   display: flex; gap: 80px;
   animation: ticker 20s linear infinite;
@@ -924,8 +949,15 @@ section { padding: 100px 60px; }
   cursor: default;
   position: relative;
   overflow: hidden;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
+@media (max-width: 480px) {
+  .service-card {
+    padding: 20px 16px;
+  }
+}
 .service-card::after {
   content: '';
   position: absolute; top: 0; left: 0; right: 0;
@@ -934,6 +966,7 @@ section { padding: 100px 60px; }
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.3s;
+  word-break: break-word;
 }
 
 .service-card:hover { background: #1e1e1e; }
@@ -1041,6 +1074,8 @@ section { padding: 100px 60px; }
   line-height: 1;
   letter-spacing: 1px;
   margin: 0;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .buy-method-tag {
@@ -1056,11 +1091,15 @@ section { padding: 100px 60px; }
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .buy-method-tag.usd {
   background: rgba(79, 166, 255, 0.14);
   color: #7cc4ff;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .credits-grid {
@@ -1429,7 +1468,7 @@ section { padding: 100px 60px; }
   border: 1px solid #cfcfcf;
   border-radius: 5px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 .boost-info-head {
@@ -1969,9 +2008,9 @@ section { padding: 100px 60px; }
 .view-promo-layout {
   max-width: 1400px;
   margin: 0 auto;
+  width: 100%;
   padding: 0 16px;
-  display: grid;
-  gap: 16px;
+  box-sizing: border-box;
 }
 
 .view-promo-search-bar {
@@ -1980,6 +2019,8 @@ section { padding: 100px 60px; }
 
 .view-promo-search-bar input {
   width: 280px;
+  width: 100%;
+  max-width: 280px;
   padding: 10px 14px;
   border: 1px solid #bbb;
   border-radius: 4px;
@@ -2408,18 +2449,26 @@ section { padding: 100px 60px; }
   width: 90%;
   max-width: 450px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  word-break: break-word;
+  overflow-wrap: break-word;
+  overflow-y: auto;
+  max-height: 90vh;
 }
 
 .modal-header {
   display: flex; justify-content: space-between; align-items: center;
   padding: 24px;
   border-bottom: 1px solid var(--border);
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .modal-header h3 {
   font-size: 22px; font-weight: 700;
   margin: 0;
   -webkit-font-smoothing: antialiased;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .modal-close {
@@ -2667,6 +2716,7 @@ footer p { color: var(--muted); font-size: 13px; }
   }
   .dash-card-head { font-size: 24px; }
   .profile-avatar { width: 138px; height: 138px; }
+  .profile-avatar img { display: block; }
   .profile-name { font-size: 24px; }
   .profile-channel { font-size: 15px; }
   .profile-credits { font-size: 26px; }
@@ -2852,6 +2902,8 @@ footer {
   font-weight: 700;
   cursor: pointer;
   transition: background 0.15s, color 0.15s, transform 0.08s;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 .currency-btn:hover { transform: translateY(-1px); }
 .currency-btn.active {
@@ -4430,7 +4482,8 @@ nav,
   }
   
   .view-promo-info-head {
-    font-size: 16px;
+    font-size: 12px;
+    padding: 8px;
   }
   
   .view-promo-info-body {
@@ -4556,6 +4609,477 @@ nav,
     flex-direction: column;
     gap: 12px;
   }
+
+/* ==== DEBUG OVERLAY: Mobile Viewport Inspector ==== */
+.debug-overlay {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  z-index: 11000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.debug-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.debug-content {
+  background: rgba(10, 10, 10, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 12px 14px;
+  backdrop-filter: blur(10px);
+  min-width: 200px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  width: 100%;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.debug-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+}
+
+.debug-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #e2c27a;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-family: 'Space Mono', monospace;
+}
+
+.debug-close {
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  transition: color 0.2s ease;
+}
+
+.debug-close:hover {
+  color: #e2c27a;
+}
+
+.debug-body {
+  display: grid;
+  gap: 6px;
+}
+
+.debug-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 10px;
+  color: #afbccf;
+  font-family: 'Space Mono', monospace;
+}
+
+.debug-label {
+  color: #999;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  min-width: 70px;
+}
+
+.debug-item span:last-child {
+  color: #e2c27a;
+  font-weight: 700;
+}
+
+/* Show debug overlay on screens 768px or smaller */
+@media (max-width: 768px) {
+  .debug-overlay {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* ==== ULTRA-SMALL SCREENS: < 360px Optimization ==== */
+@media (max-width: 359px) {
+  body {
+    font-size: 14px !important;
+  }
+
+  nav {
+    height: 56px;
+    padding: 8px 10px;
+    gap: 12px;
+  }
+
+  .logo {
+    font-size: 16px;
+  }
+
+  nav ul {
+    display: none;
+  }
+
+  .credit-display {
+    font-size: 9px;
+    padding: 6px 10px;
+  }
+
+  .credit-icon {
+    font-size: 14px;
+  }
+
+  section {
+    padding: 32px 12px !important;
+  }
+
+  .free-boost-section {
+    margin-top: 56px;
+    padding: 20px 0 40px;
+  }
+
+  .free-boost-banner {
+    font-size: 20px;
+    padding: 10px 12px;
+  }
+
+  .free-boost-title {
+    font-size: 20px;
+  }
+
+  .free-boost-subtitle {
+    font-size: 12px;
+    margin-bottom: 16px;
+  }
+
+  .free-boost-form-box {
+    padding: 14px;
+    border-radius: 10px;
+  }
+
+  .free-boost-form {
+    gap: 8px;
+  }
+
+  .free-boost-input,
+  #channelSearch {
+    min-height: 42px;
+    padding: 10px 12px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+
+  .free-boost-search-btn,
+  .search-btn,
+  .btn-primary,
+  .btn-secondary {
+    min-height: 42px;
+    padding: 10px 14px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  h1 {
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-size: 18px;
+  }
+
+  .hero {
+    padding: 60px 12px 32px;
+  }
+
+  .hero-content {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .hero-steps {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .hero-step {
+    padding: 10px 12px;
+    font-size: 10px;
+  }
+
+  .search-bar {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .search-bar input {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .hero-btns {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .dashboard-topbar,
+  .view-promo-shell-topbar,
+  .earn-shell-topbar,
+  .boost-shell-topbar {
+    font-size: 18px;
+    padding: 10px 8px;
+  }
+
+  .dashboard-tabs,
+  .view-promo-shell-tabs,
+  .earn-shell-tabs,
+  .boost-shell-tabs {
+    gap: 6px;
+    padding: 10px 8px;
+  }
+
+  .dash-tab,
+  .view-promo-shell-tab,
+  .earn-shell-tab,
+  .boost-shell-tab {
+    font-size: 9px;
+    padding: 6px 8px;
+    letter-spacing: 0.5px;
+  }
+
+  .profile-avatar {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 10px;
+  }
+
+  .profile-name {
+    font-size: 18px;
+  }
+
+  .profile-channel {
+    font-size: 11px;
+  }
+
+  .profile-credits {
+    font-size: 12px;
+    padding: 2px 8px;
+  }
+
+  .earn-shell-topbar,
+  .boost-shell-topbar,
+  .view-promo-shell-topbar {
+    font-size: 18px;
+  }
+
+  .earn-panel-head,
+  .boost-panel-head,
+  .dash-card-head {
+    font-size: 18px;
+    padding: 10px 8px;
+  }
+
+  .earn-layout,
+  .boost-layout {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 0 8px;
+  }
+
+  .earn-panel-body,
+  .boost-panel-body,
+  .dash-card-body {
+    padding: 12px 10px;
+  }
+
+  .earn-action-btn {
+    font-size: 10px;
+    padding: 7px 10px;
+    min-height: 36px;
+  }
+
+  .boost-form-group {
+    gap: 3px;
+  }
+
+  .boost-form-group label {
+    font-size: 9px;
+  }
+
+  .boost-form-group input,
+  .boost-form-group select {
+    font-size: 12px;
+    padding: 7px;
+  }
+
+  .boost-add-promo-btn {
+    font-size: 12px;
+    padding: 10px;
+    min-height: 42px;
+  }
+
+  .modal-content {
+    width: 95%;
+    max-width: 100%;
+    border-radius: 12px;
+    padding: 14px;
+  }
+
+  .modal-header {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .modal-header h3 {
+    font-size: 16px;
+  }
+
+  .modal-close {
+    font-size: 20px;
+  }
+
+  .modal-body {
+    padding: 14px;
+    font-size: 11px;
+  }
+
+  .modal-verify-btn,
+  .modal-link-btn,
+  .submit-btn {
+    padding: 10px 12px;
+    font-size: 12px;
+    min-height: 40px;
+  }
+
+  .toast {
+    font-size: 10px;
+    padding: 10px 12px;
+    right: 8px;
+    bottom: 8px;
+    max-width: 90vw;
+  }
+
+  .toast-icon {
+    font-size: 14px;
+  }
+
+  .form-group input,
+  .form-group select {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .credit-card {
+    padding: 18px 14px;
+  }
+
+  .credit-amount {
+    font-size: 28px;
+  }
+
+  .credit-price {
+    font-size: 18px;
+  }
+
+  .credit-btn {
+    padding: 8px;
+    font-size: 11px;
+    min-height: 36px;
+  }
+
+  .service-card {
+    padding: 16px 12px;
+  }
+
+  .service-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .service-card h3 {
+    font-size: 13px;
+  }
+
+  .service-card p {
+    font-size: 10px;
+  }
+
+  .footer {
+    padding: 24px 12px;
+    gap: 16px;
+  }
+
+  .footer-logo {
+    font-size: 18px;
+  }
+
+  footer p {
+    font-size: 11px;
+  }
+
+  .footer-links {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .footer-links a {
+    font-size: 11px;
+  }
+
+  /* Debug overlay for ultra-small screens */
+  .debug-overlay {
+    bottom: 12px;
+    left: 12px;
+  }
+
+  .debug-content {
+    min-width: 160px;
+    padding: 10px 12px;
+  }
+
+  .debug-title {
+    font-size: 9px;
+  }
+
+  .debug-item {
+    font-size: 9px;
+    gap: 8px;
+  }
+
+  .debug-label {
+    min-width: 60px;
+    font-size: 8px;
+  }
+}
+
+
+
+
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
 
 
 

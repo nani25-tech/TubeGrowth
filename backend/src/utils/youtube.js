@@ -114,31 +114,76 @@ export const fetchChannelDetails = async (channelIdOrUrl) => {
       }
     }
 
+    // Validate channel ID format
+    if (!channelId || typeof channelId !== 'string' || channelId.trim().length === 0) {
+      throw new Error('Invalid channel ID format');
+    }
+
     const response = await axios.get(`${YOUTUBE_API_URL}/channels`, {
       params: {
         part: 'snippet,statistics',
         id: channelId,
         key: YOUTUBE_API_KEY,
       },
+      timeout: 5000, // 5 second timeout
     });
 
-    if (response.data.items.length === 0) {
-      throw new Error('Channel not found');
+    if (!response.data.items || response.data.items.length === 0) {
+      throw new Error('Channel not found in YouTube');
     }
 
     const channel = response.data.items[0];
+    if (!channel.snippet || !channel.statistics) {
+      throw new Error('Invalid channel data from YouTube');
+    }
+
     return {
       id: channel.id,
-      name: channel.snippet.title,
-      description: channel.snippet.description,
-      thumbnail: channel.snippet.thumbnails.default.url,
-      subscriberCount: parseInt(channel.statistics.subscriberCount || 0),
-      viewCount: parseInt(channel.statistics.viewCount || 0),
-      videoCount: parseInt(channel.statistics.videoCount || 0),
+      name: channel.snippet.title || 'Unknown',
+      description: channel.snippet.description || '',
+      thumbnail: channel.snippet.thumbnails?.default?.url || channel.snippet.thumbnails?.high?.url || '',
+      subscriberCount: parseInt(channel.statistics.subscriberCount || 0, 10),
+      viewCount: parseInt(channel.statistics.viewCount || 0, 10),
+      videoCount: parseInt(channel.statistics.videoCount || 0, 10),
     };
   } catch (error) {
     console.error('YouTube API error:', error.message);
-    throw new Error(`Failed to fetch channel: ${error.message}`);
+    throw new Error(`YouTube API error: ${error.message}`);
+  }
+};
+
+/**
+ * Fetch channel details with fallback - doesn't throw on API errors
+ * Returns basic info even if API fails
+ */
+export const fetchChannelDetailsWithFallback = async (channelIdOrUrl) => {
+  try {
+    return await fetchChannelDetails(channelIdOrUrl);
+  } catch (error) {
+    // If API fails, extract channel ID and return minimal data
+    console.warn('YouTube API fallback triggered:', error.message);
+    
+    let channelId = channelIdOrUrl;
+    
+    // Try to extract channel ID from URL
+    if (channelIdOrUrl && channelIdOrUrl.includes('/channel/')) {
+      channelId = channelIdOrUrl.split('/channel/')[1].split('?')[0];
+    } else if (channelIdOrUrl && channelIdOrUrl.includes('/@')) {
+      channelId = channelIdOrUrl.split('/@')[1].split('?')[0];
+    }
+    
+    // Return minimal fallback data with what we have
+    return {
+      id: channelId || 'unknown',
+      name: 'YouTube Channel',
+      description: '',
+      thumbnail: '',
+      subscriberCount: 0,
+      viewCount: 0,
+      videoCount: 0,
+      _isFallback: true,
+      _error: error.message,
+    };
   }
 };
 

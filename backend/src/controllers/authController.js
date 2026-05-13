@@ -1,3 +1,7 @@
+import User from '../models/User.js';
+import { signAccessToken, signRefreshToken } from '../utils/tokens.js';
+import { sendWelcomeEmail } from '../utils/email.js';
+
 // Login or register with channel ID and channel name only
 export const channelLogin = async (req, res) => {
   try {
@@ -5,11 +9,27 @@ export const channelLogin = async (req, res) => {
     const canonicalChannelId = String(youtubeChannelId || '').trim();
     const canonicalTitle = String(youtubeChannelTitle || '').trim();
 
-    if (!canonicalChannelId || !canonicalTitle) {
-      return res.status(400).json({ message: 'Channel ID and Channel Name are required' });
+    // Validate required fields
+    if (!canonicalChannelId) {
+      return res.status(400).json({ message: 'Channel ID is required' });
+    }
+    if (!canonicalTitle) {
+      return res.status(400).json({ message: 'Channel Name is required' });
+    }
+
+    // Validate channel ID format (UC prefix, @ handle, or YouTube URL)
+    const isValidChannelId = /^UC[a-zA-Z0-9_-]{10,}$/.test(canonicalChannelId);
+    const isValidHandle = /^@[a-zA-Z0-9._-]+$/.test(canonicalChannelId);
+    const isValidUrl = /^https?:\/\/(www\.)?(youtube|youtu\.be)/.test(canonicalChannelId);
+    
+    if (!isValidChannelId && !isValidHandle && !isValidUrl) {
+      return res.status(400).json({
+        message: 'Invalid channel ID format. Please provide: Channel ID (UC...), Handle (@name), or YouTube URL.',
+      });
     }
 
     const dummyEmail = `${canonicalChannelId}@channel.tubegrowth`;
+    
     let user = await User.findOne({ youtubeChannelId: canonicalChannelId });
 
     if (!user) {
@@ -32,7 +52,9 @@ export const channelLogin = async (req, res) => {
         credits: 0,
         isAdmin: false,
       });
-      user.generateReferralCode?.();
+      if (typeof user.generateReferralCode === 'function') {
+        user.generateReferralCode();
+      }
     } else {
       user.name = canonicalTitle;
       user.youtubeChannelId = canonicalChannelId;
@@ -47,6 +69,7 @@ export const channelLogin = async (req, res) => {
 
     const accessToken = signAccessToken({ userId: user._id });
     const refreshToken = signRefreshToken({ userId: user._id });
+    
     res.json({
       message: 'Channel login successful',
       accessToken,
@@ -66,13 +89,10 @@ export const channelLogin = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Channel login error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Channel login error:', error.message || error);
+    res.status(500).json({ message: `Channel login failed: ${error.message || 'Server error'}` });
   }
-}
-import User from '../models/User.js';
-import { signAccessToken, signRefreshToken } from '../utils/tokens.js';
-import { sendWelcomeEmail } from '../utils/email.js';
+};
 
 export const register = async (req, res) => {
   try {

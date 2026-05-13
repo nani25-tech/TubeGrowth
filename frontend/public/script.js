@@ -25,6 +25,16 @@ async function ensureChannelUserInBackend() {
   }
 
   try {
+    // Validate before sending to backend
+    if (!channelId || !channelId.trim()) {
+      throw new Error('Channel ID is required but was not provided. Please try again.');
+    }
+    if (!channelName || !channelName.trim()) {
+      throw new Error('Channel Name is required but was not provided. Please try again.');
+    }
+
+    console.log('[Channel Login] Syncing with backend:', { channelId, channelName });
+
     const apiBase = typeof getApiBase === 'function' ? getApiBase() : '';
     const response = await fetch(`${apiBase}/auth/channel-login`, {
       method: 'POST',
@@ -43,10 +53,13 @@ async function ensureChannelUserInBackend() {
         persistCredits();
         updateCreditDisplay();
       }
+      console.log('[Channel Login] Successfully synced with backend');
       return data;
     }
     const errorPayload = await response.json().catch(() => ({}));
-    throw new Error(errorPayload.message || `Channel sync failed (${response.status})`);
+    const errorMsg = errorPayload.message || `Channel sync failed (${response.status})`;
+    console.error('[Channel Login] Backend error:', errorMsg, errorPayload);
+    throw new Error(errorMsg);
   } catch (err) {
     throw err;
   }
@@ -367,7 +380,9 @@ async function searchAndOpenDashboard() {
     updateCreditsDisplay();
     showSection('dashboard-preview');
   } catch (error) {
-    showToast('bi-exclamation-triangle-fill', 'Could not save channel', 'Please check the channel link/ID and try again.');
+    console.error('[Channel Save] Error:', error.message || error);
+    const errorMsg = error.message || 'Unknown error occurred';
+    showToast('bi-exclamation-triangle-fill', 'Could not save channel', errorMsg);
   }
 }
 
@@ -2859,6 +2874,70 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   
   console.log('[DOMContentLoaded] Daily bonus initialized');
+  
+  // Initialize viewport debug overlay
+  initializeDebugOverlay();
 });
+
+/* ==== DEBUG OVERLAY: Mobile Viewport Inspector ==== */
+function initializeDebugOverlay() {
+  const overlay = document.getElementById('debugOverlay');
+  if (!overlay) return;
+
+  // Show the debug overlay on mobile (≤768px)
+  if (window.innerWidth <= 768) {
+    overlay.classList.add('show');
+  }
+
+  // Update viewport info on load and resize
+  updateDebugInfo();
+  window.addEventListener('resize', debounce(updateDebugInfo, 200));
+}
+
+function updateDebugInfo() {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  let breakpoint = 'Desktop';
+  let device = 'Unknown';
+
+  if (width <= 359) {
+    breakpoint = '< 360px';
+    device = 'Very Small';
+  } else if (width <= 480) {
+    breakpoint = '480px';
+    device = 'Small Phone';
+  } else if (width <= 768) {
+    breakpoint = '768px';
+    device = 'Tablet / Mobile';
+  } else if (width <= 1024) {
+    breakpoint = '1024px';
+    device = 'Landscape';
+  } else {
+    breakpoint = '1024px+';
+    device = 'Desktop';
+  }
+
+  // Update overlay
+  document.getElementById('debugWidth').textContent = width;
+  document.getElementById('debugHeight').textContent = height;
+  document.getElementById('debugBreakpoint').textContent = breakpoint;
+  document.getElementById('debugDevice').textContent = device;
+
+  // Auto-hide on desktop, show on mobile
+  const overlay = document.getElementById('debugOverlay');
+  if (width > 768) {
+    overlay.classList.remove('show');
+  } else {
+    overlay.classList.add('show');
+  }
+}
+
+function debounce(fn, delay) {
+  let timeoutId;
+  return function (...args) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
 
 

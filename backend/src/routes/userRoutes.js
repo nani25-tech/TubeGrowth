@@ -14,6 +14,8 @@ router.post('/earn', authRequired, userController.recordEarnAction);
 router.post('/credits/sync', authRequired, userController.syncCredits);
 router.get('/leaderboard', userController.getLeaderboard);
 router.get('/payments', authRequired, userController.getPaymentHistory);
+router.get('/credits/transactions', authRequired, userController.getCreditTransactionHistory);
+router.get('/credits/balance', authRequired, userController.getCreditBalance);
 router.put('/profile', authRequired, userController.updateProfile);
 router.post('/buy', authRequired, userController.buyCredits);
 router.post('/payment/create-order', authRequired, userController.createCreditOrder);

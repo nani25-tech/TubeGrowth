@@ -1,6 +1,8 @@
 import Campaign from '../models/Campaign.js';
 import User from '../models/User.js';
-import { fetchChannelDetails, fetchVideoDetails } from '../utils/youtube.js';
+import { fetchChannelDetailsWithFallback } from '../utils/youtube.js';
+import creditOps from '../utils/creditOps.js';
+import mongoose from 'mongoose';
 
 const CAMPAIGN_TYPE_MAP = {
   subs: 'subscribers',
@@ -19,8 +21,12 @@ function normalizeCampaignType(type) {
 }
 
 export const createCampaign = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     if (req.user.isGuest) {
+      await session.abortTransaction();
       return res.status(400).json({ message: 'Please login to create campaigns' });
     }
 
@@ -29,20 +35,23 @@ export const createCampaign = async (req, res) => {
     const normalizedType = normalizeCampaignType(type);
     const normalizedTargetCount = Number(targetCount);
 
-    if (!channelUrl || !normalizedType || !Number.isFinite(normalizedTargetCount) || normalizedTargetCount <= 0) {
-      return res.status(400).json({ message: 'Missing required fields' });
+    if (!channelUrl || !normalizedType || !Number.isInteger(normalizedTargetCount) || normalizedTargetCount <= 0) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        message: 'Missing required fields or invalid targetCount (must be positive integer)',
+      });
     }
 
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).session(session);
     if (!user) {
+      await session.abortTransaction();
       return res.status(404).json({ message: 'User not found' });
     }
 
     // Try fetching channel details from YouTube, but keep campaign creation resilient
-    // if external API lookup fails.
     let channelDetails;
     try {
-      channelDetails = await fetchChannelDetails(channelUrl);
+      channelDetails = await fetchChannelDetailsWithFallback(channelUrl);
     } catch (error) {
       const fallbackChannelId = String(user.youtubeChannelId || channelUrl || '').trim();
       const fallbackChannelName = String(user.youtubeChannelTitle || user.name || 'Unknown Channel').trim();
@@ -53,12 +62,13 @@ export const createCampaign = async (req, res) => {
       };
     }
 
-    // Calculate cost (simple calculation: 1 credit per target)
+    // Calculate cost (1 credit per target)
     const cost = normalizedTargetCount;
 
     // Check if user has enough credits
     if (user.credits < cost) {
-      return res.status(400).json({ message: 'Insufficient credits' });
+      await session.abortTransaction();
+      return res.status(400).json({ message: `Insufficient credits: have ${user.credits}, need ${cost}` });
     }
 
     // Create campaign
@@ -72,27 +82,46 @@ export const createCampaign = async (req, res) => {
       cost,
     });
 
-    await campaign.save();
+    await campaign.save({ session });
 
-    // Deduct credits
-    user.credits -= cost;
-    await user.save();
+    // Deduct credits with transaction logging
+    try {
+      const deductResult = await creditOps.deductCredits(
+        userId,
+        cost,
+        'campaign_spend',
+        'Campaign',
+        campaign._id.toString(),
+        `Campaign created: ${normalizedTargetCount} ${normalizedType}`,
+        session
+      );
 
-    res.status(201).json({
-      message: 'Campaign created successfully',
-      credits: user.credits,
-      campaign: {
-        id: campaign._id,
-        channelName: campaign.channelName,
-        type: campaign.type,
-        targetCount: campaign.targetCount,
-        cost: campaign.cost,
-        status: campaign.status,
-      },
-    });
+      await session.commitTransaction();
+
+      res.status(201).json({
+        message: 'Campaign created successfully',
+        credits: deductResult.user.credits,
+        campaign: {
+          id: campaign._id,
+          channelName: campaign.channelName,
+          type: campaign.type,
+          targetCount: campaign.targetCount,
+          cost: campaign.cost,
+          status: campaign.status,
+        },
+      });
+    } catch (creditError) {
+      await session.abortTransaction();
+      // Clean up campaign if credit deduction failed
+      await Campaign.deleteOne({ _id: campaign._id });
+      throw creditError;
+    }
   } catch (error) {
+    await session.abortTransaction();
     console.error('Create campaign error:', error);
     res.status(500).json({ message: error.message || 'Server error' });
+  } finally {
+    await session.endSession();
   }
 };
 
@@ -203,18 +232,59 @@ export const resumeCampaign = async (req, res) => {
 };
 
 export const deleteCampaign = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { id } = req.params;
-    const campaign = await Campaign.findByIdAndDelete(id);
+    const userId = req.user.userId;
+
+    const campaign = await Campaign.findById(id).session(session);
 
     if (!campaign) {
+      await session.abortTransaction();
       return res.status(404).json({ message: 'Campaign not found' });
     }
 
-    // Refund partial credits (not implemented yet)
-    res.json({ message: 'Campaign deleted' });
+    // Verify ownership
+    if (campaign.user.toString() !== userId && !req.user.isAdmin) {
+      await session.abortTransaction();
+      return res.status(403).json({ message: 'You cannot delete this campaign' });
+    }
+
+    // Calculate refund amount
+    const refundAmount = campaign.cost;
+
+    // Delete campaign
+    await Campaign.findByIdAndDelete(id).session(session);
+
+    // Refund credits to user
+    try {
+      const refundResult = await creditOps.refundCredits(
+        userId,
+        refundAmount,
+        'campaign_spend',
+        id,
+        `Campaign deletion: ${campaign.targetCount} ${campaign.type} - ${campaign.channelName}`,
+        session
+      );
+
+      await session.commitTransaction();
+
+      res.json({
+        message: 'Campaign deleted and credits refunded',
+        refundedCredits: refundAmount,
+        newBalance: refundResult.user.credits,
+      });
+    } catch (creditError) {
+      await session.abortTransaction();
+      throw creditError;
+    }
   } catch (error) {
+    await session.abortTransaction();
     console.error('Delete campaign error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: error.message || 'Server error' });
+  } finally {
+    await session.endSession();
   }
 };

@@ -25,6 +25,16 @@ async function ensureChannelUserInBackend() {
   }
 
   try {
+    // Validate before sending to backend
+    if (!channelId || !channelId.trim()) {
+      throw new Error('Channel ID is required but was not provided. Please try again.');
+    }
+    if (!channelName || !channelName.trim()) {
+      throw new Error('Channel Name is required but was not provided. Please try again.');
+    }
+
+    console.log('[Channel Login] Syncing with backend:', { channelId, channelName });
+
     const apiBase = typeof getApiBase === 'function' ? getApiBase() : '';
     const response = await fetch(`${apiBase}/auth/channel-login`, {
       method: 'POST',
@@ -43,10 +53,13 @@ async function ensureChannelUserInBackend() {
         persistCredits();
         updateCreditDisplay();
       }
+      console.log('[Channel Login] Successfully synced with backend');
       return data;
     }
     const errorPayload = await response.json().catch(() => ({}));
-    throw new Error(errorPayload.message || `Channel sync failed (${response.status})`);
+    const errorMsg = errorPayload.message || `Channel sync failed (${response.status})`;
+    console.error('[Channel Login] Backend error:', errorMsg, errorPayload);
+    throw new Error(errorMsg);
   } catch (err) {
     throw err;
   }
@@ -367,7 +380,9 @@ async function searchAndOpenDashboard() {
     updateCreditsDisplay();
     showSection('dashboard-preview');
   } catch (error) {
-    showToast('bi-exclamation-triangle-fill', 'Could not save channel', 'Please check the channel link/ID and try again.');
+    console.error('[Channel Save] Error:', error.message || error);
+    const errorMsg = error.message || 'Unknown error occurred';
+    showToast('bi-exclamation-triangle-fill', 'Could not save channel', errorMsg);
   }
 }
 
