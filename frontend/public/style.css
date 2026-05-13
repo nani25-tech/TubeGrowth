@@ -453,11 +453,16 @@ nav {
   }
 }
 
-nat ul { list-style: none; display: flex; gap: 36px; }
+nav ul { list-style: none; display: flex; gap: 48px; margin: 0; padding: 0; }
+nav ul li { margin: 0; }
 nav ul a {
-  color: var(--muted); text-decoration: none;
-  font-size: 14px; font-weight: 600; letter-spacing: 0.5px;
-  transition: color 0.2s;
+  color: #999;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  transition: color 0.3s ease;
+  font-family: 'DM Sans', sans-serif;
 }
 nav ul a:hover { color: var(--text); }
 
