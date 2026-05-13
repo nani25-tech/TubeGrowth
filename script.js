@@ -2678,8 +2678,10 @@ async function addPromotion() {
     loadPromotions();
     initializeViewPromotions();
 
-    // Deduct credits locally
-    deductCredits(creditsNeeded);
+    // Deduct credits locally only if backend failed to create campaign
+    if (!backendSuccess) {
+      deductCredits(creditsNeeded);
+    }
 
     showToast('bi-check-circle-fill', 'Promotion Added!', `${quantity} ${type} ordered for ${videoLink}`);
 
