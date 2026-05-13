@@ -84,6 +84,10 @@ function setExplicitLogoutState(isLoggedOut) {
   localStorage.setItem(LOGOUT_STATE_KEY, isLoggedOut ? 'true' : 'false');
 }
 
+function hasAuthenticatedSession() {
+  return Boolean(localStorage.getItem('accessToken')) && !isExplicitlyLoggedOut();
+}
+
 function hasSelectedChannel() {
   return Boolean(restoreSelectedChannelSession());
 }
@@ -217,13 +221,14 @@ function updateCreditsDisplay() {
   const navCredits = document.getElementById('navCredits');
   const buyCreditsNav = document.getElementById('buyCreditsNav');
   const hasChannel = hasSelectedChannel();
+  const hasAuth = hasAuthenticatedSession();
   
   if (navCredits) {
-    navCredits.style.display = hasChannel ? 'flex' : 'none';
+    navCredits.style.display = hasChannel && hasAuth ? 'flex' : 'none';
   }
 
   if (buyCreditsNav) {
-    buyCreditsNav.style.display = hasChannel ? 'flex' : 'none';
+    buyCreditsNav.style.display = hasChannel && hasAuth ? 'flex' : 'none';
   }
 }
 
@@ -804,12 +809,29 @@ async function syncCreditsFromBackend() {
   }
 }
 
-let userCredits = getStoredCredits();
+let userCredits = 0;
 
 function updateCreditDisplay() {
-  userCredits = getStoredCredits();
+  const isAuthenticated = hasAuthenticatedSession();
   const topBalance = document.getElementById('userCredits');
+
+  if (!isAuthenticated) {
+    userCredits = 0;
+    if (topBalance) {
+      topBalance.textContent = '';
+      topBalance.style.display = 'none';
+    }
+
+    updateTextForSelector('.profile-credits', '');
+    updateTextForSelector('.boost-credit-chip', '');
+    updateTextForSelector('.view-promo-credit-chip', '');
+    updateTextForSelector('.earn-credit-chip', '');
+    return;
+  }
+
+  userCredits = getStoredCredits();
   if (topBalance) {
+    topBalance.style.display = '';
     topBalance.textContent = userCredits;
   }
 

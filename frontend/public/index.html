@@ -53,22 +53,6 @@
 </head>
 <body id="top">
 
-<!-- DEBUG OVERLAY (Mobile Viewport Info) -->
-<div id="debugOverlay" class="debug-overlay">
-  <div class="debug-content">
-    <div class="debug-header">
-      <span class="debug-title">📱 Viewport Debug</span>
-      <button class="debug-close" onclick="document.getElementById('debugOverlay').style.display='none';">&times;</button>
-    </div>
-    <div class="debug-body">
-      <div class="debug-item"><span class="debug-label">Width:</span> <span id="debugWidth">0</span>px</div>
-      <div class="debug-item"><span class="debug-label">Height:</span> <span id="debugHeight">0</span>px</div>
-      <div class="debug-item"><span class="debug-label">Breakpoint:</span> <span id="debugBreakpoint">Unknown</span></div>
-      <div class="debug-item"><span class="debug-label">Device:</span> <span id="debugDevice">Unknown</span></div>
-    </div>
-  </div>
-</div>
-
 <!-- NAV -->
 <nav>
   <div class="logo">Tube<span>Growth</span></div>
@@ -85,7 +69,7 @@
 
 <!-- FREE YOUTUBE BOOST BANNER -->
 <section class="free-boost-section">
-  <div class="free-boost-banner">Free YouTube Subscribers & Free YouTube Likes</div>
+  <div class="free-boost-banner">Earn Free YouTube Subscribers & Likes</div>
   
   <div class="free-boost-content reveal">
     <h1 class="free-boost-title">Grow your YouTube Channel Faster Than Ever Before!</h1>
@@ -168,9 +152,9 @@
         <header class="dash-card-head">PROFILE INFORMATION</header>
         <div class="dash-card-body profile-body">
           <div class="profile-avatar" aria-hidden="true">
-            <img id="profileAvatarImg" alt="Channel logo" />
+            <img id="profileAvatarImg" alt="Channel logo"   />
           </div>
-          <p class="profile-name"></p>
+           <p class="profile-name"></p>
           <p class="profile-channel"></p>
           <p class="profile-credits">Your Credits : 0</p>
           <p class="profile-subscribers">Subscribers : 0</p>
@@ -328,8 +312,6 @@
     </div>
   </div>
 
-  <!-- DASHBOARD CONTENT -->
-  <div id="dashboard-content" class="dashboard-tab-content"></div>
 
   <!-- VIEW PROMOTIONS CONTENT -->
   <div id="promotions-content" class="dashboard-tab-content">
@@ -488,14 +470,13 @@
   <div class="section-label">// Credit System</div>
   <div class="section-title" style="display: flex; justify-content: center; align-items: center;">BUY CREDITS</div>
   <div class="buy-quick-links" aria-label="Buy credits quick links">
-    <a class="buy-quick-link" href="#dashboard-preview">Dashboard</a>
-    <a class="buy-quick-link" href="#earn-credits">Earn Credits</a>
-    <a class="buy-quick-link" href="#get-started">Boost Profile</a>
-    <a class="buy-quick-link" href="#services">View Promotions</a>
-    <a class="buy-quick-link" href="#top">Logout</a>
-    <a class="buy-quick-link active" href="#buy-credits" aria-current="page">Buy Credits</a>
+    <a class="buy-quick-link" href="#dashboard-preview" aria-label="Go to dashboard">DASHBOARD</a>
+    <a class="buy-quick-link" href="#earn-credits" aria-label="Go to earn credits">EARN CREDITS</a>
+    <a class="buy-quick-link" href="#get-started" aria-label="Go to boost profile form">BOOST PROFILE</a>
+    <a class="buy-quick-link" href="#services" aria-label="Go to promotions section">VIEW PROMOTIONS</a>
+    <a class="buy-quick-link" href="#top" aria-label="Back to top">LOGOUT</a>
+    <a class="buy-quick-link active" href="#buy-credits" aria-current="page">BUY CREDITS</a>
   </div>
-  <p class="section-sub">Choose a payment method below. INR uses Razorpay in rupees, USD uses a separate dollar checkout flow.</p>
   <div class="currency-selector">
     <div id="currencySelect" class="currency-select" role="combobox" aria-expanded="false" tabindex="0" aria-label="Select currency">
       <div class="currency-current" id="currencyCurrent" aria-hidden="true">
@@ -508,6 +489,8 @@
         <li role="option" data-currency="USD" class="currency-option"><span class="flag">🇺🇸</span> USD - US Dollar</li>
       </ul>
     </div>
+    <p class="section-sub">Choose a payment method below. INR uses Razorpay in rupees, USD uses a separate dollar checkout flow.</p>
+  
   </div>
 
   <div class="buy-methods reveal">
@@ -795,7 +778,7 @@
       <article class="boost-panel">
         <header class="boost-panel-head">ADD PROMOTION</header>
         <div class="boost-panel-body add-promo-body">
-          <p class="boost-your-channel">Your Channel : AD official</p>
+          <p class="boost-your-channel">Your Channel : <span id="profile-name"></span></p>
 
           <div class="boost-form-group">
             <label>Select Promotion Type</label>
