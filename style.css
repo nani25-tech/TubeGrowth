@@ -409,12 +409,26 @@ nav {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 24px;
   letter-spacing: 2px;
-  color: var(--text);
   font-weight: 700;
+  display: flex;
+  gap: 4px;
+}
+
+.logo-part-1 {
+  color: var(--text);
   transition: color 0.3s ease;
 }
 
-.logo-container:hover .logo-text {
+.logo-part-2 {
+  color: var(--gold);
+  transition: color 0.3s ease;
+}
+
+.logo-container:hover .logo-part-1 {
+  color: var(--red);
+}
+
+.logo-container:hover .logo-part-2 {
   color: var(--red);
 }
 
@@ -2686,10 +2700,28 @@ footer {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 16px;
   letter-spacing: 1.5px;
-  color: var(--text);
   font-weight: 700;
+  display: flex;
+  gap: 3px;
 }
-.footer-logo span { color: var(--red); }
+
+.footer-logo-part-1 {
+  color: var(--text);
+  transition: color 0.3s ease;
+}
+
+.footer-logo-part-2 {
+  color: var(--gold);
+  transition: color 0.3s ease;
+}
+
+.footer-logo-container:hover .footer-logo-part-1 {
+  color: var(--red);
+}
+
+.footer-logo-container:hover .footer-logo-part-2 {
+  color: var(--red);
+}
 
 footer p { color: var(--muted); font-size: 13px; }
 
