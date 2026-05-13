@@ -169,7 +169,10 @@ REACT_APP_SOCKET_URL=http://localhost:5000
 
 ## Deployment
 
-See `backend/README.md` and `frontend/README.md` for deployment instructions.
+Pushes to `main` deploy automatically through `.github/workflows/deploy.yml` using the existing SSH helper in `deploy/deploy_and_cleanup.ps1`.
+Set the repository secrets `DEPLOY_USER`, `DEPLOY_HOST`, `DEPLOY_PATH`, and optionally `DEPLOY_KEY`.
+
+See `backend/README.md` and `frontend/README.md` for additional deployment instructions.
 
 ## License
 

@@ -561,7 +561,7 @@ function updateDashboardChannel(channelId, channelName = getChannelDisplayName(c
   if (profileName) profileName.textContent = displayName;
   if (boostProfileName) boostProfileName.textContent = displayName;
   if (profileChannel) profileChannel.innerHTML = `<strong>YT Channel Link :</strong> ${channelId}`;
-  if (profileCredits) profileCredits.textContent = `Your Credits : ${userCredits}`;
+  if (profileCredits) profileCredits.textContent = hasAuthenticatedSession() ? `Your Credits : ${userCredits}` : '';
   if (profileSubscribers) profileSubscribers.textContent = `Subscribers : ${subscribers}`;
   if (profileWatchTime) profileWatchTime.textContent = `Watch Time : ${watchHours}h`;
   if (profileAvatarImg) {
@@ -968,6 +968,51 @@ const PAYMENT_PACKS = {
   },
 };
 
+async function loadRazorpayScript() {
+  if (window.Razorpay) return;
+  const existing = document.getElementById('razorpay-js');
+  if (existing) {
+    return new Promise((resolve, reject) => {
+      existing.addEventListener('load', () => resolve());
+      existing.addEventListener('error', () => reject(new Error('Failed to load Razorpay')));
+    });
+  }
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.id = 'razorpay-js';
+    s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    s.async = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('Failed to load Razorpay checkout'));
+    document.head.appendChild(s);
+  });
+}
+
+function blockRazorpayPreloads() {
+  try {
+    const removeAll = () => {
+      document.querySelectorAll('link[rel="preload"]').forEach(l => {
+        try { if (l.href && /razorpay\.com/.test(l.href)) l.remove(); } catch(e) {}
+      });
+    };
+    removeAll();
+    const mo = new MutationObserver(muts => {
+      muts.forEach(m => {
+        m.addedNodes && m.addedNodes.forEach(n => {
+          try { if (n.tagName === 'LINK' && n.rel === 'preload' && /razorpay\.com/.test(n.href)) n.remove(); } catch(e) {}
+        });
+      });
+    });
+    mo.observe(document.head || document.documentElement, { childList: true, subtree: true });
+    setTimeout(() => mo.disconnect(), 8000);
+  } catch (e) { }
+}
+
+(async function(){
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', blockRazorpayPreloads);
+  else blockRazorpayPreloads();
+})();
+
 async function openPaymentPage(currency, amount) {
   const selectedCurrency = String(currency || 'INR').toUpperCase();
   const numericAmount = Number(amount);
@@ -1086,8 +1131,11 @@ async function openPaymentPage(currency, amount) {
       }
     }
 
-    if (!window.Razorpay) {
-      showToast('bi-exclamation-triangle-fill', 'Payment Not Ready', 'Razorpay checkout is not loaded yet. Refresh the page and try again.');
+    try {
+      await loadRazorpayScript();
+    } catch (err) {
+      console.error('Razorpay load failed', err);
+      showToast('bi-exclamation-triangle-fill', 'Payment Not Ready', 'Razorpay checkout failed to load. Try again later.');
       return;
     }
 

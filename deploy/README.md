@@ -3,6 +3,13 @@ Deployment helper
 
 This folder contains a PowerShell script to automate a server-side deployment and optional duplicate-user cleanup.
 
+Automatic deployment
+--------------------
+- A GitHub Actions workflow in `.github/workflows/deploy.yml` runs on every push to `main`.
+- The workflow calls this script automatically, so merged updates deploy without a manual run.
+- Required repository secrets: `DEPLOY_USER`, `DEPLOY_HOST`, `DEPLOY_PATH`.
+- Optional secret: `DEPLOY_KEY` for SSH key-based login.
+
 How it works
 ------------
 - Uses `ssh` to run commands on the remote host: pull code, install, restart, run cleanup (dry-run or apply).
