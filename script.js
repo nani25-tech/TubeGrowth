@@ -401,9 +401,8 @@ async function searchAndOpenDashboard() {
     return;
   }
 
-  const privacyAgreed = document.getElementById('agreePrivacyPolicy')?.checked;
-  const termsAgreed = document.getElementById('agreeTermsConditions')?.checked;
-  if (!privacyAgreed || !termsAgreed) {
+  const agreementChecked = document.getElementById('agreeTermsAndPrivacy')?.checked;
+  if (!agreementChecked) {
     showToast('bi-exclamation-triangle-fill', 'Agreement Required', 'Please agree to the privacy policy and terms and conditions to continue');
     return;
   }
