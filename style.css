@@ -154,29 +154,39 @@
   }
 }
 
+/* Agreement Row */
 .free-boost-agreement {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  flex-wrap: nowrap;          /* Prevent line break */
   gap: 10px;
   cursor: pointer;
-  font-size: 14px;
-  color: #1f2937;
-  line-height: 1.2;
-  white-space: nowrap;
+  width: 100%;
+  white-space: nowrap;        /* Keep everything in one line */
 }
 
+/* Checkbox */
 .free-boost-agreement-checkbox {
   width: 20px;
   height: 20px;
   margin: 0;
   accent-color: #39b54a;
   flex-shrink: 0;
+  cursor: pointer;
 }
 
+/* Text */
 .free-boost-agreement-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  line-height: 1;
   color: #374151;
+  white-space: nowrap;
 }
 
+/* Links */
 .free-boost-agreement-text a {
   color: #0ea5e9;
   text-decoration: none;
