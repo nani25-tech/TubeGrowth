@@ -2218,6 +2218,43 @@ section {
   box-shadow: 0 0 30px rgba(255,0,0,0.3);
 }
 
+/* Dark theme visibility overrides - ensure readable text on dark backgrounds */
+:root {
+  --link-color: #87CEEB;
+  --link-hover: #FFFFFF;
+}
+
+/* Global defaults for readability */
+body, body * {
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Prefer high-contrast text on dark backgrounds */
+body, section, header, footer, nav, .shell, .free-boost-section, .how-it-works-section, #how-it-works, #buy-credits, #testimonials, .ads-section, .dash-card, .ad-card, .free-boost-form-box, .earn-panel, .credit-card, .profile-card, .service-card {
+  color: var(--text) !important;
+}
+
+/* Links and interactive elements */
+a, a:visited { color: var(--link-color) !important; }
+a:hover, a:focus { color: var(--link-hover) !important; text-decoration: underline; }
+
+/* Inputs and form elements readable on dark background */
+input, textarea, select { color: var(--text) !important; background: #0F2D4D !important; border: 1px solid #444 !important; }
+input::placeholder, textarea::placeholder { color: #888 !important; }
+
+/* Buttons - ensure text contrast */
+button, .btn, .nav-cta { color: #fff !important; }
+
+/* Specific fixes for inline-light sections that should remain readable */
+.feedback-btn, .earn-btn, .dash-card-head { color: #fff !important; }
+
+/* Ensure visibility for elements that were using pure black text */
+.how-it-works-step p, .step-number, .service-card p, .ad-slot p { color: var(--text) !important; }
+
+/* Small utility: make muted text slightly brighter on very dark backgrounds */
+.muted, .text-muted, .form-help { color: var(--muted) !important; }
+
+
 .earn-btn:disabled {
   background: var(--muted);
   cursor: not-allowed;
