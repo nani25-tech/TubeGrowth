@@ -135,6 +135,7 @@
   flex-direction: column;
   gap: 12px;
   margin-bottom: 16px;
+  align-items: flex-start;
 }
 
 @media (min-width: 768px) {
@@ -274,6 +275,9 @@
   flex-wrap: nowrap;
   line-height: 1;
   margin-bottom: 16px;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .search-checkbox {
