@@ -100,12 +100,13 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
   max-width: 100%;
 }
-}
 
 @media (max-width: 480px) {
   .free-boost-form-box {
     padding: 16px 12px;
   }
+}
+
 @media (min-width: 768px) {
   .free-boost-form-box {
     padding: 28px;
