@@ -157,10 +157,8 @@
 /* Agreement Row */
 .free-boost-agreement {
   display: inline-flex;
-  align-items: center;
-  flex-wrap: nowrap;          /* Prevent line break */
+  align-items: center;        /* Prevent line break */
   gap: 10px;
-  cursor: pointer;
   width: auto;
   white-space: nowrap;        /* Keep everything in one line */
 }
@@ -173,13 +171,11 @@
   margin: 0;
   accent-color: #39b54a;
   flex-shrink: 0;
-  cursor: pointer;
 }
 
 /* Text */
 .free-boost-agreement-text {
   display: inline-flex;
-  align-items: center;
   gap: 4px;
   font-size: 14px;
   line-height: 1;
