@@ -217,6 +217,50 @@
   text-decoration: underline;
 }
 
+.agreement-checks {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  background: rgba(57, 181, 74, 0.08);
+  border: 1px solid rgba(57, 181, 74, 0.3);
+  border-radius: 6px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.agreement-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #333;
+  flex: 1;
+}
+
+.agreement-check input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+  accent-color: #39b54a;
+}
+
+.agreement-check span {
+  line-height: 1.4;
+}
+
+.agreement-check a {
+  color: #0066cc;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.agreement-check a:hover {
+  text-decoration: underline;
+}
+
 .free-boost-cta {
   margin-bottom: 60px;
 }
