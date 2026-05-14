@@ -273,7 +273,8 @@
   padding: 0;
   white-space: nowrap;
   flex-shrink: 0;
-  width: 100%;
+  width: auto;
+  align-self: flex-start;
   line-height: 1.2;
 }
 
