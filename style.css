@@ -25,7 +25,11 @@
   align-items: center;
   justify-content: center;
   max-width: 100%;
-  width: 100%;
+  
+  .search-checkbox-text {
+    font-size: 11px;
+    line-height: 1;
+  }
   margin: 40px 20px 30px;
   background: #39b54a;
   border: 2px solid #2a8e39;
