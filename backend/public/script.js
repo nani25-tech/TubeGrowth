@@ -259,6 +259,13 @@ function showSection(sectionId) {
     element.style.display = element === sectionElement ? '' : 'none';
   });
 
+  // Ensure footer is always visible
+  const footerElement = document.querySelector('footer');
+  if (footerElement) {
+    footerElement.style.display = '';
+    footerElement.style.visibility = 'visible';
+  }
+
   window.history.replaceState(null, '', normalizedId === 'home' ? '#top' : `#${normalizedId}`);
   updateActiveSectionLinks(normalizedId);
 
