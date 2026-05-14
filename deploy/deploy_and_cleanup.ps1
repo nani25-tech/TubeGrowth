@@ -77,10 +77,10 @@ if (-not [string]::IsNullOrWhiteSpace($env:DEPLOY_KEY)) {
 $sshArgs += "$deployUser@$deployHost"
 
 # =========================
-# Function: Run Remote Command
+# Function: Invoke Remote Command
 # =========================
 
-function Run-RemoteCommand {
+function Invoke-RemoteCommand {
     param(
         [string]$Command
     )
@@ -150,7 +150,7 @@ if ($CleanupAction -eq "Apply") {
 
 foreach ($cmd in $commands) {
 
-    $exitCode = Run-RemoteCommand -Command $cmd
+    $exitCode = Invoke-RemoteCommand -Command $cmd
 
     if ($exitCode -ne 0) {
         Write-Host ""
