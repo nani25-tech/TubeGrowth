@@ -2617,13 +2617,36 @@ button, .btn, .nav-cta { color: #fff !important; }
   .view-promo-shell-tabs { gap: 8px; padding: 12px 10px; }
   .view-promo-shell-tab { font-size: 10px; letter-spacing: 1px; padding: 8px 11px; }
   .view-promo-search-bar input { width: 100%; }
-  .view-promo-table-wrapper { overflow-x: scroll; }
-  .view-promo-table { font-size: 12px; }
+  .view-promo-table-wrapper {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  .view-promo-table {
+    min-width: 760px;
+    font-size: 12px;
+  }
   .view-promo-table th { padding: 10px 8px; font-size: 11px; }
   .view-promo-table td { padding: 8px; font-size: 12px; }
   .view-promo-pagination { flex-direction: column; gap: 10px; text-align: center; }
   .view-promo-info-section { grid-template-columns: 1fr; }
   .view-promo-info-body { font-size: 12px; }
+}
+
+@media (max-width: 768px) {
+  .view-promo-table-wrapper::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .view-promo-table-wrapper::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+  }
+
+  .view-promo-table-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(255, 215, 0, 0.55);
+    border-radius: 999px;
+  }
 }
 
 /* PRICING */
@@ -3884,7 +3907,10 @@ nav ul a,
 
 .view-promo-table-wrapper {
   border-radius: 14px;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
 }
 
 .view-promo-table {
