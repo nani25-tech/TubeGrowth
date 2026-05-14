@@ -406,7 +406,7 @@ async function searchAndOpenDashboard() {
     showToast('bi-exclamation-triangle-fill', 'Agreement Required', 'Please agree to the privacy policy and terms and conditions to continue');
     return;
   }
-  
+
   // Save channel info to localStorage for dashboard
   setExplicitLogoutState(false);
   localStorage.setItem('selectedChannelId', channelId);
