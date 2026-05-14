@@ -2474,17 +2474,17 @@ button, .btn, .nav-cta { color: #fff !important; }
 
 .view-promo-table-wrapper {
   overflow-x: auto;
-  background: #fff;
-  border: 1px solid #ccc;
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .view-promo-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
-  background: #fff;
+  background: var(--card);
 }
 
 .view-promo-table thead {
@@ -2496,7 +2496,7 @@ button, .btn, .nav-cta { color: #fff !important; }
   padding: 14px 12px;
   text-align: left;
   font-weight: 700;
-  border-right: 1px solid #0056cc;
+  border-right: 1px solid var(--border);
   font-size: 13px;
   letter-spacing: 0.5px;
 }
@@ -2506,18 +2506,18 @@ button, .btn, .nav-cta { color: #fff !important; }
 }
 
 .view-promo-table tbody tr {
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border);
   transition: background 0.2s;
 }
 
 .view-promo-table tbody tr:hover {
-  background: #f9f9f9;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .view-promo-table td {
   padding: 12px;
-  border-right: 1px solid #e0e0e0;
-  color: #2a2a2a;
+  border-right: 1px solid var(--border);
+  color: var(--text);
 }
 
 .view-promo-table td:last-child {
