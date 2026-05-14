@@ -313,10 +313,10 @@
   color: #748296;
   line-height: 1;
   white-space: nowrap;
-  flex-shrink: 1;
-  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: block;
+  width: 100%;
 }
 
 .search-checkbox-text a {
