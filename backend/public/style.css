@@ -266,13 +266,14 @@
 }
 
 .search-checkbox-label {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 14px;
   cursor: pointer;
   padding: 0;
-  white-space: nowrap;
-  line-height: 1.2;
+  flex-wrap: nowrap;
+  line-height: 1;
+  margin-bottom: 16px;
 }
 
 .search-checkbox {
@@ -282,16 +283,19 @@
   accent-color: #39b54a;
   flex-shrink: 0;
   margin: 0;
+  min-width: 22px;
 }
 
 .search-checkbox-text {
   font-size: 16px;
   font-weight: 400;
   color: #748296;
-  line-height: 1.2;
+  line-height: 1;
   white-space: nowrap;
-  display: inline;
-  vertical-align: middle;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .search-checkbox-text a {
