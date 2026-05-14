@@ -2,8 +2,10 @@
 .free-boost-section {
   background: #f5f5f5;
   color: #111;
-  padding: 40px 0 80px;
+  padding: 110px 0 80px;
   border-top: 4px solid #39b54a;
+  margin-top: -70px;
+  padding-top: 110px;
 }
 
 .free-boost-banner {
@@ -757,7 +759,8 @@ nav ul a {
 /* DASHBOARD PREVIEW */
 #dashboard-preview {
   background: #dedede;
-  padding: 100px 0 34px;
+  padding: 170px 0 34px;
+  scroll-margin-top: 70px;
 }
 
 .dashboard-shell {
@@ -3149,11 +3152,30 @@ footer p { color: var(--muted); font-size: 13px; }
 @media (max-width: 768px) {
   nav { padding: 16px 24px; flex-wrap: wrap; }
   .nav-toggle { display: flex; margin-left: auto; }
-  nav ul { display: none; width: 100%; flex-direction: column; align-items: flex-start; gap: 12px; padding-top: 14px; }
+  nav ul { 
+    display: none; 
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    width: 100%;
+    flex-direction: column; 
+    align-items: flex-start; 
+    gap: 12px; 
+    padding: 16px 24px;
+    background: rgba(10, 10, 10, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    max-height: calc(100vh - 70px);
+    overflow-y: auto;
+    z-index: 999;
+  }
   nav.open ul { display: flex; }
   nav.open .nav-toggle span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
   nav.open .nav-toggle span:nth-child(2) { opacity: 0; }
   nav.open .nav-toggle span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  nav ul li a { padding: 12px 16px; display: block; width: 100%; border-radius: 6px; }
+  nav ul li a:hover { background: rgba(255, 255, 255, 0.06); }
   .credit-display { font-size: 12px; }
   #dashboard-preview { padding: 92px 12px 18px; }
   .dashboard-topbar { font-size: 26px; }
