@@ -219,36 +219,40 @@
 
 .agreement-checks {
   margin-bottom: 16px;
-  padding: 12px 14px;
-  background: rgba(57, 181, 74, 0.08);
-  border: 1px solid rgba(57, 181, 74, 0.3);
-  border-radius: 6px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
+  align-items: center;
+  gap: 8px;
 }
 
 .agreement-check {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
   cursor: pointer;
-  font-size: 13px;
-  color: #333;
+  font-size: 12px;
+  color: #999;
   flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .agreement-check input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  margin-top: 0;
   cursor: pointer;
   flex-shrink: 0;
   accent-color: #39b54a;
 }
 
 .agreement-check span {
-  line-height: 1.4;
+  line-height: 1;
+  display: inline;
 }
 
 .agreement-check a {
