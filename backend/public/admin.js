@@ -23,7 +23,7 @@ function getApiBase() {
     return 'http://localhost:5000/api';
   }
 
-  return 'https://tubegrowth.onrender.com/api';
+  return '/api';
 }
 
 function getToken() {
