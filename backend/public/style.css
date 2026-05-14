@@ -2993,8 +2993,10 @@ section {
 footer {
   border-top: 1px solid var(--border);
   padding: 60px;
-  display: flex !important; justify-content: space-between; align-items: center;
-  flex-wrap: wrap; gap: 24px;
+  display: flex !important;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
   visibility: visible !important;
 }
 
@@ -3004,7 +3006,30 @@ footer {
   gap: 10px;
 }
 
-.footer-logo { 
+.footer-logo {
+  margin-bottom: 12px;
+  width: auto;
+}
+
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 420px;
+}
+.footer-links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 0.2s;
+}
+.footer-links a:hover {
+  color: var(--text);
+}
+
+.footer-logo {
+ 
   font-family: 'Bebas Neue', sans-serif; 
   font-size: 18px; 
   letter-spacing: 2px; 
