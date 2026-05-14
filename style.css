@@ -3534,9 +3534,12 @@ footer {
 
 .footnote,
 .footer-links,
-.footer-links a,
 .footer p {
   color: var(--muted) !important;
+}
+
+.footer-links a {
+  color: #e5e7eb !important;
 }
 
 /* STYLISH LAYOUT OVERRIDES

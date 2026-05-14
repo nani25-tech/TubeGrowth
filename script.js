@@ -252,7 +252,7 @@ function showSection(sectionId) {
   }
 
   Array.from(document.body.children).forEach((element) => {
-    if (element.tagName === 'NAV' || element.id === 'toast' || element.id === 'earnModal' || element.tagName === 'SCRIPT' || element.tagName === 'STYLE') {
+    if (element.tagName === 'NAV' || element.tagName === 'FOOTER' || element.id === 'toast' || element.id === 'earnModal' || element.tagName === 'SCRIPT' || element.tagName === 'STYLE') {
       return;
     }
 
