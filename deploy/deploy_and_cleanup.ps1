@@ -34,19 +34,19 @@ if (-not $env:DEPLOY_USER -or -not $env:DEPLOY_HOST -or -not $env:DEPLOY_PATH) {
   exit 2
 }
 
-$user = $env:DEPLOY_USER
-$host = $env:DEPLOY_HOST
-$path = $env:DEPLOY_PATH
+$deployUser = $env:DEPLOY_USER
+$deployHost = $env:DEPLOY_HOST
+$deployPath = $env:DEPLOY_PATH
 $keyArg = if ($env:DEPLOY_KEY) { "-i `"$env:DEPLOY_KEY`"" } else { '' }
 
 function RunRemote([string]$cmd) {
-  $sshCmd = "ssh $keyArg $user@$host -- `"$cmd`""
+  $sshCmd = "ssh $keyArg $deployUser@$deployHost -- `"$cmd`""
   Write-Host "Running: $sshCmd"
   $proc = Start-Process -FilePath pwsh -ArgumentList "-NoProfile","-Command",$sshCmd -NoNewWindow -Wait -PassThru
   return $proc.ExitCode
 }
 
-Write-Host "Deploying to ${user}@${host}:${path}"
+Write-Host "Deploying to ${deployUser}@${deployHost}:${deployPath}"
 
 $cmds = @(
   "cd $path || exit 1",
