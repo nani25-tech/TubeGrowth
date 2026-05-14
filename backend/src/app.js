@@ -80,6 +80,19 @@ app.use(helmet({
     xr_spatial_tracking: [],
   },
 }));
+
+// Add stricter security headers to prevent third-party access
+app.use((req, res, next) => {
+  // Prevent third-party scripts from accessing sensitive APIs
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
+
 // Temporarily allow all origins to avoid CORS blocking when frontend is
 // served from a different host (e.g., GitHub Pages). Revert to stricter
 // configuration once DNS is pointed to Render or proper origins configured.
