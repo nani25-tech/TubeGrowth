@@ -401,12 +401,20 @@ async function searchAndOpenDashboard() {
     return;
   }
 
-  const agreementChecked = document.getElementById('agreeTermsAndPrivacy')?.checked;
-  if (!agreementChecked) {
-    showToast('bi-exclamation-triangle-fill', 'Agreement Required', 'Please agree to the privacy policy and terms and conditions to continue');
-    return;
-  }
+  // Agreement Checkbox Validation
 
+const agreementCheckbox = document.getElementById('agreeTermsAndPrivacy');
+
+if (!agreementCheckbox || !agreementCheckbox.checked) {
+
+    showToast(
+        'bi-exclamation-triangle-fill',
+        'Agreement Required',
+        'Please agree to the privacy policy and terms and conditions to continue'
+    );
+
+    return;
+}
   // Save channel info to localStorage for dashboard
   setExplicitLogoutState(false);
   localStorage.setItem('selectedChannelId', channelId);
