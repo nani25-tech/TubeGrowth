@@ -1255,29 +1255,36 @@ h1 .accent { color: var(--red); display: block; }
   transition: all 0.2s;
   box-shadow: 0 0 30px var(--red-glow);
   min-height: 50px;
-  display: inline-flex;
+  display: flex;
+  flex-wrap: nowrap;
   align-items: center;
-  justify-content: center;
-  -webkit-font-smoothing: antialiased;
-}
-.btn-primary:hover {
-  background: var(--red-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 0 50px var(--red-glow);
+  gap: 12px;
+  margin: 14px 0 16px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #f0f0f0;
+  cursor: pointer;
+  flex-wrap: wrap;
+  margin: 0;
+  width: 20px;
+  height: 20px;
+  accent-color: #39b54a;
+  flex: 0 0 20px;
+  cursor: pointer;
+  display: block;
+  color: #3ebbff;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
 }
 
-.btn-secondary {
-  background: transparent;
-  color: var(--text); border: 1px solid var(--border);
-  padding: 20px 44px; border-radius: 6px;
-  font-size: 16px; font-weight: 600;
-  cursor: pointer; text-decoration: none;
-  transition: all 0.2s;
-  min-height: 50px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
+.agreement-check a:hover {
+  text-decoration: underline;
+  color: #5ecfff;
 .btn-secondary:hover { border-color: var(--muted); }
 
 /* STATS TICKER */
