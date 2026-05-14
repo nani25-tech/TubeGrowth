@@ -2,10 +2,8 @@
 .free-boost-section {
   background: #f5f5f5;
   color: #111;
-  padding: 110px 0 80px;
+  padding: 40px 0 80px;
   border-top: 4px solid #39b54a;
-  margin-top: -70px;
-  padding-top: 110px;
 }
 
 .free-boost-banner {
@@ -86,13 +84,6 @@
   padding: 20px;
   margin-bottom: 24px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-  max-width: 100%;
-}
-
-@media (max-width: 480px) {
-  .free-boost-form-box {
-    padding: 16px 12px;
-  }
 }
 
 @media (min-width: 768px) {
@@ -142,55 +133,13 @@
   flex-direction: column;
   gap: 12px;
   margin-bottom: 16px;
-  align-items: flex-start;
 }
 
 @media (min-width: 768px) {
   .free-boost-form {
     flex-direction: row;
     gap: 12px;
-    align-items: center;
   }
-}
-
-/* Agreement Row */
-.free-boost-agreement {
-  display: inline-flex;
-  align-items: center;        /* Prevent line break */
-  gap: 10px;
-  width: auto;
-  white-space: nowrap;        /* Keep everything in one line */
-}
-
-/* Checkbox */
-.free-boost-agreement-checkbox {
-  display: inline-flex;
-  width: 20px;
-  height: 20px;
-  margin: 0;
-  accent-color: #39b54a;
-  flex-shrink: 0;
-}
-
-/* Text */
-.free-boost-agreement-text {
-  display: inline-flex;
-  gap: 4px;
-  font-size: 14px;
-  line-height: 1;
-  color: #374151;
-  white-space: nowrap;
-}
-
-/* Links */
-.free-boost-agreement-text a {
-  color: #0ea5e9;
-  text-decoration: none;
-  font-weight: 700;
-}
-
-.free-boost-agreement-text a:hover {
-  text-decoration: underline;
 }
 
 .free-boost-input {
@@ -265,55 +214,6 @@
 .form-link:hover {
   text-decoration: underline;
 }
-
-.agreement-checks {
-  margin-bottom: 16px;
-  padding: 0;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.agreement-check {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-size: 12px;
-  color: #999;
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.agreement-check input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  margin-top: 0;
-  cursor: pointer;
-  flex-shrink: 0;
-  accent-color: #39b54a;
-}
-
-.agreement-check span {
-  line-height: 1;
-  display: inline;
-}
-
-.agreement-check a {
-  color: #0066cc;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.agreement-check a:hover {
-  text-decoration: underline;
-}
-
 
 .free-boost-cta {
   margin-bottom: 60px;
@@ -857,8 +757,7 @@ nav ul a {
 /* DASHBOARD PREVIEW */
 #dashboard-preview {
   background: #dedede;
-  padding: 170px 0 34px;
-  scroll-margin-top: 70px;
+  padding: 100px 0 34px;
 }
 
 .dashboard-shell {
@@ -2319,43 +2218,6 @@ section {
   box-shadow: 0 0 30px rgba(255,0,0,0.3);
 }
 
-/* Dark theme visibility overrides - ensure readable text on dark backgrounds */
-:root {
-  --link-color: #87CEEB;
-  --link-hover: #FFFFFF;
-}
-
-/* Global defaults for readability */
-body, body * {
-  -webkit-font-smoothing: antialiased;
-}
-
-/* Prefer high-contrast text on dark backgrounds */
-body, section, header, footer, nav, .shell, .free-boost-section, .how-it-works-section, #how-it-works, #buy-credits, #testimonials, .ads-section, .dash-card, .ad-card, .free-boost-form-box, .earn-panel, .credit-card, .profile-card, .service-card {
-  color: var(--text) !important;
-}
-
-/* Links and interactive elements */
-a, a:visited { color: var(--link-color) !important; }
-a:hover, a:focus { color: var(--link-hover) !important; text-decoration: underline; }
-
-/* Inputs and form elements readable on dark background */
-input, textarea, select { color: var(--text) !important; background: #0F2D4D !important; border: 1px solid #444 !important; }
-input::placeholder, textarea::placeholder { color: #888 !important; }
-
-/* Buttons - ensure text contrast */
-button, .btn, .nav-cta { color: #fff !important; }
-
-/* Specific fixes for inline-light sections that should remain readable */
-.feedback-btn, .earn-btn, .dash-card-head { color: #fff !important; }
-
-/* Ensure visibility for elements that were using pure black text */
-.how-it-works-step p, .step-number, .service-card p, .ad-slot p { color: var(--text) !important; }
-
-/* Small utility: make muted text slightly brighter on very dark backgrounds */
-.muted, .text-muted, .form-help { color: var(--muted) !important; }
-
-
 .earn-btn:disabled {
   background: var(--muted);
   cursor: not-allowed;
@@ -2528,17 +2390,17 @@ button, .btn, .nav-cta { color: #fff !important; }
 
 .view-promo-table-wrapper {
   overflow-x: auto;
-  background: var(--card);
-  border: 1px solid var(--border);
+  background: #fff;
+  border: 1px solid #ccc;
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .view-promo-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
-  background: var(--card);
+  background: #fff;
 }
 
 .view-promo-table thead {
@@ -2550,7 +2412,7 @@ button, .btn, .nav-cta { color: #fff !important; }
   padding: 14px 12px;
   text-align: left;
   font-weight: 700;
-  border-right: 1px solid var(--border);
+  border-right: 1px solid #0056cc;
   font-size: 13px;
   letter-spacing: 0.5px;
 }
@@ -2560,18 +2422,18 @@ button, .btn, .nav-cta { color: #fff !important; }
 }
 
 .view-promo-table tbody tr {
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid #e0e0e0;
   transition: background 0.2s;
 }
 
 .view-promo-table tbody tr:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: #f9f9f9;
 }
 
 .view-promo-table td {
   padding: 12px;
-  border-right: 1px solid var(--border);
-  color: var(--text);
+  border-right: 1px solid #e0e0e0;
+  color: #2a2a2a;
 }
 
 .view-promo-table td:last-child {
@@ -2718,36 +2580,13 @@ button, .btn, .nav-cta { color: #fff !important; }
   .view-promo-shell-tabs { gap: 8px; padding: 12px 10px; }
   .view-promo-shell-tab { font-size: 10px; letter-spacing: 1px; padding: 8px 11px; }
   .view-promo-search-bar input { width: 100%; }
-  .view-promo-table-wrapper {
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-  }
-  .view-promo-table {
-    min-width: 760px;
-    font-size: 12px;
-  }
+  .view-promo-table-wrapper { overflow-x: scroll; }
+  .view-promo-table { font-size: 12px; }
   .view-promo-table th { padding: 10px 8px; font-size: 11px; }
   .view-promo-table td { padding: 8px; font-size: 12px; }
   .view-promo-pagination { flex-direction: column; gap: 10px; text-align: center; }
   .view-promo-info-section { grid-template-columns: 1fr; }
   .view-promo-info-body { font-size: 12px; }
-}
-
-@media (max-width: 768px) {
-  .view-promo-table-wrapper::-webkit-scrollbar {
-    height: 8px;
-  }
-
-  .view-promo-table-wrapper::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 999px;
-  }
-
-  .view-promo-table-wrapper::-webkit-scrollbar-thumb {
-    background: rgba(255, 215, 0, 0.55);
-    border-radius: 999px;
-  }
 }
 
 /* PRICING */
@@ -3250,30 +3089,11 @@ footer p { color: var(--muted); font-size: 13px; }
 @media (max-width: 768px) {
   nav { padding: 16px 24px; flex-wrap: wrap; }
   .nav-toggle { display: flex; margin-left: auto; }
-  nav ul { 
-    display: none; 
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    width: 100%;
-    flex-direction: column; 
-    align-items: flex-start; 
-    gap: 12px; 
-    padding: 16px 24px;
-    background: rgba(10, 10, 10, 0.95);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--border);
-    max-height: calc(100vh - 70px);
-    overflow-y: auto;
-    z-index: 999;
-  }
+  nav ul { display: none; width: 100%; flex-direction: column; align-items: flex-start; gap: 12px; padding-top: 14px; }
   nav.open ul { display: flex; }
   nav.open .nav-toggle span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
   nav.open .nav-toggle span:nth-child(2) { opacity: 0; }
   nav.open .nav-toggle span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-  nav ul li a { padding: 12px 16px; display: block; width: 100%; border-radius: 6px; }
-  nav ul li a:hover { background: rgba(255, 255, 255, 0.06); }
   .credit-display { font-size: 12px; }
   #dashboard-preview { padding: 92px 12px 18px; }
   .dashboard-topbar { font-size: 26px; }
@@ -3379,10 +3199,15 @@ nav ul a,
 .timer-text,
 .form-note,
 .success-msg p,
-.search-checkbox-text,
 .profile-channel,
 .footer-links a {
   color: var(--muted);
+}
+
+nav ul a:hover,
+.form-link:hover,
+.footer-links a:hover {
+  color: var(--gold);
 }
 
 .nav-cta,
@@ -4022,10 +3847,7 @@ nav ul a,
 
 .view-promo-table-wrapper {
   border-radius: 14px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-gutter: stable;
+  overflow: hidden;
 }
 
 .view-promo-table {
@@ -4228,12 +4050,7 @@ nav,
 .pagination-btn {
   background: rgba(255, 255, 255, 0.06) !important;
   border: 1px solid rgba(255, 255, 255, 0.14) !important;
-  color: #ffffff !important;
-}
-
-.view-promo-pagination {
-  background: rgba(255, 255, 255, 0.08) !important;
-  color: #e8e8e8 !important;
+  color: #d0d9e8 !important;
 }
 
 .dash-tab.active,
@@ -4333,7 +4150,7 @@ nav,
 .profile-channel,
 .bonus-note,
 .earn-bonus-note {
-  color: var(--text) !important;
+  color: #000 !important;
 }
 
 .status-completed,
@@ -4344,19 +4161,6 @@ nav,
 .status-inprogress,
 .earn-status.error {
   color: #f2bf96 !important;
-}
-
-/* Extra readability fixes for dashboard/profile text on dark backgrounds */
-.dash-card-body,
-.profile-subscribers,
-.profile-watchtime,
-#promoTableBody td {
-  color: var(--text) !important;
-}
-
-/* Keep credit chip text readable on green badge */
-.profile-credits {
-  color: #f3fff6 !important;
 }
 
 .timer-fill {
