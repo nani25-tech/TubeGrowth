@@ -269,7 +269,7 @@
 .search-checkbox-label {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 8px;
   cursor: pointer;
   padding: 0;
   flex-wrap: nowrap;
@@ -291,7 +291,7 @@
 }
 
 .search-checkbox-text {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
   color: #748296;
   line-height: 1;
