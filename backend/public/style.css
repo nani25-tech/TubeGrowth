@@ -200,6 +200,41 @@
   box-shadow: 0 5px 15px rgba(57, 181, 74, 0.4);
 }
 
+.agreement-checks {
+  display: grid;
+  gap: 10px;
+  margin: 8px 0 14px;
+  text-align: left;
+}
+
+.agreement-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #333;
+  cursor: pointer;
+}
+
+.agreement-check input {
+  margin-top: 2px;
+  width: 18px;
+  height: 18px;
+  accent-color: #39b54a;
+  flex: 0 0 auto;
+}
+
+.agreement-check a {
+  color: #0066cc;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.agreement-check a:hover {
+  text-decoration: underline;
+}
+
 .form-help {
   font-size: 11px;
   color: #111;
