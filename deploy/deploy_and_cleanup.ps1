@@ -49,18 +49,18 @@ function RunRemote([string]$cmd) {
 Write-Host "Deploying to ${deployUser}@${deployHost}:${deployPath}"
 
 $cmds = @(
-  "cd $path || exit 1",
+  "cd $deployPath || exit 1",
   "git fetch --all --prune",
   "git reset --hard origin/main",
   "npm ci --production",
   # attempt pm2 restart, fallback to systemd
   "(pm2 restart tubegrowth || pm2 restart all) 2>/dev/null || (sudo systemctl restart tubegrowth 2>/dev/null)",
   # run backend cleanup dry-run by default
-  "cd $path/backend && npm run cleanup:users:dry-run"
+  "cd $deployPath/backend && npm run cleanup:users:dry-run"
 )
 
 if ($CleanupAction -eq 'Apply') {
-  $cmds += "cd $path/backend && npm run cleanup:users"
+  $cmds += "cd $deployPath/backend && npm run cleanup:users"
 }
 
 foreach ($c in $cmds) {
