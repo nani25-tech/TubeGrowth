@@ -51,7 +51,25 @@ export const syncSingleUserYouTubeStats = async (userId) => {
     expiry_date: user.youtubeTokenExpiry ? new Date(user.youtubeTokenExpiry).getTime() : undefined,
   });
 
-  const stats = await fetchConnectedChannelStats(oauthClient);
+  let stats;
+  try {
+    stats = await fetchConnectedChannelStats(oauthClient);
+  } catch (error) {
+    console.warn('YouTube connected stats failed, falling back to public channel details:', error.message);
+    const fallbackStats = await fetchChannelDetails(user.youtubeChannelId);
+
+    user.youtubeChannelId = fallbackStats.id;
+    user.youtubeChannelTitle = fallbackStats.name;
+    user.subscribers = fallbackStats.subscriberCount;
+    user.watchTimeHours = user.watchTimeHours || 0;
+
+    if (!user.youtubeConnectedAt) {
+      user.youtubeConnectedAt = new Date();
+    }
+
+    await user.save();
+    return { message: 'YouTube stats synced using public channel fallback', user: toUserPayload(user) };
+  }
 
   user.youtubeChannelId = stats.channelId;
   user.youtubeChannelTitle = stats.channelTitle;

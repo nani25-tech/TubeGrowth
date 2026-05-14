@@ -48,35 +48,49 @@ export const fetchConnectedChannelStats = async (oauthClient) => {
     Authorization: `Bearer ${token}`,
   };
 
-  const channelResponse = await axios.get(`${YOUTUBE_API_URL}/channels`, {
-    params: {
-      part: 'snippet,statistics',
-      mine: true,
-    },
-    headers,
-  });
+  let channel;
+  try {
+    const channelResponse = await axios.get(`${YOUTUBE_API_URL}/channels`, {
+      params: {
+        part: 'snippet,statistics',
+        mine: true,
+      },
+      headers,
+    });
 
-  const channel = channelResponse.data.items?.[0];
-  if (!channel) {
-    throw new Error('No connected YouTube channel was found');
+    channel = channelResponse.data.items?.[0];
+    if (!channel) {
+      throw new Error('No connected YouTube channel was found');
+    }
+  } catch (error) {
+    const message = error.response?.data?.error?.message || error.message;
+    console.error('YouTube OAuth channel fetch error:', message);
+    throw new Error(`YouTube OAuth channel fetch failed: ${message}`);
   }
 
-  const endDate = new Date().toISOString().slice(0, 10);
-  const analyticsResponse = await axios.get(`${YOUTUBE_ANALYTICS_URL}/reports`, {
-    params: {
-      ids: 'channel==MINE',
-      startDate: '2000-01-01',
-      endDate,
-      metrics: 'estimatedMinutesWatched',
-      dimensions: 'day',
-    },
-    headers,
-  });
+  let minutesWatched = 0;
+  try {
+    const endDate = new Date().toISOString().slice(0, 10);
+    const analyticsResponse = await axios.get(`${YOUTUBE_ANALYTICS_URL}/reports`, {
+      params: {
+        ids: 'channel==MINE',
+        startDate: '2000-01-01',
+        endDate,
+        metrics: 'estimatedMinutesWatched',
+        dimensions: 'day',
+      },
+      headers,
+    });
 
-  const minutesWatched = (analyticsResponse.data.rows || []).reduce((total, row) => {
-    const rowMinutes = Number(row?.[0] || 0);
-    return total + (Number.isNaN(rowMinutes) ? 0 : rowMinutes);
-  }, 0);
+    minutesWatched = (analyticsResponse.data.rows || []).reduce((total, row) => {
+      const rowMinutes = Number(row?.[0] || 0);
+      return total + (Number.isNaN(rowMinutes) ? 0 : rowMinutes);
+    }, 0);
+  } catch (error) {
+    const message = error.response?.data?.error?.message || error.message;
+    console.warn('YouTube Analytics fetch failed, watch time unavailable:', message);
+    minutesWatched = 0;
+  }
 
   return {
     channelId: channel.id,
@@ -112,6 +126,10 @@ export const fetchChannelDetails = async (channelIdOrUrl) => {
           throw new Error('Channel not found');
         }
       }
+    }
+
+    if (!YOUTUBE_API_KEY) {
+      throw new Error('YouTube API key is not configured');
     }
 
     // Validate channel ID format
