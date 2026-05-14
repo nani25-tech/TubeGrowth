@@ -65,6 +65,20 @@ app.use(helmet({
       upgradeInsecureRequests: [],
     },
   },
+  permissionsPolicy: {
+    accelerometer: [],
+    ambient_light_sensor: [],
+    autoplay: [],
+    camera: [],
+    geolocation: [],
+    gyroscope: [],
+    magnetometer: [],
+    microphone: [],
+    payment: [],
+    usb: [],
+    vr: [],
+    xr_spatial_tracking: [],
+  },
 }));
 // Temporarily allow all origins to avoid CORS blocking when frontend is
 // served from a different host (e.g., GitHub Pages). Revert to stricter
