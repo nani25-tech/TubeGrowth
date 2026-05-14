@@ -289,16 +289,17 @@
 }
 
 .search-checkbox-label {
-  display: inline-grid;
-  grid-template-columns: auto 1fr;
+  display: flex;
   gap: 8px;
   cursor: pointer;
   padding: 0;
   align-items: center;
   line-height: 1;
   margin-bottom: 16px;
-  width: calc(100vw - 40px);
+  flex-wrap: nowrap;
+  width: 100%;
   max-width: 100%;
+  overflow: hidden;
 }
 
 .search-checkbox {
