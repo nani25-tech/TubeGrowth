@@ -3,73 +3,173 @@
   Automated deploy + optional cleanup for TubeGrowth.
 
 .DESCRIPTION
-  This script performs a git pull on the remote host, installs dependencies,
-  restarts the Node process, and runs the duplicate-user cleanup (dry-run or apply).
+  This script:
+    - Connects to a remote Linux server using SSH
+    - Pulls latest code from Git
+    - Installs production dependencies
+    - Restarts the Node.js app using PM2 or systemd
+    - Runs duplicate-user cleanup (dry-run or apply)
 
 .USAGE
-  From your local machine (PowerShell):
 
-    $env:DEPLOY_USER = 'ubuntu'
-    $env:DEPLOY_HOST = 'your.server.com'
-    $env:DEPLOY_PATH = '/var/www/TubeGrowth'
-    # Optional: path to private key
-    $env:DEPLOY_KEY = 'C:\Users\you\.ssh\id_rsa'
+  PowerShell:
 
-    # Dry-run only (safe):
-    ./deploy_and_cleanup.ps1 -CleanupAction DryRun
+    $env:DEPLOY_USER = "ubuntu"
+    $env:DEPLOY_HOST = "your.server.com"
+    $env:DEPLOY_PATH = "/var/www/TubeGrowth"
 
-    # Apply cleanup (destructive):
-    ./deploy_and_cleanup.ps1 -CleanupAction Apply
+    # Optional SSH key
+    $env:DEPLOY_KEY = "C:\Users\you\.ssh\id_rsa"
 
-  NOTE: This script uses `ssh` in PATH. It does not store credentials.
+    # Safe cleanup preview
+    .\deploy_and_cleanup.ps1 -CleanupAction DryRun
+
+    # Apply cleanup
+    .\deploy_and_cleanup.ps1 -CleanupAction Apply
+
+.REQUIREMENTS
+  - PowerShell 7+
+  - SSH installed and available in PATH
+  - Remote Linux server
+  - Git + Node.js installed on server
 #>
 
 param(
-  [ValidateSet('DryRun','Apply')]
-  [string]$CleanupAction = 'DryRun'
+    [ValidateSet("DryRun", "Apply")]
+    [string]$CleanupAction = "DryRun"
 )
 
-if (-not $env:DEPLOY_USER -or -not $env:DEPLOY_HOST -or -not $env:DEPLOY_PATH) {
-  Write-Error "Missing required environment variables. Set DEPLOY_USER, DEPLOY_HOST, DEPLOY_PATH."
-  exit 2
+# =========================
+# Validate Environment Variables
+# =========================
+
+if (
+    [string]::IsNullOrWhiteSpace($env:DEPLOY_USER) -or
+    [string]::IsNullOrWhiteSpace($env:DEPLOY_HOST) -or
+    [string]::IsNullOrWhiteSpace($env:DEPLOY_PATH)
+) {
+    Write-Host ""
+    Write-Host "ERROR: Missing required environment variables." -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Required:"
+    Write-Host "  DEPLOY_USER"
+    Write-Host "  DEPLOY_HOST"
+    Write-Host "  DEPLOY_PATH"
+    Write-Host ""
+    exit 2
 }
 
 $deployUser = $env:DEPLOY_USER
 $deployHost = $env:DEPLOY_HOST
 $deployPath = $env:DEPLOY_PATH
-$keyArg = if ($env:DEPLOY_KEY) { "-i `"$env:DEPLOY_KEY`"" } else { '' }
 
-function RunRemote([string]$cmd) {
-  $sshCmd = "ssh $keyArg $deployUser@$deployHost -- `"$cmd`""
-  Write-Host "Running: $sshCmd"
-  $proc = Start-Process -FilePath pwsh -ArgumentList "-NoProfile","-Command",$sshCmd -NoNewWindow -Wait -PassThru
-  return $proc.ExitCode
+# =========================
+# SSH Key Handling
+# =========================
+
+$sshArgs = @()
+
+if (-not [string]::IsNullOrWhiteSpace($env:DEPLOY_KEY)) {
+    $sshArgs += "-i"
+    $sshArgs += $env:DEPLOY_KEY
 }
 
-Write-Host "Deploying to ${deployUser}@${deployHost}:${deployPath}"
+$sshArgs += "$deployUser@$deployHost"
 
-$cmds = @(
-  "cd $deployPath || exit 1",
-  "git fetch --all --prune",
-  "git reset --hard origin/main",
-  "npm ci --production",
-  # attempt pm2 restart, fallback to systemd
-  "(pm2 restart tubegrowth || pm2 restart all) 2>/dev/null || (sudo systemctl restart tubegrowth 2>/dev/null)",
-  # run backend cleanup dry-run by default
-  "cd $deployPath/backend && npm run cleanup:users:dry-run"
-)
+# =========================
+# Function: Run Remote Command
+# =========================
 
-if ($CleanupAction -eq 'Apply') {
-  $cmds += "cd $deployPath/backend && npm run cleanup:users"
+function Run-RemoteCommand {
+    param(
+        [string]$Command
+    )
+
+    Write-Host ""
+    Write-Host "========================================" -ForegroundColor Cyan
+    Write-Host "Running Remote Command:" -ForegroundColor Yellow
+    Write-Host $Command
+    Write-Host "========================================" -ForegroundColor Cyan
+    Write-Host ""
+
+    $fullArgs = @()
+    $fullArgs += $sshArgs
+    $fullArgs += "--"
+    $fullArgs += $Command
+
+    & ssh @fullArgs
+
+    return $LASTEXITCODE
 }
 
-foreach ($c in $cmds) {
-  $exit = RunRemote($c)
-  if ($exit -ne 0) {
-    Write-Error "Remote command failed (exit $exit): $c"
-    exit $exit
-  }
+# =========================
+# Deployment Commands
+# =========================
+
+Write-Host ""
+Write-Host "Starting deployment..." -ForegroundColor Green
+Write-Host "Target: ${deployUser}@${deployHost}" -ForegroundColor Green
+Write-Host "Path: $deployPath" -ForegroundColor Green
+Write-Host ""
+
+$commands = @()
+
+# Go to project folder
+$commands += "cd '$deployPath' || exit 1"
+
+# Update code
+$commands += "git fetch --all --prune"
+$commands += "git reset --hard origin/main"
+
+# Install dependencies
+$commands += "npm ci --production"
+
+# Restart application
+$commands += @"
+if command -v pm2 >/dev/null 2>&1; then
+    pm2 restart tubegrowth || pm2 restart all
+elif command -v systemctl >/dev/null 2>&1; then
+    sudo systemctl restart tubegrowth
+else
+    echo 'No process manager found'
+    exit 1
+fi
+"@
+
+# Cleanup dry-run
+$commands += "cd '$deployPath/backend' && npm run cleanup:users:dry-run"
+
+# Cleanup apply
+if ($CleanupAction -eq "Apply") {
+    $commands += "cd '$deployPath/backend' && npm run cleanup:users"
 }
 
-Write-Host "Deploy + cleanup ($CleanupAction) completed successfully."
+# =========================
+# Execute Commands
+# =========================
+
+foreach ($cmd in $commands) {
+
+    $exitCode = Run-RemoteCommand -Command $cmd
+
+    if ($exitCode -ne 0) {
+        Write-Host ""
+        Write-Host "Deployment failed!" -ForegroundColor Red
+        Write-Host "Exit Code: $exitCode" -ForegroundColor Red
+        Write-Host ""
+        exit $exitCode
+    }
+}
+
+# =========================
+# Success
+# =========================
+
+Write-Host ""
+Write-Host "========================================" -ForegroundColor Green
+Write-Host "Deployment completed successfully!" -ForegroundColor Green
+Write-Host "Cleanup Mode: $CleanupAction" -ForegroundColor Green
+Write-Host "========================================" -ForegroundColor Green
+Write-Host ""
+
 exit 0
