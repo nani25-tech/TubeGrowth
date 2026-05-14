@@ -266,18 +266,13 @@
 }
 
 .search-checkbox-label {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 14px;
   cursor: pointer;
   padding: 0;
   white-space: nowrap;
-  flex-shrink: 0;
-  width: 100%;
-  min-width: 0;
-  align-self: flex-start;
   line-height: 1.2;
-  flex-basis: auto;
 }
 
 .search-checkbox {
@@ -297,8 +292,6 @@
   white-space: nowrap;
   display: inline;
   vertical-align: middle;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .search-checkbox-text a {
