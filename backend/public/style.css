@@ -3370,6 +3370,7 @@ nav ul a,
 .timer-text,
 .form-note,
 .success-msg p,
+.search-checkbox-text,
 .profile-channel,
 .footer-links a {
   color: var(--muted);
@@ -3377,6 +3378,7 @@ nav ul a,
 
 nav ul a:hover,
 .form-link:hover,
+.search-checkbox-text a,
 .footer-links a:hover {
   color: var(--gold);
 }
