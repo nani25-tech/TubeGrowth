@@ -273,9 +273,11 @@
   padding: 0;
   white-space: nowrap;
   flex-shrink: 0;
-  width: auto;
+  width: 100%;
+  min-width: 0;
   align-self: flex-start;
   line-height: 1.2;
+  flex-basis: auto;
 }
 
 .search-checkbox {
@@ -295,6 +297,8 @@
   white-space: nowrap;
   display: inline;
   vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .search-checkbox-text a {
