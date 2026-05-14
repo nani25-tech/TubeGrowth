@@ -400,6 +400,12 @@ async function searchAndOpenDashboard() {
     showToast('bi-exclamation-triangle-fill', 'Missing Channel ID', 'Please enter your YouTube Channel Link or Channel ID');
     return;
   }
+
+  const agreementChecked = document.getElementById('agreeTermsAndPrivacy')?.checked;
+  if (!agreementChecked) {
+    showToast('bi-exclamation-triangle-fill', 'Agreement Required', 'Please agree to the privacy policy and terms and conditions to continue');
+    return;
+  }
   
   // Save channel info to localStorage for dashboard
   setExplicitLogoutState(false);
