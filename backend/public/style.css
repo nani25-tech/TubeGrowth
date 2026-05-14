@@ -286,7 +286,7 @@
 }
 
 .search-checkbox-label {
-  display: inline-flex;
+  display: flex;
   gap: 8px;
   cursor: pointer;
   padding: 0;
@@ -294,9 +294,9 @@
   line-height: 1;
   margin-bottom: 16px;
   flex-wrap: nowrap;
-  width: auto;
+  width: 100%;
   max-width: 100%;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .search-checkbox {
