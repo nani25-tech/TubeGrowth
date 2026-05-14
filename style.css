@@ -156,17 +156,18 @@
 
 /* Agreement Row */
 .free-boost-agreement {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   flex-wrap: nowrap;          /* Prevent line break */
   gap: 10px;
   cursor: pointer;
-  width: 100%;
+  width: auto;
   white-space: nowrap;        /* Keep everything in one line */
 }
 
 /* Checkbox */
 .free-boost-agreement-checkbox {
+  display: inline-flex;
   width: 20px;
   height: 20px;
   margin: 0;
