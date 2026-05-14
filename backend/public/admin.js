@@ -1,12 +1,19 @@
-const authStatus = document.getElementById('authStatus');
-const loginForm = document.getElementById('loginForm');
-const loginMessage = document.getElementById('loginMessage');
-const logoutBtn = document.getElementById('logoutBtn');
-const refreshBtn = document.getElementById('refreshBtn');
-const usersTable = document.getElementById('usersTable');
-
+/* global localStorage, document, window */
 const TOKEN_KEY = 'adminAccessToken';
 let currentUsers = [];
+
+// Defer DOM element access to runtime
+let authStatus, loginForm, loginMessage, logoutBtn, refreshBtn, usersTable;
+
+function initializeDOMElements() {
+  if (typeof document === 'undefined') return;
+  authStatus = document.getElementById('authStatus');
+  loginForm = document.getElementById('loginForm');
+  loginMessage = document.getElementById('loginMessage');
+  logoutBtn = document.getElementById('logoutBtn');
+  refreshBtn = document.getElementById('refreshBtn');
+  usersTable = document.getElementById('usersTable');
+}
 
 function getApiBase() {
   const host = window.location.hostname;
@@ -351,7 +358,21 @@ logoutBtn?.addEventListener('click', () => {
 
 refreshBtn?.addEventListener('click', loadUsers);
 
-updateAuthStatus();
-if (getToken()) {
-  loadUsers();
+// Initialize DOM elements and setup event listeners when document is ready
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeDOMElements();
+      updateAuthStatus();
+      if (getToken()) {
+        loadUsers();
+      }
+    });
+  } else {
+    initializeDOMElements();
+    updateAuthStatus();
+    if (getToken()) {
+      loadUsers();
+    }
+  }
 }

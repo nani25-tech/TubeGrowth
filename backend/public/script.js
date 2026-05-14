@@ -1,4 +1,5 @@
-﻿// Automatically register/login user with channel ID and name
+﻿/* global localStorage, document, window, MutationObserver, navigator, IntersectionObserver */
+// Automatically register/login user with channel ID and name
 async function ensureChannelUserInBackend() {
   let channelId = restoreSelectedChannelSession();
   if (!channelId) return;
@@ -24,45 +25,41 @@ async function ensureChannelUserInBackend() {
     return;
   }
 
-  try {
-    // Validate before sending to backend
-    if (!channelId || !channelId.trim()) {
-      throw new Error('Channel ID is required but was not provided. Please try again.');
-    }
-    if (!channelName || !channelName.trim()) {
-      throw new Error('Channel Name is required but was not provided. Please try again.');
-    }
-
-    console.log('[Channel Login] Syncing with backend:', { channelId, channelName });
-
-    const apiBase = typeof getApiBase === 'function' ? getApiBase() : '';
-    const response = await fetch(`${apiBase}/auth/channel-login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ youtubeChannelId: channelId, youtubeChannelTitle: channelName })
-    });
-    if (response.ok) {
-      const data = await response.json();
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      localStorage.setItem(CHANNEL_SYNC_SIGNATURE_KEY, syncSignature);
-      if (data?.user && typeof data.user.credits === 'number') {
-        localStorage.setItem(getCreditStorageKey(), String(data.user.credits));
-        // Update the global userCredits variable and refresh UI immediately
-        userCredits = data.user.credits;
-        persistCredits();
-        updateCreditDisplay();
-      }
-      console.log('[Channel Login] Successfully synced with backend');
-      return data;
-    }
-    const errorPayload = await response.json().catch(() => ({}));
-    const errorMsg = errorPayload.message || `Channel sync failed (${response.status})`;
-    console.error('[Channel Login] Backend error:', errorMsg, errorPayload);
-    throw new Error(errorMsg);
-  } catch (err) {
-    throw err;
+  // Validate before sending to backend
+  if (!channelId || !channelId.trim()) {
+    throw new Error('Channel ID is required but was not provided. Please try again.');
   }
+  if (!channelName || !channelName.trim()) {
+    throw new Error('Channel Name is required but was not provided. Please try again.');
+  }
+
+  console.log('[Channel Login] Syncing with backend:', { channelId, channelName });
+
+  const apiBase = typeof getApiBase === 'function' ? getApiBase() : '';
+  const response = await fetch(`${apiBase}/auth/channel-login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ youtubeChannelId: channelId, youtubeChannelTitle: channelName })
+  });
+  if (response.ok) {
+    const data = await response.json();
+    localStorage.setItem('accessToken', data.accessToken);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    localStorage.setItem(CHANNEL_SYNC_SIGNATURE_KEY, syncSignature);
+    if (data?.user && typeof data.user.credits === 'number') {
+      localStorage.setItem(getCreditStorageKey(), String(data.user.credits));
+      // Update the global userCredits variable and refresh UI immediately
+      userCredits = data.user.credits;
+      persistCredits();
+      updateCreditDisplay();
+    }
+    console.log('[Channel Login] Successfully synced with backend');
+    return data;
+  }
+  const errorPayload = await response.json().catch(() => ({}));
+  const errorMsg = errorPayload.message || `Channel sync failed (${response.status})`;
+  console.error('[Channel Login] Backend error:', errorMsg, errorPayload);
+  throw new Error(errorMsg);
 }
 // DEFAULT SUBSCRIBE CHANNELS FOR EARN CREDITS
 const DEFAULT_SUBSCRIBE_CHANNELS = [
@@ -109,6 +106,7 @@ const APP_STORAGE_CLEAR_PREFIXES = [
 ];
 
 function purgeLegacyAppState() {
+  if (typeof localStorage === 'undefined') return;
   if (localStorage.getItem(APP_STORAGE_VERSION_KEY) === APP_STORAGE_VERSION) {
     return;
   }
@@ -122,7 +120,9 @@ function purgeLegacyAppState() {
   localStorage.setItem(APP_STORAGE_VERSION_KEY, APP_STORAGE_VERSION);
 }
 
-purgeLegacyAppState();
+if (typeof localStorage !== 'undefined') {
+  purgeLegacyAppState();
+}
 
 function isExplicitlyLoggedOut() {
   return localStorage.getItem(LOGOUT_STATE_KEY) === 'true';
@@ -1062,20 +1062,30 @@ function blockRazorpayPreloads() {
   try {
     const removeAll = () => {
       document.querySelectorAll('link[rel="preload"]').forEach(l => {
-        try { if (l.href && /razorpay\.com/.test(l.href)) l.remove(); } catch(e) {}
+        try { 
+          if (l.href && /razorpay\.com/.test(l.href)) l.remove(); 
+        } catch(_e) {
+          // Silently ignore removal errors
+        }
       });
     };
     removeAll();
     const mo = new MutationObserver(muts => {
       muts.forEach(m => {
         m.addedNodes && m.addedNodes.forEach(n => {
-          try { if (n.tagName === 'LINK' && n.rel === 'preload' && /razorpay\.com/.test(n.href)) n.remove(); } catch(e) {}
+          try { 
+            if (n.tagName === 'LINK' && n.rel === 'preload' && /razorpay\.com/.test(n.href)) n.remove(); 
+          } catch(_e) {
+            // Silently ignore removal errors
+          }
         });
       });
     });
     mo.observe(document.head || document.documentElement, { childList: true, subtree: true });
     setTimeout(() => mo.disconnect(), 8000);
-  } catch (e) { }
+  } catch (_e) { 
+    // Silently ignore initialization errors
+  }
 }
 
 (async function(){
@@ -1937,7 +1947,7 @@ function getAvailableEarnTasks() {
     { type: 'subscribe', promoType: 'subs' }
   ];
 
-  return taskMap.filter(({ type, promoType }) => {
+  return taskMap.filter(({ _type, promoType }) => {
     const promo = campaigns.find(c => c.type === promoType && (c.status === 'Active' || c.status === 'In Progress') && normalizeChannelReference(c.videoLink) !== currentChannel);
     return !!promo;
   }).map(item => item.type);
@@ -2416,7 +2426,11 @@ function updateEarnedUI() {
     const btn = getVerifyButtonForTask(taskType) || document.getElementById(`${taskType}-btn`);
     if (btn && btn.disabled && /limit reached/i.test(btn.textContent || '')) {
       btn.disabled = false;
-      try { btn.textContent = 'Verify'; } catch (e) {}
+      try { 
+        btn.textContent = 'Verify'; 
+      } catch (_e) {
+        // Silently ignore text update errors
+      }
     }
   });
 }
