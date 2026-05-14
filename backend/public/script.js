@@ -75,6 +75,54 @@ const DEFAULT_SUBSCRIBE_CHANNELS = [
 const PROTECTED_SECTION_IDS = new Set(['dashboard-preview', 'earn-credits', 'get-started', 'services']);
 const LOGOUT_STATE_KEY = 'isExplicitlyLoggedOut';
 const CHANNEL_SYNC_SIGNATURE_KEY = 'lastSyncedChannelSignature';
+const APP_STORAGE_VERSION_KEY = 'tubeGrowthClientStorageVersion';
+const APP_STORAGE_VERSION = '2026-05-14-clean';
+const APP_STORAGE_CLEAR_KEYS = new Set([
+  'accessToken',
+  'user',
+  'credits',
+  'dailyBonusData',
+  'earnLastReset',
+  'earnedToday',
+  'earnTaskHistory',
+  'pendingVerify',
+  'preferredCurrency',
+  'referralCode',
+  'referralData',
+  'referralLog',
+  'referralTimestamp',
+  'selectedChannelId',
+  'selectedChannelLogo',
+  'selectedChannelName',
+  'selectedChannelSubscribers',
+  'usedReferralCode',
+  'watchSession',
+  'forceDevPayments'
+]);
+const APP_STORAGE_CLEAR_PREFIXES = [
+  'defaultSubscribeHistory',
+  'likeHistory',
+  'subscribeHistory',
+  'userCredits',
+  'watchHistory',
+  'campaigns'
+];
+
+function purgeLegacyAppState() {
+  if (localStorage.getItem(APP_STORAGE_VERSION_KEY) === APP_STORAGE_VERSION) {
+    return;
+  }
+
+  Object.keys(localStorage).forEach(key => {
+    if (APP_STORAGE_CLEAR_KEYS.has(key) || APP_STORAGE_CLEAR_PREFIXES.some(prefix => key.startsWith(prefix))) {
+      localStorage.removeItem(key);
+    }
+  });
+
+  localStorage.setItem(APP_STORAGE_VERSION_KEY, APP_STORAGE_VERSION);
+}
+
+purgeLegacyAppState();
 
 function isExplicitlyLoggedOut() {
   return localStorage.getItem(LOGOUT_STATE_KEY) === 'true';
