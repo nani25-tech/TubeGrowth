@@ -4113,7 +4113,12 @@ nav,
 .pagination-btn {
   background: rgba(255, 255, 255, 0.06) !important;
   border: 1px solid rgba(255, 255, 255, 0.14) !important;
-  color: #d0d9e8 !important;
+  color: #ffffff !important;
+}
+
+.view-promo-pagination {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #e8e8e8 !important;
 }
 
 .dash-tab.active,
@@ -4213,7 +4218,7 @@ nav,
 .profile-channel,
 .bonus-note,
 .earn-bonus-note {
-  color: #000 !important;
+  color: var(--text) !important;
 }
 
 .status-completed,
@@ -4224,6 +4229,19 @@ nav,
 .status-inprogress,
 .earn-status.error {
   color: #f2bf96 !important;
+}
+
+/* Extra readability fixes for dashboard/profile text on dark backgrounds */
+.dash-card-body,
+.profile-subscribers,
+.profile-watchtime,
+#promoTableBody td {
+  color: var(--text) !important;
+}
+
+/* Keep credit chip text readable on green badge */
+.profile-credits {
+  color: #f3fff6 !important;
 }
 
 .timer-fill {
