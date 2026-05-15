@@ -3130,26 +3130,7 @@ function nextPage() {
 }
 
 function deletePromotion(campaignId) {
-  if (window.confirm('Are you sure you want to delete this promotion? Credits will be refunded.')) {
-    let campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
-    const campaignToDelete = campaigns.find(c => String(c.id) === String(campaignId));
-    
-    if (campaignToDelete) {
-      // Refund credits
-      userCredits += campaignToDelete.costPaid;
-      persistCredits();
-      updateCreditDisplay();
-      
-      // Remove campaign
-      campaigns = campaigns.filter(c => String(c.id) !== String(campaignId));
-      localStorage.setItem('campaigns', JSON.stringify(campaigns));
-      
-      // Reload
-      loadPromotions();
-      initializeViewPromotions();
-      showToast('bi-check-circle-fill', 'Promotion Deleted', `Refunded ${campaignToDelete.costPaid} credits`);
-    }
-  }
+  showToast('bi-info-circle-fill', 'Action Disabled', 'Promotion deletion is disabled and no changes were made');
 }
 
 // Expose handlers used by inline HTML attributes.
