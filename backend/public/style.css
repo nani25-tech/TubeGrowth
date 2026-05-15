@@ -932,7 +932,7 @@ nav ul a {
 }
 
 .dashboard-area {
-  max-width: 1730px;
+  max-width: 100%;
   margin: 0 auto;
   padding: 0 16px 24px;
 }
@@ -979,6 +979,8 @@ nav ul a {
   border-radius: 5px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   overflow: hidden;
+  min-width: 280px;
+  width: auto;
 }
 
 .dash-card-head {
