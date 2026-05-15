@@ -5165,6 +5165,13 @@ nav,
   margin-right: auto !important;
   width: auto !important;
 }
+
+/* Ensure this is last: force centered children for the free-boost section */
+body .free-boost-section {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
   
   .free-boost-title {
     font-size: 28px;
