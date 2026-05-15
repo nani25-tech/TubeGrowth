@@ -142,10 +142,12 @@
 
 .free-boost-form {
   display: flex;
-  flex-direction: column;
+  flex-direction: row; /* keep items on a single row */
   gap: 12px;
   margin-bottom: 16px;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: flex-start; /* start at left */
+  flex-wrap: nowrap;
 }
 
 @media (min-width: 768px) {
