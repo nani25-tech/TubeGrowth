@@ -366,27 +366,27 @@
   max-width: 920px;
   margin: 0 auto;
   padding: 64px 24px 96px;
-  color: #000000;
+  color: #e5e7eb;
   line-height: 1.7;
 }
 
 .shell h1 {
   font-size: clamp(2rem, 4vw, 3rem);
   margin-bottom: 16px;
-  color: #000000;
+  color: #ffffff;
 }
 
 .shell h2 {
   margin-top: 32px;
   margin-bottom: 12px;
   font-size: clamp(1.25rem, 2.4vw, 1.6rem);
-  color: #000000;
+  color: #e5e7eb;
 }
 
 .shell p,
 .shell li {
   font-size: 1rem;
-  color: #000000;
+  color: #e5e7eb;
 }
 
 .shell ul {
