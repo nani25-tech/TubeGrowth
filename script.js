@@ -440,6 +440,15 @@ async function searchAndOpenDashboard() {
   }
 }
 
+// Ensure any legacy agreement elements are removed if present at runtime
+function removeAgreementElements() {
+  try {
+    document.querySelectorAll('#agreeTermsAndPrivacy, .free-boost-agreement, .free-boost-agreement-text').forEach(el => el.remove());
+  } catch (e) { /* ignore */ }
+}
+document.addEventListener('DOMContentLoaded', removeAgreementElements);
+setTimeout(removeAgreementElements, 750);
+
 function scrollToSection(sectionId) {
   showSection(sectionId);
 }
