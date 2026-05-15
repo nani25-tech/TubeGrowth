@@ -404,6 +404,16 @@ function equalizeGridCards() {
         nodes.forEach(n=>{ n.style.height = Math.max(maxH, parseFloat(getComputedStyle(n).minHeight) || 0) + 'px'; });
       }
     });
+    // Inline-enforce profile credits style so it's always high-contrast
+    try {
+      Array.from(document.querySelectorAll('.profile-credits')).forEach(el=>{
+        el.style.color = '#ffffff';
+        el.style.background = '#39b54a';
+        el.style.padding = '8px 20px';
+        el.style.fontWeight = '900';
+        el.style.textShadow = '0 1px 0 rgba(0,0,0,0.45)';
+      });
+    } catch (e) { /* ignore */ }
   } catch (err) {
     // fail silently; not critical
     console.debug('equalizeGridCards error', err);
