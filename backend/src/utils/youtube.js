@@ -129,7 +129,30 @@ export const fetchChannelDetails = async (channelIdOrUrl) => {
     }
 
     if (!YOUTUBE_API_KEY) {
-      throw new Error('YouTube API key is not configured');
+      // Log once to avoid noisy repeated errors in production logs
+      if (!global.__youtubeApiKeyMissingLogged) {
+        console.warn('YouTube API key is not configured. Set YOUTUBE_API_KEY in your environment to enable YouTube API features.');
+        global.__youtubeApiKeyMissingLogged = true;
+      }
+
+      // Return minimal fallback information instead of throwing so the app can continue functioning
+      let fallbackId = channelId;
+      if (!fallbackId && channelIdOrUrl && typeof channelIdOrUrl === 'string') {
+        if (channelIdOrUrl.includes('/channel/')) fallbackId = channelIdOrUrl.split('/channel/')[1].split('?')[0];
+        else if (channelIdOrUrl.includes('/@')) fallbackId = channelIdOrUrl.split('/@')[1].split('?')[0];
+        else fallbackId = channelIdOrUrl;
+      }
+
+      return {
+        id: fallbackId || 'unknown',
+        name: 'YouTube Channel',
+        description: '',
+        thumbnail: '',
+        subscriberCount: 0,
+        viewCount: 0,
+        videoCount: 0,
+        _isFallback: true,
+      };
     }
 
     // Validate channel ID format
