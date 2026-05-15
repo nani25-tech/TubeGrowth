@@ -590,6 +590,18 @@ body {
   body { font-size: 14px; }
 }
 
+/* Ensure page remains scrollable — defensive overrides for overlays */
+html, body {
+  height: auto !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+/* If a full-screen decorative overlay is used, allow pointer events to pass through unless explicitly interactive */
+body::before, body::after {
+  pointer-events: none !important;
+}
+
 @media (min-width: 481px) and (max-width: 768px) {
   body { font-size: 15px; }
 }
