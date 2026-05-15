@@ -2541,6 +2541,31 @@ function resolveToastIconClass(icon, title, msg) {
   return 'bi-bell-fill';
 }
 
+// Ensure promo table text and pagination remain visible on dark themes
+function ensurePromoTextVisibility() {
+  try {
+    document.querySelectorAll('.view-promo-table td').forEach(td => {
+      td.style.color = '#e8e8e8';
+    });
+    document.querySelectorAll('.pagination-btn.active').forEach(btn => {
+      btn.style.background = '#0066d6';
+      btn.style.color = '#ffffff';
+      btn.style.borderColor = '#0054b3';
+    });
+  } catch (e) {
+    // ignore
+  }
+}
+
+window.addEventListener('load', () => ensurePromoTextVisibility());
+
+// Observe changes to promotions area and re-apply visibility fixes
+const promoContainer = document.querySelector('.view-promo-shell');
+if (promoContainer) {
+  const mo = new MutationObserver(() => ensurePromoTextVisibility());
+  mo.observe(promoContainer, { childList: true, subtree: true });
+}
+
 function showToast(icon, title, msg) {
   const iconClass = resolveToastIconClass(icon, title, msg);
   document.getElementById('toastIcon').innerHTML = `<i class="bi ${iconClass}"></i>`;
