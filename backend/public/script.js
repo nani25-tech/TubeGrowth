@@ -760,6 +760,8 @@ async function loadDashboardProfile(channelId, channelName) {
     // UI already updated with stored data, just ensure subscriber count is shown
     updateDashboardChannel(normalizedChannelId, displayName, storedLogo, 0, watchTimeHours);
   }
+  // Ensure dashboard cards are equalized after profile updates
+  setTimeout(equalizeGridCards, 80);
 }
 // Credit System
 function getCreditStorageKey() {
@@ -3044,6 +3046,7 @@ function loadPromotions() {
   
   if (campaigns.length === 0) {
     tableBody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 20px; color: #e8e8e8;">No promotions yet. Go to Boost Profile to create one!</td></tr>';
+    setTimeout(equalizeGridCards, 40);
     return;
   }
   
@@ -3083,6 +3086,7 @@ function loadPromotions() {
   
   // Update pagination info
   updatePaginationInfo(campaigns.length, currentPage, totalPages);
+  setTimeout(equalizeGridCards, 40);
 }
 
 function updatePaginationInfo(total, page, totalPages) {
