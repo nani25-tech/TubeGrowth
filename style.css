@@ -6,10 +6,11 @@
   border-top: 4px solid #39b54a;
   margin-top: -70px;
   padding-top: 110px;
+  text-align: center;
 }
 
 .free-boost-banner {
-  display: inline-flex;
+  display: inline-block;
   align-items: center;
   justify-content: center;
   max-width: fit-content;
