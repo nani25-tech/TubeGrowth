@@ -138,6 +138,13 @@
   right: 0 !important;
 }
 
+/* Disable page scrolling as requested */
+html, body {
+  height: 100vh !important;
+  overflow: hidden !important;
+  -webkit-overflow-scrolling: auto !important;
+}
+
 .referral-form-box .free-boost-search-btn:hover {
   background: #ffed4e;
   box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
