@@ -16,20 +16,23 @@ Your API requests are being intercepted by GitHub Pages instead of reaching the 
 3. Copy the **Service URL** (looks like: `https://tubegrowth-backend.onrender.com`)
 4. Note this URL
 
-### Step 2: Update DNS Records
-In your domain registrar control panel (Zone.ID) for `tubegrowth.me`:
+### Step 2: Update DNS Records (Required)
+In your domain registrar control panel (Zone.ID) for `tubegrowth.me`: you MUST update DNS so the domain points to the Render backend. GitHub Pages is currently intercepting `/api/*` requests and returning 405/404.
 
-**Remove or modify the CNAME record:**
-- **Old CNAME**: Points to GitHub Pages (e.g., `nani25-tech.github.io.`)
-- **New CNAME**: Point to Render service URL
+- Remove any CNAME that points to a GitHub Pages host (e.g., `nani25-tech.github.io`).
+- Add a new CNAME (or ALIAS/ANAME for apex/root domains if your registrar requires) pointing to your Render service hostname.
 
-Example:
+Example (using the Render service host):
 ```
-CNAME record for tubegrowth.me
+# Type: CNAME (or ALIAS/ANAME if required by registrar)
+Host: @
 Value: tubegrowth-backend.onrender.com
+TTL: 300
 ```
 
-**Allow 5-15 minutes for DNS propagation**
+If your registrar does not support CNAME at the apex, use the provider's ALIAS/ANAME feature or create an A record for the Render IPs (Render recommends using their service hostname).
+
+Allow 5-15 minutes for DNS propagation.
 
 ### Step 3: Disable GitHub Pages
 1. Go to your GitHub repository: https://github.com/nani25-tech/TubeGrowth

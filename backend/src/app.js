@@ -88,19 +88,29 @@ app.use((req, res, next) => {
 // Explicit CORS headers + quick preflight handling to ensure OPTIONS
 // requests receive the proper response when frontend is served from
 // a different host (temporary during DNS migration).
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  // Expose trace/telemetry headers so frontend can read them without
-  // generating "Refused to get unsafe header" console messages.
-  res.header('Access-Control-Expose-Headers', 'x-rtb-fingerprint-id, request-id');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);
-  }
-  next();
-});
+// Use the cors middleware with dynamic origin checking so preflight
+// (OPTIONS) requests are handled correctly and include the required
+// Access-Control-Allow-* headers. This is more robust than manually
+// setting headers and ensures middleware handles preflight responses.
+app.use(cors({
+  origin: (origin, cb) => {
+    // Allow requests with no origin (e.g., curl, server-to-server)
+    if (!origin) return cb(null, true);
+    try {
+      if (isAllowedOrigin(origin)) return cb(null, origin);
+      return cb(new Error('Not allowed by CORS'));
+    } catch (err) {
+      return cb(null, false);
+    }
+  },
+  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE','OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+  credentials: true,
+  exposedHeaders: ['x-rtb-fingerprint-id', 'request-id']
+}));
+
+// Ensure we explicitly handle OPTIONS preflight for all routes
+app.options('*', cors());
 app.use(morgan('dev'));
 // Webhook endpoint requires raw body for signature verification
 app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), paymentWebhookHandler);

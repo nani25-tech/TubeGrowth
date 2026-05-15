@@ -99,6 +99,7 @@ App runs on http://localhost:3000
 ### Auth
 - `POST /api/auth/register` - Register
 - `POST /api/auth/login` - Login
+IMPORTANT: If your DNS points `tubegrowth.me` at GitHub Pages the API requests will be intercepted and return 405/404. Update your registrar to point the domain to the Render backend (see DNS_FIX_REQUIRED.md).
 - `POST /api/auth/google-login` - Google OAuth
 - `POST /api/auth/refresh` - Refresh token
 
