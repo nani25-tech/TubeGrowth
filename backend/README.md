@@ -102,3 +102,9 @@ See [API.md](./API.md) for detailed endpoint documentation.
 ## Support
 
 For support, contact: support@tubegrowth.com
+
+## Production Notes
+
+- Ensure the `YOUTUBE_API_KEY` environment variable is set in your production environment (Render, Docker, or other host). Without it the backend will fall back to minimal channel data and log a single warning instead of repeatedly throwing errors.
+- On Render: go to your service → Environment → Environment Variables and add `YOUTUBE_API_KEY` (and `YOUTUBE_CLIENT_ID`/`YOUTUBE_CLIENT_SECRET` if using OAuth).
+
