@@ -493,7 +493,12 @@ async function searchAndOpenDashboard() {
     return;
   }
 
-  // Agreement checkbox removed — skip validation
+  // Require agreement to privacy & terms when checkbox is present
+  const agreeEl = document.getElementById('agreeTermsAndPrivacy');
+  if (agreeEl && !agreeEl.checked) {
+    showToast('bi-exclamation-triangle-fill', 'Agreement Required', 'Please read and agree to the privacy policy and terms and conditions');
+    return;
+  }
 
   // Save channel info to localStorage for dashboard
   setExplicitLogoutState(false);
@@ -533,17 +538,7 @@ async function searchAndOpenDashboard() {
   }
 }
 
-// Ensure any legacy agreement elements are removed if present at runtime
-function removeAgreementElements() {
-  try {
-    document.querySelectorAll('#agreeTermsAndPrivacy, .free-boost-agreement, .free-boost-agreement-text').forEach(el => el.remove());
-  } catch (e) { /* ignore */ }
-}
-document.addEventListener('DOMContentLoaded', removeAgreementElements);
-setTimeout(removeAgreementElements, 750);
-// Poll briefly to catch any late-inserted elements
-const __removeAgreementInterval = setInterval(removeAgreementElements, 200);
-setTimeout(()=>{ clearInterval(__removeAgreementInterval); }, 5000);
+// Agreement elements should remain; no runtime removal necessary
 
 function scrollToSection(sectionId) {
   showSection(sectionId);
