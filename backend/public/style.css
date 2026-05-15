@@ -124,7 +124,10 @@
 
 /* Strong centering override for hero banner (minimal, targeted) */
 .free-boost-section {
-  text-align: center !important;
+.  text-align: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
 }
 .free-boost-section .free-boost-banner {
   display: inline-block !important;
