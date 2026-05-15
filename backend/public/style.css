@@ -2482,6 +2482,7 @@ button, .btn, .nav-cta { color: #fff !important; }
   grid-template-columns: 1fr 1fr;
   gap: 18px;
   align-items: stretch;
+  grid-auto-rows: 1fr;
 }
 
 .dashboard-layout .dash-card {
@@ -2787,6 +2788,7 @@ body .view-promo-shell .pagination-btn.active {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
+  grid-auto-rows: 1fr;
 }
 
 .view-promo-info-card {

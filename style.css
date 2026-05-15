@@ -412,6 +412,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 18px;
   align-items: stretch;
+  grid-auto-rows: 1fr;
 }
 .dashboard-layout .dash-card {
   height: 100%;
@@ -2553,6 +2554,7 @@ section {
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 }
+  grid-auto-rows: 1fr;
 
 .view-promo-info-card {
   background: #e8f4ff;
