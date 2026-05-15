@@ -2607,7 +2607,6 @@ section {
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 }
-  grid-auto-rows: 1fr;
 
 .view-promo-info-card {
   background: #e8f4ff;
@@ -3931,6 +3930,17 @@ nav ul a,
 .view-promo-table td {
   padding: 10px 9px !important;
   vertical-align: middle;
+}
+
+/* Strong override: ensure credit badge is always high-contrast and readable */
+html body .profile-card .profile-credits,
+html body .profile-credits {
+  color: #ffffff !important;
+  background: #39b54a !important;
+  padding: 8px 20px !important;
+  font-weight: 900 !important;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.5) !important;
+  box-shadow: inset 0 -6px 18px rgba(0,0,0,0.06) !important;
 }
 
 .view-promo-info-section {

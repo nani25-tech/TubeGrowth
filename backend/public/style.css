@@ -4208,6 +4208,17 @@ nav ul a,
   vertical-align: middle;
 }
 
+/* Strong override: ensure credit badge is always high-contrast and readable */
+html body .profile-card .profile-credits,
+html body .profile-credits {
+  color: #ffffff !important;
+  background: #39b54a !important;
+  padding: 8px 20px !important;
+  font-weight: 900 !important;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.5) !important;
+  box-shadow: inset 0 -6px 18px rgba(0,0,0,0.06) !important;
+}
+
 .view-promo-info-section {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
