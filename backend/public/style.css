@@ -2517,6 +2517,61 @@ button, .btn, .nav-cta { color: #fff !important; }
   overflow-wrap: anywhere;
 }
 
+/* === Unified card & control sizing (overrides for consistency) === */
+/* Ensure all card-like components share padding, radius and min-height */
+.card,
+.dash-card,
+.view-promo-info-card,
+.view-promo-shell,
+.view-promo-table-wrapper,
+.free-boost-form-box,
+.plan-card,
+.view-promo-info-card,
+.profile-card,
+.refer-card {
+  padding: var(--card-padding) !important;
+  border-radius: var(--card-radius) !important;
+  min-height: var(--card-min-height) !important;
+  box-sizing: border-box !important;
+}
+
+/* Standardize avatar sizes inside profile card */
+.profile-avatar img,
+.profile-avatar > img {
+  width: 88px !important;
+  height: 88px !important;
+  border-radius: calc(var(--card-radius) / 1.5) !important;
+  object-fit: cover !important;
+}
+
+/* Buttons and controls: consistent heights and padding */
+.btn, .button, .nav-cta, .pagination-btn, .modal-verify-btn, .dash-tab, .free-boost-search-btn, .copy-code-btn, .refer-btn, .search-btn {
+  height: var(--control-height) !important;
+  min-height: var(--control-height) !important;
+  line-height: var(--control-height) !important;
+  padding: 0 16px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+}
+
+/* Make pagination buttons square-ish and consistent */
+.pagination-buttons .pagination-btn {
+  min-width: 44px !important;
+  padding: 0 12px !important;
+  border-radius: 999px !important;
+}
+
+/* Small screens: keep consistent padding but allow stacking */
+@media (max-width: 768px) {
+  .card, .dash-card, .view-promo-info-card, .view-promo-shell {
+    padding: calc(var(--card-padding) * 0.8) !important;
+    min-height: calc(var(--card-min-height) * 0.9) !important;
+  }
+  .profile-avatar img { width:72px !important; height:72px !important; }
+}
+
 /* Buttons and controls: consistent height and alignment */
 .btn, .button, .nav-cta, .pagination-btn, .modal-verify-btn {
   height: var(--control-height) !important;
