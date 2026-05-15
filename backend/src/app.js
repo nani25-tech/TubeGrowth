@@ -66,18 +66,10 @@ app.use(helmet({
     },
   },
   permissionsPolicy: {
-    accelerometer: [],
-    ambient_light_sensor: [],
-    autoplay: [],
-    camera: [],
-    geolocation: [],
-    gyroscope: [],
-    magnetometer: [],
-    microphone: [],
-    payment: [],
-    usb: [],
-    vr: [],
-    xr_spatial_tracking: [],
+    // Intentionally leave permissionsPolicy unset here to avoid
+    // noisy browser permission warnings for sensor APIs that the
+    // frontend does not use. If you need to enable specific
+    // capabilities later, add them explicitly with allowed origins.
   },
 }));
 
@@ -104,6 +96,9 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.header('Access-Control-Allow-Credentials', 'true');
+  // Expose trace/telemetry headers so frontend can read them without
+  // generating "Refused to get unsafe header" console messages.
+  res.header('Access-Control-Expose-Headers', 'x-rtb-fingerprint-id, request-id');
   if (req.method === 'OPTIONS') {
     return res.sendStatus(204);
   }
