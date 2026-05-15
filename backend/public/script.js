@@ -384,6 +384,36 @@ function updateActiveSectionLinks(activeSectionId) {
   });
 }
 
+// Equalize card heights (dashboard and promo info) for visual consistency
+function equalizeGridCards() {
+  try {
+    const groups = [
+      {selector: '.dashboard-layout .dash-card'},
+      {selector: '.view-promo-info-section .view-promo-info-card'}
+    ];
+
+    groups.forEach(({selector})=>{
+      const nodes = Array.from(document.querySelectorAll(selector));
+      if (!nodes.length) return;
+      // reset heights
+      nodes.forEach(n=>{ n.style.height = ''; });
+      const maxH = nodes.reduce((max, n) => Math.max(max, n.getBoundingClientRect().height), 0);
+      if (maxH > 0) {
+        nodes.forEach(n=>{ n.style.height = Math.max(maxH, parseFloat(getComputedStyle(n).minHeight) || 0) + 'px'; });
+      }
+    });
+  } catch (err) {
+    // fail silently; not critical
+    console.debug('equalizeGridCards error', err);
+  }
+}
+
+// Re-run equalization on load, resize and when content changes
+window.addEventListener('load', () => setTimeout(equalizeGridCards, 80));
+window.addEventListener('resize', () => setTimeout(equalizeGridCards, 80));
+const layoutObserver = new MutationObserver(() => setTimeout(equalizeGridCards, 30));
+layoutObserver.observe(document.body, {childList: true, subtree: true, attributes: true});
+
 document.addEventListener('click', (event) => {
   const link = event.target.closest('a[href^="#"]');
   if (!link) {
