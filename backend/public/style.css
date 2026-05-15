@@ -9,10 +9,11 @@
 }
 
 .free-boost-banner {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  max-width: 100%;
+  max-width: fit-content;
+  width: auto;
   
   margin: 40px auto 30px;
   background: #39b54a;
