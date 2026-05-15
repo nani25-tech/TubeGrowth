@@ -1196,8 +1196,16 @@ async function openPaymentPage(currency, amount) {
 
   const accessTokenCheck = localStorage.getItem('accessToken');
   if (!accessTokenCheck) {
-    showToast('bi-exclamation-triangle-fill', 'Login Required', 'Please login (channel login) before buying credits');
-    return;
+    try {
+      const loggedIn = await showChannelLoginModal();
+      if (!loggedIn) {
+        showToast('bi-exclamation-triangle-fill', 'Login Required', 'Please login (channel login) before buying credits');
+        return;
+      }
+    } catch (err) {
+      showToast('bi-exclamation-triangle-fill', 'Login Failed', err.message || 'Unable to login');
+      return;
+    }
   }
 
   try {
@@ -1469,6 +1477,49 @@ function initCurrencySelector() {
   // apply stored preference or default
   const current = getPreferredCurrency();
   setPreferredCurrency(current);
+}
+
+function showChannelLoginModal() {
+  return new Promise((resolve, reject) => {
+    const modal = document.createElement('div');
+    modal.id = 'channel-login-modal';
+    modal.style.cssText = `position: fixed; inset: 0; display:flex;align-items:center;justify-content:center;z-index:10000;background:rgba(0,0,0,0.5)`;
+    modal.innerHTML = `
+      <div style="background:#fff;padding:20px;border-radius:8px;max-width:420px;width:90%">
+        <h3 style="margin:0 0 10px">Login with Channel</h3>
+        <input id="ch-id" placeholder="Channel ID (UC...) or @handle" style="width:100%;padding:8px;margin-bottom:8px">
+        <input id="ch-name" placeholder="Channel Name" style="width:100%;padding:8px;margin-bottom:12px">
+        <div style="display:flex;justify-content:flex-end;gap:8px">
+          <button id="ch-cancel" style="padding:8px 12px">Cancel</button>
+          <button id="ch-submit" style="padding:8px 12px;background:#FBBF24;border:none">Login</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    document.getElementById('ch-cancel').onclick = () => { modal.remove(); resolve(false); };
+    document.getElementById('ch-submit').onclick = async () => {
+      const chId = document.getElementById('ch-id').value.trim();
+      const chName = document.getElementById('ch-name').value.trim();
+      if (!chId || !chName) return alert('Both fields are required');
+      try {
+        const resp = await fetch(`${getApiBase()}/auth/channel-login`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ youtubeChannelId: chId, youtubeChannelTitle: chName })
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) {
+          throw new Error(data?.message || 'Channel login failed');
+        }
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken || '');
+        localStorage.setItem('user', JSON.stringify(data.user || {}));
+        modal.remove();
+        resolve(true);
+      } catch (err) {
+        modal.remove();
+        reject(err);
+      }
+    };
+  });
 }
 
 // Initialize on load
