@@ -17,7 +17,7 @@ Your API requests are being intercepted by GitHub Pages instead of reaching the 
 4. Note this URL
 
 ### Step 2: Update DNS Records
-In your domain registrar control panel for `zone.id`:
+In your domain registrar control panel (Zone.ID) for `tubegrowth.me`:
 
 **Remove or modify the CNAME record:**
 - **Old CNAME**: Points to GitHub Pages (e.g., `nani25-tech.github.io.`)
