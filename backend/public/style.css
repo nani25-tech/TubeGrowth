@@ -36,7 +36,7 @@
 
 @media (min-width: 768px) {
   .free-boost-banner {
-    margin: 60px auto 40px;
+    margin: 60px 20px 40px;
     padding: 20px 40px;
     border-radius: 20px;
   }
@@ -120,30 +120,6 @@
   background: #ffd700;
   color: #1a1a1a;
   box-shadow: 0 3px 10px rgba(255, 215, 0, 0.3);
-}
-
-/* Strong centering override for hero banner (minimal, targeted) */
-.free-boost-section {
-  text-align: center !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-}
-.free-boost-section .free-boost-banner {
-  display: inline-block !important;
-  margin: 40px auto 30px !important;
-  float: none !important;
-  position: relative !important;
-  left: 0 !important;
-  right: 0 !important;
-}
-
-/* Page scrolling enabled (restored) */
-html, body {
-  height: auto !important;
-  overflow: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-  color: #000 !important;
 }
 
 .referral-form-box .free-boost-search-btn:hover {
@@ -398,13 +374,6 @@ html, body {
   font-size: clamp(2rem, 4vw, 3rem);
   margin-bottom: 16px;
   color: #ffffff;
-}
-
-/* Hide dashboard preview on the public homepage to keep home layout clean */
-.home-view #dashboard-preview,
-.home-view .dashboard-area,
-.home-view .dashboard-shell {
-  display: none !important;
 }
 
 .shell h2 {
