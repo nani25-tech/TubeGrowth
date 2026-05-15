@@ -362,31 +362,38 @@
   -webkit-font-smoothing: antialiased;
 }
 
+/* Make text in the How-It-Works cards black for legibility */
+.how-it-works-steps .how-it-works-step,
+.how-it-works-steps .how-it-works-step p,
+.how-it-works-steps .how-it-works-step .step-number {
+  color: #000 !important;
+}
+
 .shell {
   max-width: 920px;
   margin: 0 auto;
   padding: 64px 24px 96px;
-  color: #e5e7eb;
+  color: #000000;
   line-height: 1.7;
 }
 
 .shell h1 {
   font-size: clamp(2rem, 4vw, 3rem);
   margin-bottom: 16px;
-  color: #ffffff;
+  color: #000000;
 }
 
 .shell h2 {
   margin-top: 32px;
   margin-bottom: 12px;
   font-size: clamp(1.25rem, 2.4vw, 1.6rem);
-  color: #e5e7eb;
+  color: #000000;
 }
 
 .shell p,
 .shell li {
   font-size: 1rem;
-  color: #e5e7eb;
+  color: #000000;
 }
 
 .shell ul {
