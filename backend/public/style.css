@@ -559,10 +559,6 @@
   --text: #E8E8E8;
   --muted: #D1D5DB;
   --gold: #FFD700;
-  --card-padding: 18px;
-  --card-radius: 8px;
-  --card-min-height: 120px;
-  --control-height: 40px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1033,17 +1029,14 @@ nav ul a {
 .profile-credits {
   display: inline-block;
   background: #39b54a;
-  color: #fff !important;
+  color: #fff;
   border: 1px solid #2a8e39;
   border-radius: 4px;
   font-size: 16px;
   font-family: 'Bebas Neue', sans-serif;
   letter-spacing: 0.5px;
-  padding: 6px 18px !important;
+  padding: 2px 12px;
   line-height: 1.05;
-  font-weight: 800;
-  text-shadow: 0 1px 0 rgba(0,0,0,0.45);
-  box-shadow: inset 0 -6px 18px rgba(0,0,0,0.08), 0 6px 20px rgba(0,0,0,0.18);
 }
 
 .bonus-card {
@@ -2447,150 +2440,12 @@ button, .btn, .nav-cta { color: #fff !important; }
 .view-promo-shell {
   max-width: 1200px;
   margin: 0 auto 18px;
-  background: #0b0b0b; /* dark background instead of white */
-  color: #e8e8e8; /* light text for contrast */
-  border: 1px solid #222; /* darker border */
+  background: #efefef;
+  color: #111;
+  border: 1px solid #cfcfcf;
   border-radius: 4px;
   overflow: hidden;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
-}
-
-/* Standardize card sizing and spacing across the app */
-.card,
-.view-promo-shell,
-.view-promo-info-card,
-.view-promo-table-wrapper,
-.free-boost-form-box,
-.dash-card,
-.earn-panel-head,
-.plan-card {
-  padding: var(--card-padding) !important;
-  border-radius: var(--card-radius) !important;
-  min-height: var(--card-min-height) !important;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  gap: 12px;
-}
-
-/* Make panels' inner content stretch so boxes appear equal height in grids */
-.card > *,
-.view-promo-info-card > * {
-  flex: 1 1 auto;
-}
-
-/* Dashboard layout: two-column grid with equal-height rows */
-.dashboard-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-  align-items: stretch;
-  grid-auto-rows: 1fr;
-}
-
-.dashboard-layout .dash-card {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.dash-card-head {
-  font-weight: 800;
-  text-align: center;
-  padding: 10px 12px;
-  background: rgba(255,255,255,0.04);
-  border-bottom: 1px solid rgba(255,255,255,0.03);
-  border-radius: calc(var(--card-radius) - 2px) calc(var(--card-radius) - 2px) 0 0;
-}
-
-.dash-card-body {
-  flex: 1 1 auto;
-  padding: 12px;
-}
-
-/* Tables: use fixed layout and vertically center cells for consistent rows */
-.view-promo-table {
-  table-layout: fixed;
-  width: 100%;
-}
-.view-promo-table th,
-.view-promo-table td {
-  vertical-align: middle;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-
-/* === Unified card & control sizing (overrides for consistency) === */
-/* Ensure all card-like components share padding, radius and min-height */
-.card,
-.dash-card,
-.view-promo-info-card,
-.view-promo-shell,
-.view-promo-table-wrapper,
-.free-boost-form-box,
-.plan-card,
-.view-promo-info-card,
-.profile-card,
-.refer-card {
-  padding: var(--card-padding) !important;
-  border-radius: var(--card-radius) !important;
-  min-height: var(--card-min-height) !important;
-  box-sizing: border-box !important;
-}
-
-/* Standardize avatar sizes inside profile card */
-.profile-avatar img,
-.profile-avatar > img {
-  width: 88px !important;
-  height: 88px !important;
-  border-radius: calc(var(--card-radius) / 1.5) !important;
-  object-fit: cover !important;
-}
-
-/* Buttons and controls: consistent heights and padding */
-.btn, .button, .nav-cta, .pagination-btn, .modal-verify-btn, .dash-tab, .free-boost-search-btn, .copy-code-btn, .refer-btn, .search-btn {
-  height: var(--control-height) !important;
-  min-height: var(--control-height) !important;
-  line-height: var(--control-height) !important;
-  padding: 0 16px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  box-sizing: border-box !important;
-}
-
-/* Make pagination buttons square-ish and consistent */
-.pagination-buttons .pagination-btn {
-  min-width: 44px !important;
-  padding: 0 12px !important;
-  border-radius: 999px !important;
-}
-
-/* Small screens: keep consistent padding but allow stacking */
-@media (max-width: 768px) {
-  .card, .dash-card, .view-promo-info-card, .view-promo-shell {
-    padding: calc(var(--card-padding) * 0.8) !important;
-    min-height: calc(var(--card-min-height) * 0.9) !important;
-  }
-  .profile-avatar img { width:72px !important; height:72px !important; }
-}
-
-/* Buttons and controls: consistent height and alignment */
-.btn, .button, .nav-cta, .pagination-btn, .modal-verify-btn {
-  height: var(--control-height) !important;
-  line-height: var(--control-height) !important;
-  padding: 0 14px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  border-radius: 999px !important;
-}
-
-/* Ensure promo empty-state is prominent */
-.view-promo-table td.empty-state,
-.view-promo-table td[role="empty"] {
-  font-weight: 700;
-  color: #e8e8e8 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .view-promo-shell-topbar {
@@ -2684,8 +2539,7 @@ button, .btn, .nav-cta { color: #fff !important; }
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
-  background: transparent;
-  color: var(--muted);
+  background: var(--card);
 }
 
 .view-promo-table thead {
@@ -2693,34 +2547,13 @@ button, .btn, .nav-cta { color: #fff !important; }
   color: #fff;
 }
 
-.view-promo-table td {
-  padding: 8px;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-/* Force visible text color for promo table cells (override inline styles) */
-.view-promo-table td {
-  color: var(--muted) !important;
-}
-
-/* Ensure active pagination button is clearly highlighted */
-.pagination-btn.active {
-  background: #0066d6 !important;
-  color: #ffffff !important;
-  border-color: #0054b3 !important;
-}
-
-/* Strong override to ensure promo table message text is readable on dark shell */
-body .view-promo-shell .view-promo-table td {
-  color: #e8e8e8 !important;
-}
-
-/* Ensure active pagination visually highlighted even with other overrides */
-body .view-promo-shell .pagination-btn.active {
-  background: #0066d6 !important;
-  color: #fff !important;
-  border-color: #0054b3 !important;
+.view-promo-table th {
+  padding: 14px 12px;
+  text-align: left;
+  font-weight: 700;
+  border-right: 1px solid var(--border);
+  font-size: 13px;
+  letter-spacing: 0.5px;
 }
 
 .view-promo-table th:last-child {
@@ -2804,44 +2637,42 @@ body .view-promo-shell .pagination-btn.active {
   justify-content: space-between;
   align-items: center;
   padding: 14px;
-  background: transparent; /* blend with dark shell */
-  border-top: 1px solid rgba(255,255,255,0.04);
+  background: #f5f5f5;
+  border-top: 1px solid #e0e0e0;
   font-size: 13px;
-  color: var(--text);
+  color: #111;
+}
+
+.pagination-buttons {
+  display: flex;
+  gap: 6px;
 }
 
 .pagination-btn {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: #fff;
+  border: 1px solid #ccc;
   padding: 6px 12px;
-  border-radius: 18px;
+  border-radius: 3px;
   cursor: pointer;
   font-size: 12px;
-  font-weight: 700;
-  color: var(--text);
-  transition: all 0.12s ease;
+  font-weight: 600;
+  transition: all 0.2s;
 }
-.pagination-btn:hover {
-  background: rgba(255,255,255,0.06);
-}
-
 
 .pagination-btn:hover {
   background: #f0f0f0;
 }
 
 .pagination-btn.active {
-  background: #0066d6;
+  background: #004fb3;
   color: #fff;
-  border-color: #0054b3;
-  box-shadow: 0 2px 8px rgba(0,102,214,0.2);
+  border-color: #004fb3;
 }
 
 .view-promo-info-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
-  grid-auto-rows: 1fr;
 }
 
 .view-promo-info-card {
@@ -3442,7 +3273,7 @@ footer p { color: var(--muted); font-size: 13px; }
   nav.open .nav-toggle span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
   nav.open .nav-toggle span:nth-child(2) { opacity: 0; }
   nav.open .nav-toggle span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-  nav ul li a { padding: 12px 16px; display: flex; width: 100%; border-radius: 6px; }
+  nav ul li a { padding: 12px 16px; display: block; width: 100%; border-radius: 6px; }
   nav ul li a:hover { background: rgba(255, 255, 255, 0.06); }
   .credit-display { font-size: 12px; }
   #dashboard-preview { padding: 92px 12px 18px; }
@@ -4206,17 +4037,6 @@ nav ul a,
 .view-promo-table td {
   padding: 10px 9px !important;
   vertical-align: middle;
-}
-
-/* Strong override: ensure credit badge is always high-contrast and readable */
-html body .profile-card .profile-credits,
-html body .profile-credits {
-  color: #ffffff !important;
-  background: #39b54a !important;
-  padding: 8px 20px !important;
-  font-weight: 900 !important;
-  text-shadow: 0 1px 0 rgba(0,0,0,0.5) !important;
-  box-shadow: inset 0 -6px 18px rgba(0,0,0,0.06) !important;
 }
 
 .view-promo-info-section {
