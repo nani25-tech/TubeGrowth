@@ -140,49 +140,52 @@
   display: block;
 }
 
+/* Form Row */
 .free-boost-form {
   display: flex;
-  flex-direction: row; /* keep items on a single row */
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
   gap: 12px;
   margin-bottom: 16px;
-  align-items: center;
-  justify-content: flex-start; /* start at left */
-  flex-wrap: nowrap;
+  flex-wrap: nowrap;      /* Keep in single row */
+  white-space: nowrap;    /* Prevent text wrapping */
 }
 
+/* Desktop */
 @media (min-width: 768px) {
   .free-boost-form {
     flex-direction: row;
-    gap: 12px;
     align-items: center;
+    gap: 12px;
   }
 }
 
-/* Agreement Row */
+/* Agreement Container */
 .free-boost-agreement {
-  display: inline-flex;
-  align-items: center;        /* Prevent line break */
+  display: flex;
+  align-items: center;
   gap: 10px;
-  width: auto;
-  white-space: nowrap;        /* Keep everything in one line */
+  white-space: nowrap;
+  flex-wrap: nowrap;
+  cursor: pointer;
 }
 
 /* Checkbox */
 .free-boost-agreement-checkbox {
-  display: inline-flex;
   width: 20px;
   height: 20px;
   margin: 0;
-  accent-color: #39b54a;
   flex-shrink: 0;
+  accent-color: #39b54a;
+  cursor: pointer;
 }
 
 /* Text */
 .free-boost-agreement-text {
-  display: inline-flex;
-  gap: 4px;
+  display: inline;
   font-size: 14px;
-  line-height: 1;
+  line-height: 1.4;
   color: #374151;
   white-space: nowrap;
 }
@@ -190,12 +193,14 @@
 /* Links */
 .free-boost-agreement-text a {
   color: #0ea5e9;
-  text-decoration: none;
   font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
+/* Hover */
 .free-boost-agreement-text a:hover {
-  text-decoration: underline;
+  opacity: 0.9;
 }
 
 .free-boost-input {
