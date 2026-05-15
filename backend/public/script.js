@@ -363,6 +363,8 @@ function showSection(sectionId) {
     loadPromotions();
     updateCreditDisplay();
   }
+  // Ensure card heights are equal after showing a new section
+  setTimeout(equalizeGridCards, 40);
 }
 
 function updateActiveSectionLinks(activeSectionId) {
