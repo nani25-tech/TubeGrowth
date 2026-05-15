@@ -2440,12 +2440,12 @@ button, .btn, .nav-cta { color: #fff !important; }
 .view-promo-shell {
   max-width: 1200px;
   margin: 0 auto 18px;
-  background: #efefef;
-  color: #111;
-  border: 1px solid #cfcfcf;
+  background: #0b0b0b; /* dark background instead of white */
+  color: #e8e8e8; /* light text for contrast */
+  border: 1px solid #222; /* darker border */
   border-radius: 4px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
 }
 
 .view-promo-shell-topbar {
