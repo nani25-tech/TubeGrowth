@@ -2441,7 +2441,7 @@ button, .btn, .nav-cta { color: #fff !important; }
 }
 
 .view-promo-credit-chip {
-  max-width: 1200px;
+  max-width: 900px;
   margin: 0 auto 12px;
   width: fit-content;
   background: #39b54a;
@@ -2455,7 +2455,7 @@ button, .btn, .nav-cta { color: #fff !important; }
 }
 
 .view-promo-shell {
-  max-width: 1200px;
+  max-width: 900px;
   margin: 0 auto 18px;
   background: #efefef;
   color: #111;
@@ -2515,7 +2515,7 @@ button, .btn, .nav-cta { color: #fff !important; }
 }
 
 .view-promo-layout {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 16px;
   display: grid;
