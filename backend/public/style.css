@@ -422,7 +422,7 @@
   grid-template-columns: 1fr;
   gap: 20px;
 }
-
+ 
 @media (min-width: 768px) {
   .how-it-works-steps {
     grid-template-columns: repeat(2, 1fr);
