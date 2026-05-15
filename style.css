@@ -145,17 +145,19 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: flex-start !important; /* Force left side */
   gap: 12px;
   margin-bottom: 16px;
-  flex-wrap: nowrap;      /* Keep in single row */
-  white-space: nowrap;    /* Prevent text wrapping */
+  width: 100%;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  text-align: left;
 }
 
 /* Desktop */
 @media (min-width: 768px) {
   .free-boost-form {
-    flex-direction: row;
+    justify-content: flex-start !important;
     align-items: center;
     gap: 12px;
   }
@@ -165,10 +167,15 @@
 .free-boost-agreement {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 10px;
+  width: auto;
+  margin: 0;
+  padding: 0;
   white-space: nowrap;
   flex-wrap: nowrap;
   cursor: pointer;
+  text-align: left;
 }
 
 /* Checkbox */
@@ -183,11 +190,12 @@
 
 /* Text */
 .free-boost-agreement-text {
-  display: inline;
+  display: inline-block;
   font-size: 14px;
   line-height: 1.4;
   color: #374151;
   white-space: nowrap;
+  text-align: left;
 }
 
 /* Links */

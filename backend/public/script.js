@@ -4,12 +4,19 @@
 if (typeof getApiBase !== 'function') {
   function getApiBase() {
     try {
+      // Runtime override support
+      if (typeof window !== 'undefined') {
+        if (window.__API_BASE__) return window.__API_BASE__;
+        const meta = document.querySelector && document.querySelector('meta[name="api-base"]');
+        if (meta && meta.content) return meta.content.replace(/\/+$/, '');
+      }
+
       const host = window.location.hostname || '';
       const protocol = window.location.protocol || 'https:';
       if (protocol === 'file:' || host === '' || host === 'localhost' || host === '127.0.0.1') {
         return 'http://localhost:5000/api';
       }
-      // On GitHub Pages / static hosting the API runs on Render at this origin
+      // Default origin (may be intercepted by static hosting/CDN if DNS points to GitHub Pages)
       const backendOrigin = 'https://tubegrowth.me';
       return backendOrigin + '/api';
     } catch (err) {

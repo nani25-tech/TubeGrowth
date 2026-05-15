@@ -16,6 +16,13 @@ function initializeDOMElements() {
 }
 
 function getApiBase() {
+  // Runtime override support
+  if (typeof window !== 'undefined') {
+    if (window.__API_BASE__) return window.__API_BASE__;
+    const meta = document.querySelector && document.querySelector('meta[name="api-base"]');
+    if (meta && meta.content) return meta.content.replace(/\/+$/, '');
+  }
+
   const host = window.location.hostname;
   const port = window.location.port;
   const protocol = window.location.protocol;

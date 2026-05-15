@@ -939,6 +939,13 @@ function purchaseCredits(amount, price, successMessage) {
 }
 
 function getApiBase() {
+  // Runtime override (useful for testing or when DNS points to static host)
+  if (typeof window !== 'undefined') {
+    if (window.__API_BASE__) return window.__API_BASE__;
+    const meta = document.querySelector && document.querySelector('meta[name="api-base"]');
+    if (meta && meta.content) return meta.content.replace(/\/+$/, '');
+  }
+
   const host = window.location.hostname;
   const port = window.location.port;
   const protocol = window.location.protocol;
