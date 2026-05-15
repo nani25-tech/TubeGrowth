@@ -3011,7 +3011,7 @@ function loadPromotions() {
   }
   
   if (campaigns.length === 0) {
-    tableBody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 20px; color: #999;">No promotions yet. Go to Boost Profile to create one!</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 20px; color: #e8e8e8;">No promotions yet. Go to Boost Profile to create one!</td></tr>';
     return;
   }
   
