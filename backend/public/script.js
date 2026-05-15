@@ -364,7 +364,7 @@ function showSection(sectionId) {
     updateCreditDisplay();
   }
   // Ensure card heights are equal after showing a new section
-  setTimeout(equalizeGridCards, 40);
+  setTimeout(equalizeGridCards, 250);
 }
 
 function updateActiveSectionLinks(activeSectionId) {
