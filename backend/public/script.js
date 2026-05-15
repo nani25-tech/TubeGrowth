@@ -515,6 +515,9 @@ function removeAgreementElements() {
 }
 document.addEventListener('DOMContentLoaded', removeAgreementElements);
 setTimeout(removeAgreementElements, 750);
+// Poll briefly to catch any late-inserted elements
+const __removeAgreementInterval = setInterval(removeAgreementElements, 200);
+setTimeout(()=>{ clearInterval(__removeAgreementInterval); }, 5000);
 
 function scrollToSection(sectionId) {
   showSection(sectionId);
