@@ -8,6 +8,13 @@
   padding-top: 110px;
 }
 
+/* Ensure the section centers its children so the banner aligns with content */
+.free-boost-section {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
 .free-boost-banner {
   display: inline-flex;
   align-items: center;
