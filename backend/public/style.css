@@ -872,7 +872,7 @@ nav ul a {
 }
 
 .dashboard-shell {
-  max-width: 930px;
+  max-width: 1540px;
   margin: 0 auto;
   background: #efefef;
   border: 1px solid #cfcfcf;
@@ -932,7 +932,7 @@ nav ul a {
 }
 
 .dashboard-area {
-  max-width: 930px;
+  max-width: 1540px;
   margin: 0 auto;
   padding: 0 16px 24px;
 }
@@ -955,7 +955,7 @@ nav ul a {
   gap: 16px;
   align-items: start;
   width: 100%;
-  max-width: 930px;
+  max-width: 1540px;
   margin: 0 auto;
 }
 
