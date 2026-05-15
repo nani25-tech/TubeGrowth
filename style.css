@@ -143,6 +143,7 @@ html, body {
   height: 100vh !important;
   overflow: hidden !important;
   -webkit-overflow-scrolling: auto !important;
+  color: #000 !important;
 }
 
 .referral-form-box .free-boost-search-btn:hover {
