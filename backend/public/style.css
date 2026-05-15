@@ -2719,10 +2719,6 @@ body .view-promo-shell .pagination-btn.active {
   color: #fff !important;
   border-color: #0054b3 !important;
 }
-  border-right: 1px solid var(--border);
-  font-size: 13px;
-  letter-spacing: 0.5px;
-}
 
 .view-promo-table th:last-child {
   border-right: none;
