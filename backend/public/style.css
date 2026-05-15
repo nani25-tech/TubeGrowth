@@ -932,7 +932,7 @@ nav ul a {
 }
 
 .dashboard-area {
-  max-width: 100%;
+  max-width: 930px;
   margin: 0 auto;
   padding: 0 16px 24px;
 }
@@ -955,6 +955,8 @@ nav ul a {
   gap: 16px;
   align-items: start;
   width: 100%;
+  max-width: 930px;
+  margin: 0 auto;
 }
 
 @media (min-width: 768px) {
