@@ -188,8 +188,19 @@ export const fetchChannelDetails = async (channelIdOrUrl) => {
       videoCount: parseInt(channel.statistics.videoCount || 0, 10),
     };
   } catch (error) {
-    console.error('YouTube API error:', error.message);
-    throw new Error(`YouTube API error: ${error.message}`);
+    // Log as warning and return a safe fallback so callers can continue
+    console.warn('YouTube API warning:', error.message);
+    return {
+      id: channelId || channelIdOrUrl || 'unknown',
+      name: 'YouTube Channel',
+      description: '',
+      thumbnail: '',
+      subscriberCount: 0,
+      viewCount: 0,
+      videoCount: 0,
+      _isFallback: true,
+      _error: error.message,
+    };
   }
 };
 

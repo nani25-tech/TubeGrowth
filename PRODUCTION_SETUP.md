@@ -12,6 +12,7 @@ PORT=5000
 MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/tubegrowth?retryWrites=true&w=majority
 JWT_SECRET=your-secret-key-here
 JWT_REFRESH_SECRET=your-refresh-secret-key-here
+YOUTUBE_API_KEY=your-youtube-data-api-key
 YOUTUBE_CLIENT_ID=your-google-oauth-client-id
 YOUTUBE_CLIENT_SECRET=your-google-oauth-client-secret
 YOUTUBE_REDIRECT_URI=https://tubegrowth.zone.id/api/user/youtube/callback
@@ -36,6 +37,12 @@ SMTP_PASSWORD=your-app-specific-password
    - Go to **Settings** → **Environment**
    - Add each variable from the list above
    - Click **Save**
+
+### YouTube data note
+
+- `YOUTUBE_API_KEY` is for YouTube Data API lookups such as channel metadata.
+- YouTube Analytics does **not** use an API key. It uses the OAuth credentials above plus the user's connected YouTube account.
+- The backend already stores the user's YouTube OAuth tokens after `/api/user/youtube/callback`, then uses them to fetch real analytics data.
 
 3. **Re-deploy the service**
    - Go to **Deployments**

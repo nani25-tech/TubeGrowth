@@ -7,6 +7,7 @@ import creditOps from '../utils/creditOps.js';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import mongoose from 'mongoose';
+import { signAccessToken, signRefreshToken } from '../utils/tokens.js';
 
 const getCreditsForAmount = (amountINR) => {
   // Strict: only exact mappings allowed
@@ -562,8 +563,66 @@ export const buyCredits = async (req, res) => {
 
 export const createCreditOrder = async (req, res) => {
   try {
+    // If guest, allow automatic channel-login when channel info is provided
+    let issuedTokens = null;
     if (req.user.isGuest) {
-      return res.status(403).json({ message: 'Please login to buy credits' });
+      const { youtubeChannelId, youtubeChannelTitle } = req.body || {};
+      if (!youtubeChannelId || !youtubeChannelTitle) {
+        return res.status(403).json({ message: 'Please login to buy credits' });
+      }
+
+      // Try to find or create a user similar to channelLogin
+      const canonicalChannelId = String(youtubeChannelId || '').trim();
+      const canonicalTitle = String(youtubeChannelTitle || '').trim();
+
+      let channelUser = await User.findOne({ youtubeChannelId: canonicalChannelId });
+      if (!channelUser) channelUser = await User.findOne({ email: `${canonicalChannelId}@channel.tubegrowth` });
+      if (!channelUser) channelUser = await User.findOne({
+        youtubeChannelId: { $regex: `^${canonicalChannelId}$`, $options: 'i' },
+      });
+
+      if (!channelUser) {
+        channelUser = new User({
+          name: canonicalTitle,
+          youtubeChannelId: canonicalChannelId,
+          youtubeChannelTitle: canonicalTitle,
+          email: `${canonicalChannelId}@channel.tubegrowth`,
+          password: canonicalChannelId,
+          credits: 0,
+          isAdmin: false,
+        });
+        if (typeof channelUser.generateReferralCode === 'function') channelUser.generateReferralCode();
+        await channelUser.save();
+      } else {
+        channelUser.name = canonicalTitle;
+        channelUser.youtubeChannelId = canonicalChannelId;
+        channelUser.youtubeChannelTitle = canonicalTitle;
+        if (!channelUser.email || channelUser.email.endsWith('@channel.tubegrowth')) {
+          channelUser.email = `${canonicalChannelId}@channel.tubegrowth`;
+        }
+        channelUser.lastLogin = new Date();
+        await channelUser.save();
+      }
+
+      // Issue tokens for the client so subsequent verify calls succeed
+      const accessToken = signAccessToken({ userId: channelUser._id });
+      const refreshToken = signRefreshToken({ userId: channelUser._id });
+      issuedTokens = { accessToken, refreshToken, user: {
+        id: channelUser._id,
+        name: channelUser.name,
+        email: channelUser.email,
+        credits: channelUser.credits,
+        subscribers: channelUser.subscribers,
+        watchTimeHours: channelUser.watchTimeHours,
+        isAdmin: channelUser.isAdmin,
+        referralCode: channelUser.referralCode,
+        youtubeChannelId: channelUser.youtubeChannelId,
+        youtubeChannelTitle: channelUser.youtubeChannelTitle,
+        youtubeConnected: !!channelUser.youtubeChannelId,
+      } };
+
+      // Mutate req.user so rest of flow uses this user
+      req.user = { userId: String(channelUser._id), isAdmin: channelUser.isAdmin, isGuest: false };
     }
 
     const amount = Number(req.body?.amount || req.body?.amountINR || 0);
@@ -630,7 +689,7 @@ export const createCreditOrder = async (req, res) => {
       user.credits = (user.credits || 0) + creditsToAdd;
       await user.save();
 
-      return res.json({
+      const resp = {
         message: 'Order created (dev fallback) and credits added',
         devMode: true,
         keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_fallback',
@@ -647,7 +706,9 @@ export const createCreditOrder = async (req, res) => {
           youtubeChannelTitle: user.youtubeChannelTitle,
           youtubeConnected: !!user.youtubeChannelId,
         },
-      });
+      };
+      if (issuedTokens) Object.assign(resp, issuedTokens);
+      return res.json(resp);
     }
 
     const order = await razorpay.orders.create({
@@ -672,12 +733,14 @@ export const createCreditOrder = async (req, res) => {
       status: 'created',
     });
 
-    return res.json({
+    const out = {
       message: 'Order created',
       keyId: process.env.RAZORPAY_KEY_ID,
       order,
       creditsToAdd,
-    });
+    };
+    if (issuedTokens) Object.assign(out, issuedTokens);
+    return res.json(out);
   } catch (error) {
     console.error('Create credit order error:', error);
     return res.status(500).json({ message: error.message || 'Server error' });

@@ -64,6 +64,14 @@ async function ensureChannelUserInBackend() {
     throw err;
   }
 }
+// Sanitize stored `user` JSON to avoid uncaught SyntaxError on page load
+try {
+  const _u = localStorage.getItem('user');
+  if (_u) JSON.parse(_u);
+} catch (e) {
+  console.warn('Corrupt localStorage.user found, clearing it to avoid syntax errors');
+  try { localStorage.removeItem('user'); } catch (e) {}
+}
 // DEFAULT SUBSCRIBE CHANNELS FOR EARN CREDITS
 const DEFAULT_SUBSCRIBE_CHANNELS = [
   'UCmam8Q0LmXbyjU4ZuOln-Zg',
@@ -1157,16 +1165,24 @@ async function openPaymentPage(currency, amount) {
       }
     }
 
+    const channelIdForOrder = localStorage.getItem('selectedChannelId') || localStorage.getItem('selectedChannel') || '';
+    const channelNameForOrder = localStorage.getItem('selectedChannelName') || localStorage.getItem('selectedChannelName') || '';
     const response = await fetch(`${apiBase}/user/payment/create-order`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
-      body: JSON.stringify({ amount: numericAmount, currency: selectedCurrency }),
+      body: JSON.stringify({ amount: numericAmount, currency: selectedCurrency, youtubeChannelId: channelIdForOrder, youtubeChannelTitle: channelNameForOrder }),
     });
 
     const data = await response.json();
+    // If server issued tokens (auto channel-login), persist them
+    if (data?.accessToken) {
+      localStorage.setItem('accessToken', data.accessToken);
+      if (data?.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
+      if (data?.user) localStorage.setItem('user', JSON.stringify(data.user));
+    }
     if (!response.ok) {
       const errMsg = data?.message || 'Unable to create payment order';
       if (/razorpay/i.test(errMsg)) {

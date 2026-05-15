@@ -2524,6 +2524,8 @@ button, .btn, .nav-cta { color: #fff !important; }
 
 .view-promo-search-bar {
   text-align: right;
+  display: flex;
+  justify-content: flex-end;
   max-width: 250px;
 }
 
