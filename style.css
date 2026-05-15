@@ -138,11 +138,11 @@
   right: 0 !important;
 }
 
-/* Disable page scrolling as requested */
+/* Page scrolling enabled (restored) */
 html, body {
-  height: 100vh !important;
-  overflow: hidden !important;
-  -webkit-overflow-scrolling: auto !important;
+  height: auto !important;
+  overflow: auto !important;
+  -webkit-overflow-scrolling: touch !important;
   color: #000 !important;
 }
 

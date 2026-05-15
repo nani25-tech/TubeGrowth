@@ -142,19 +142,17 @@ if (typeof localStorage !== 'undefined') {
 }
 
 // Defensive fix: enforce scrolling state. Set to hidden per request.
+// Defensive fix: ensure scrolling is enabled if an overlay or script toggled overflow accidentally
 window.addEventListener('load', () => {
   try {
     if (document.documentElement && document.documentElement.style) {
-      document.documentElement.style.overflow = 'hidden';
-      document.documentElement.style.height = '100vh';
+      document.documentElement.style.overflow = document.documentElement.style.overflow || '';
     }
     if (document.body && document.body.style) {
-      document.body.style.overflow = 'hidden';
-      document.body.style.overflowY = 'hidden';
-      document.body.style.height = '100vh';
+      document.body.style.overflowY = document.body.style.overflowY || 'auto';
     }
   } catch (e) {
-    console.warn('Failed to set scrolling disabled', e);
+    console.warn('Scrolling fix failed', e);
   }
 });
 
