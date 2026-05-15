@@ -122,6 +122,19 @@
   box-shadow: 0 3px 10px rgba(255, 215, 0, 0.3);
 }
 
+/* Strong centering override for hero banner (minimal, targeted) */
+.free-boost-section {
+  text-align: center !important;
+}
+.free-boost-section .free-boost-banner {
+  display: inline-block !important;
+  margin: 40px auto 30px !important;
+  float: none !important;
+  position: relative !important;
+  left: 0 !important;
+  right: 0 !important;
+}
+
 .referral-form-box .free-boost-search-btn:hover {
   background: #ffed4e;
   box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
