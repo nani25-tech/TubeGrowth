@@ -15,9 +15,9 @@ JWT_REFRESH_SECRET=your-refresh-secret-key-here
 YOUTUBE_API_KEY=your-youtube-data-api-key
 YOUTUBE_CLIENT_ID=your-google-oauth-client-id
 YOUTUBE_CLIENT_SECRET=your-google-oauth-client-secret
-YOUTUBE_REDIRECT_URI=https://tubegrowth.zone.id/api/user/youtube/callback
-FRONTEND_URL=https://tubegrowth.zone.id
-CORS_ORIGIN=https://tubegrowth.zone.id,https://www.tubegrowth.zone.id,https://nani25-tech.github.io,https://nani25-tech.github.io/TubeGrowth
+YOUTUBE_REDIRECT_URI=https://tubegrowth.me/api/user/youtube/callback
+FRONTEND_URL=https://tubegrowth.me
+CORS_ORIGIN=https://tubegrowth.me,https://www.tubegrowth.me,https://nani25-tech.github.io,https://nani25-tech.github.io/TubeGrowth
 RAZORPAY_KEY_ID=your-razorpay-key-id
 RAZORPAY_KEY_SECRET=your-razorpay-key-secret
 SMTP_EMAIL=your-email@gmail.com
@@ -58,7 +58,7 @@ SMTP_PASSWORD=your-app-specific-password
 
 After deployment completes:
 
-1. Visit https://tubegrowth.zone.id/admin.html
+1. Visit https://tubegrowth.me/admin.html
 2. Log in with admin credentials:
    - Email: `admin@tubegrowth.tg`
    - Password: `Admin@25`

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://tubegrowth.zone.id/sitemap.xml
+Sitemap: https://tubegrowth.me/sitemap.xml

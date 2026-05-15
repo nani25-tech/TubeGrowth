@@ -25,7 +25,7 @@ function getApiBase() {
 
   // When served from GitHub Pages (or a static host) the backend is hosted
   // separately (Render). Use the full backend origin so API calls work.
-  const backendOrigin = 'https://tubegrowth.zone.id';
+  const backendOrigin = 'https://tubegrowth.me';
   return backendOrigin + '/api';
 }
 

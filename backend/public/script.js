@@ -10,7 +10,7 @@ if (typeof getApiBase !== 'function') {
         return 'http://localhost:5000/api';
       }
       // On GitHub Pages / static hosting the API runs on Render at this origin
-      const backendOrigin = 'https://tubegrowth.zone.id';
+      const backendOrigin = 'https://tubegrowth.me';
       return backendOrigin + '/api';
     } catch (err) {
       return '/api';

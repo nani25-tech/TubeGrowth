@@ -75,10 +75,10 @@ export const youtubeCallback = async (req, res) => {
 
     await syncSingleUserYouTubeStats(user._id);
 
-    return res.redirect(`${process.env.FRONTEND_URL || 'https://tubegrowth.zone.id'}/dashboard?youtube=connected`);
+    return res.redirect(`${process.env.FRONTEND_URL || 'https://tubegrowth.me'}/dashboard?youtube=connected`);
   } catch (error) {
     console.error('YouTube callback error:', error);
-    return res.redirect(`${process.env.FRONTEND_URL || 'https://tubegrowth.zone.id'}/dashboard?youtube=error`);
+    return res.redirect(`${process.env.FRONTEND_URL || 'https://tubegrowth.me'}/dashboard?youtube=error`);
   }
 };
 
