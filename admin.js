@@ -15,8 +15,8 @@ function getApiBase() {
   if (protocol === 'file:' || host === '' || host === 'localhost' || host === '127.0.0.1' || port === '5000') {
     return 'http://localhost:5000/api';
   }
-
-  return 'https://tubegrowth.onrender.com/api';
+  
+  return 'https://tubegrowth.zone.id/api';
 }
 
 function getToken() {

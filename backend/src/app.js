@@ -65,12 +65,9 @@ app.use(helmet({
       upgradeInsecureRequests: [],
     },
   },
-  permissionsPolicy: {
-    // Intentionally leave permissionsPolicy unset here to avoid
-    // noisy browser permission warnings for sensor APIs that the
-    // frontend does not use. If you need to enable specific
-    // capabilities later, add them explicitly with allowed origins.
-  },
+  // Do not configure a permissionsPolicy here — leaving it out avoids
+  // sending a restrictive Permissions-Policy header that can trigger
+  // noisy browser violations for sensor APIs the frontend doesn't use.
 }));
 
 // Add stricter security headers to prevent third-party access
