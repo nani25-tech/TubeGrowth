@@ -309,6 +309,8 @@ function showSection(sectionId) {
 
   window.history.replaceState(null, '', normalizedId === 'home' ? '#top' : `#${normalizedId}`);
   updateActiveSectionLinks(normalizedId);
+  // Add body class for home view so CSS can hide dashboard preview
+  try { document.body.classList.toggle('home-view', normalizedId === 'home'); } catch (e) { /* ignore */ }
 
   if (normalizedId === 'dashboard-preview') {
     const savedChannelIdRaw = localStorage.getItem('selectedChannelId') || '';
