@@ -405,6 +405,20 @@
   margin-bottom: 16px;
 }
 
+
+/* Dashboard grid equal-height columns */
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  align-items: stretch;
+}
+.dashboard-layout .dash-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.dash-card-head { text-align:center; }
 .ad-slot {
   min-height: 120px;
   border: 2px dashed #94a3b8;

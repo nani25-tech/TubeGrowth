@@ -2476,6 +2476,34 @@ button, .btn, .nav-cta { color: #fff !important; }
   flex: 1 1 auto;
 }
 
+/* Dashboard layout: two-column grid with equal-height rows */
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  align-items: stretch;
+}
+
+.dashboard-layout .dash-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-card-head {
+  font-weight: 800;
+  text-align: center;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  border-radius: calc(var(--card-radius) - 2px) calc(var(--card-radius) - 2px) 0 0;
+}
+
+.dash-card-body {
+  flex: 1 1 auto;
+  padding: 12px;
+}
+
 /* Tables: use fixed layout and vertically center cells for consistent rows */
 .view-promo-table {
   table-layout: fixed;
