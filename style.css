@@ -8,20 +8,13 @@
   padding-top: 110px;
 }
 
-/* Ensure the section centers its children so the banner aligns with content */
-.free-boost-section {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-}
-
 .free-boost-banner {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: auto;
-
-  margin: 40px auto 30px;
+  max-width: 100%;
+  
+  margin: 40px 20px 30px;
   background: #39b54a;
   border: 2px solid #2a8e39;
   border-radius: 16px;
@@ -163,7 +156,7 @@
 
 /* Agreement Row */
 .free-boost-agreement {
-  display: flex;
+  display: inline-flex;
   align-items: center;        /* Prevent line break */
   gap: 10px;
   width: auto;
@@ -172,7 +165,7 @@
 
 /* Checkbox */
 .free-boost-agreement-checkbox {
-  display: flex;
+  display: inline-flex;
   width: 20px;
   height: 20px;
   margin: 0;
@@ -182,7 +175,7 @@
 
 /* Text */
 .free-boost-agreement-text {
-  display: flex;
+  display: inline-flex;
   gap: 4px;
   font-size: 14px;
   line-height: 1;
@@ -588,18 +581,6 @@ body {
 /* Mobile-first responsive typography */
 @media (max-width: 480px) {
   body { font-size: 14px; }
-}
-
-/* Ensure page remains scrollable — defensive overrides for overlays */
-html, body {
-  height: auto !important;
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-}
-
-/* If a full-screen decorative overlay is used, allow pointer events to pass through unless explicitly interactive */
-body::before, body::after {
-  pointer-events: none !important;
 }
 
 @media (min-width: 481px) and (max-width: 768px) {
@@ -5169,32 +5150,6 @@ nav,
     font-size: 34px;
     padding: 12px 18px;
   }
-
-/* Final override to guarantee centering across breakpoints */
-.free-boost-banner {
-  display: inline-flex !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  width: auto !important;
-}
-
-/* Ensure this is last: force centered children for the free-boost section */
-body .free-boost-section {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-}
-
-/* Hide legacy agreement checkbox and text when removal hasn't propagated */
-#agreeTermsAndPrivacy,
-.free-boost-agreement,
-.free-boost-agreement-text {
-  display: none !important;
-  visibility: hidden !important;
-  height: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-}
   
   .free-boost-title {
     font-size: 28px;
