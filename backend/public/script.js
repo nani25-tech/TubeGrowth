@@ -1,5 +1,22 @@
 ﻿/* global localStorage, document, window, MutationObserver, navigator, IntersectionObserver */
 // Automatically register/login user with channel ID and name
+// Ensure API base is available when frontend is served from static host
+if (typeof getApiBase !== 'function') {
+  function getApiBase() {
+    try {
+      const host = window.location.hostname || '';
+      const protocol = window.location.protocol || 'https:';
+      if (protocol === 'file:' || host === '' || host === 'localhost' || host === '127.0.0.1') {
+        return 'http://localhost:5000/api';
+      }
+      // On GitHub Pages / static hosting the API runs on Render at this origin
+      const backendOrigin = 'https://tubegrowth.onrender.com';
+      return backendOrigin + '/api';
+    } catch (err) {
+      return '/api';
+    }
+  }
+}
 async function ensureChannelUserInBackend() {
   let channelId = restoreSelectedChannelSession();
   if (!channelId) return;

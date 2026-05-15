@@ -23,7 +23,10 @@ function getApiBase() {
     return 'http://localhost:5000/api';
   }
 
-  return '/api';
+  // When served from GitHub Pages (or a static host) the backend is hosted
+  // separately (Render). Use the full backend origin so API calls work.
+  const backendOrigin = 'https://tubegrowth.onrender.com';
+  return backendOrigin + '/api';
 }
 
 function getToken() {
