@@ -3068,10 +3068,19 @@ function loadPromotions() {
         <td><span class="${statusClass}">${statusText}</span></td>
         <td>${campaign.dateCreated}</td>
         <td>${boostBtn}</td>
-        <td><button class="manage-btn" onclick="deletePromotion(${campaign.id})" aria-label="Delete promotion">&#128465;</button></td>
+        <td><button class="manage-btn delete-promo-btn" type="button" data-campaign-id="${String(campaign.id).replace(/&/g, '&amp;').replace(/\"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}" aria-label="Delete promotion">&#128465;</button></td>
       </tr>
     `;
   }).join('');
+
+  if (!tableBody.dataset.deleteBound) {
+    tableBody.dataset.deleteBound = '1';
+    tableBody.addEventListener('click', (event) => {
+      const deleteButton = event.target.closest('.delete-promo-btn');
+      if (!deleteButton || !tableBody.contains(deleteButton)) return;
+      deletePromotion(deleteButton.getAttribute('data-campaign-id'));
+    });
+  }
   
   // Update pagination info
   updatePaginationInfo(campaigns.length, currentPage, totalPages);
@@ -3123,7 +3132,7 @@ function nextPage() {
 function deletePromotion(campaignId) {
   if (window.confirm('Are you sure you want to delete this promotion? Credits will be refunded.')) {
     let campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
-    const campaignToDelete = campaigns.find(c => c.id === campaignId);
+    const campaignToDelete = campaigns.find(c => String(c.id) === String(campaignId));
     
     if (campaignToDelete) {
       // Refund credits
@@ -3132,7 +3141,7 @@ function deletePromotion(campaignId) {
       updateCreditDisplay();
       
       // Remove campaign
-      campaigns = campaigns.filter(c => c.id !== campaignId);
+      campaigns = campaigns.filter(c => String(c.id) !== String(campaignId));
       localStorage.setItem('campaigns', JSON.stringify(campaigns));
       
       // Reload
