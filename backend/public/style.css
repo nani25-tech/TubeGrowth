@@ -559,6 +559,10 @@
   --text: #E8E8E8;
   --muted: #D1D5DB;
   --gold: #FFD700;
+  --card-padding: 18px;
+  --card-radius: 8px;
+  --card-min-height: 120px;
+  --control-height: 40px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -2446,6 +2450,60 @@ button, .btn, .nav-cta { color: #fff !important; }
   border-radius: 4px;
   overflow: hidden;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+}
+
+/* Standardize card sizing and spacing across the app */
+.card,
+.view-promo-shell,
+.view-promo-info-card,
+.view-promo-table-wrapper,
+.free-boost-form-box,
+.dash-card,
+.earn-panel-head,
+.plan-card {
+  padding: var(--card-padding) !important;
+  border-radius: var(--card-radius) !important;
+  min-height: var(--card-min-height) !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+/* Make panels' inner content stretch so boxes appear equal height in grids */
+.card > *,
+.view-promo-info-card > * {
+  flex: 1 1 auto;
+}
+
+/* Tables: use fixed layout and vertically center cells for consistent rows */
+.view-promo-table {
+  table-layout: fixed;
+  width: 100%;
+}
+.view-promo-table th,
+.view-promo-table td {
+  vertical-align: middle;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Buttons and controls: consistent height and alignment */
+.btn, .button, .nav-cta, .pagination-btn, .modal-verify-btn {
+  height: var(--control-height) !important;
+  line-height: var(--control-height) !important;
+  padding: 0 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 999px !important;
+}
+
+/* Ensure promo empty-state is prominent */
+.view-promo-table td.empty-state,
+.view-promo-table td[role="empty"] {
+  font-weight: 700;
+  color: #e8e8e8 !important;
 }
 
 .view-promo-shell-topbar {
