@@ -2565,6 +2565,18 @@ button, .btn, .nav-cta { color: #fff !important; }
   color: #ffffff !important;
   border-color: #0054b3 !important;
 }
+
+/* Strong override to ensure promo table message text is readable on dark shell */
+body .view-promo-shell .view-promo-table td {
+  color: #e8e8e8 !important;
+}
+
+/* Ensure active pagination visually highlighted even with other overrides */
+body .view-promo-shell .pagination-btn.active {
+  background: #0066d6 !important;
+  color: #fff !important;
+  border-color: #0054b3 !important;
+}
   border-right: 1px solid var(--border);
   font-size: 13px;
   letter-spacing: 0.5px;
