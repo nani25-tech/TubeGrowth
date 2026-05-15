@@ -36,32 +36,41 @@
 
 param(
     [ValidateSet("DryRun", "Apply")]
-    [string]$CleanupAction = "DryRun"
+    [string]$CleanupAction = "DryRun",
+    [string]$DeployUser,
+    [string]$DeployHost,
+    [string]$DeployPath,
+    [string]$DeployKey
 )
 
 # =========================
 # Validate Environment Variables
 # =========================
 
+# Allow passing deploy details via parameters or fallback to environment variables
+$deployUser = $DeployUser; if ([string]::IsNullOrWhiteSpace($deployUser)) { $deployUser = $env:DEPLOY_USER }
+$deployHost = $DeployHost; if ([string]::IsNullOrWhiteSpace($deployHost)) { $deployHost = $env:DEPLOY_HOST }
+$deployPath = $DeployPath; if ([string]::IsNullOrWhiteSpace($deployPath)) { $deployPath = $env:DEPLOY_PATH }
+$deployKey = $DeployKey; if ([string]::IsNullOrWhiteSpace($deployKey)) { $deployKey = $env:DEPLOY_KEY }
+
 if (
-    [string]::IsNullOrWhiteSpace($env:DEPLOY_USER) -or
-    [string]::IsNullOrWhiteSpace($env:DEPLOY_HOST) -or
-    [string]::IsNullOrWhiteSpace($env:DEPLOY_PATH)
+    [string]::IsNullOrWhiteSpace($deployUser) -or
+    [string]::IsNullOrWhiteSpace($deployHost) -or
+    [string]::IsNullOrWhiteSpace($deployPath)
 ) {
     Write-Host ""
-    Write-Host "ERROR: Missing required environment variables." -ForegroundColor Red
+    Write-Host "ERROR: Missing required deployment details." -ForegroundColor Red
     Write-Host ""
-    Write-Host "Required:"
-    Write-Host "  DEPLOY_USER"
-    Write-Host "  DEPLOY_HOST"
-    Write-Host "  DEPLOY_PATH"
+    Write-Host "Provide via parameters or environment variables. Required:"
+    Write-Host "  -DeployUser  (or DEPLOY_USER env var)"
+    Write-Host "  -DeployHost  (or DEPLOY_HOST env var)"
+    Write-Host "  -DeployPath  (or DEPLOY_PATH env var)"
+    Write-Host ""
+    Write-Host "Example:" 
+    Write-Host "  powershell -File ./deploy_and_cleanup.ps1 -CleanupAction DryRun -DeployUser ubuntu -DeployHost your.server.com -DeployPath /var/www/TubeGrowth -DeployKey C:\\Users\\you\\.ssh\\id_rsa"
     Write-Host ""
     exit 2
 }
-
-$deployUser = $env:DEPLOY_USER
-$deployHost = $env:DEPLOY_HOST
-$deployPath = $env:DEPLOY_PATH
 
 # =========================
 # SSH Key Handling
