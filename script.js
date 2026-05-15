@@ -1091,6 +1091,22 @@ async function openPaymentPage(currency, amount) {
     return;
   }
 
+  // Ensure the user is authenticated before creating a payment order.
+  // Try to auto-login with the selected channel if available.
+  try {
+    if (!hasAuthenticatedSession()) {
+      await ensureChannelUserInBackend().catch(() => {});
+    }
+  } catch (e) {
+    // ignore — we'll check token below
+  }
+
+  const accessTokenCheck = localStorage.getItem('accessToken');
+  if (!accessTokenCheck) {
+    showToast('bi-exclamation-triangle-fill', 'Login Required', 'Please login (channel login) before buying credits');
+    return;
+  }
+
   try {
     const accessToken = localStorage.getItem('accessToken');
     const apiBase = getApiBase();
