@@ -5150,6 +5150,14 @@ nav,
     font-size: 34px;
     padding: 12px 18px;
   }
+
+/* Final override to guarantee centering across breakpoints */
+.free-boost-banner {
+  display: inline-flex !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: auto !important;
+}
   
   .free-boost-title {
     font-size: 28px;
