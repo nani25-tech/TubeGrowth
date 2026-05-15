@@ -5172,6 +5172,17 @@ body .free-boost-section {
   flex-direction: column !important;
   align-items: center !important;
 }
+
+/* Hide legacy agreement checkbox and text when removal hasn't propagated */
+#agreeTermsAndPrivacy,
+.free-boost-agreement,
+.free-boost-agreement-text {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
   
   .free-boost-title {
     font-size: 28px;
