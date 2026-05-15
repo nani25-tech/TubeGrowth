@@ -16,7 +16,7 @@ function getApiBase() {
     return 'http://localhost:5000/api';
   }
   
-  return 'https://tubegrowth.zone.id/api';
+  return 'https://tubegrowth.me/api';
 }
 
 function getToken() {

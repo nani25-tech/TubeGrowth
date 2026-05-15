@@ -45,7 +45,7 @@ export const youtubeCallback = async (req, res) => {
     const { code, state, error } = req.query;
 
     if (error) {
-      return res.redirect(`${process.env.FRONTEND_URL || 'https://tubegrowth.zone.id'}?youtube=error`);
+      return res.redirect(`${process.env.FRONTEND_URL || 'https://tubegrowth.me'}?youtube=error`);
     }
 
     if (!code || !state) {

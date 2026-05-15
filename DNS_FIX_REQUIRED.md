@@ -25,7 +25,7 @@ In your domain registrar control panel for `zone.id`:
 
 Example:
 ```
-CNAME record for tubegrowth.zone.id
+CNAME record for tubegrowth.me
 Value: tubegrowth-backend.onrender.com
 ```
 
@@ -51,12 +51,12 @@ The `CNAME` and `robots.txt` can stay but are also served from backend/public.
 
 ### Step 5: Verify DNS Changed
 ```bash
-nslookup tubegrowth.zone.id
+nslookup tubegrowth.me
 # Should return the Render service IP, not GitHub Pages IP
 ```
 
 After DNS propagation (5-15 minutes):
-- Visit https://tubegrowth.zone.id/admin.html
+- Visit https://tubegrowth.me/admin.html
 - Login with: admin@tubegrowth.tg / Admin@25
 - Admin panel should load with users list
 
@@ -64,7 +64,7 @@ After DNS propagation (5-15 minutes):
 
 **Test API is accessible:**
 ```bash
-curl -X POST "https://tubegrowth.zone.id/api/auth/login" \
+curl -X POST "https://tubegrowth.me/api/auth/login" \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@tubegrowth.tg","password":"Admin@25"}'
 ```
@@ -73,14 +73,14 @@ curl -X POST "https://tubegrowth.zone.id/api/auth/login" \
 
 **Test health endpoint:**
 ```bash
-curl "https://tubegrowth.zone.id/api/health"
+curl "https://tubegrowth.me/api/health"
 ```
 
 ## Technical Details
 
 - **Render Backend URL**: Check your Render dashboard for the exact URL
 - **Local test (confirms backend works)**: `http://localhost:5000/api/auth/login` returns 200 ✅
-- **Production test (blocked by DNS)**: `https://tubegrowth.zone.id/api/auth/login` returns 405 (GitHub Pages)
+- **Production test (blocked by DNS)**: `https://tubegrowth.me/api/auth/login` returns 405 (GitHub Pages)
 - **After DNS fix**: Should return 200 from Render backend
 
 ## Important Notes
