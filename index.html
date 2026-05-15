@@ -50,8 +50,23 @@
 </script>
 <link rel="stylesheet" href="admin.css"> <!-- fallback to local or custom icons -->
 <link rel="stylesheet" href="style.css?v=20260515-1">
-<!-- Re-enable AdSense (uses HTTPS). Ensure your AdSense client ID is correct. -->
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8786593139834578" crossorigin="anonymous"></script>
+<!-- Load AdSense script only for real users; skip for crawlers to avoid external robots warnings -->
+<script>
+  (function(){
+    try {
+      var ua = (navigator && navigator.userAgent) || '';
+      if (!/Googlebot|AdsBot-Google/i.test(ua)) {
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8786593139834578';
+        s.crossOrigin = 'anonymous';
+        document.head.appendChild(s);
+      } else {
+        console.log('AdSense skipped for crawler');
+      }
+    } catch (e) { console.warn('ads loader error', e); }
+  })();
+</script>
 </head>
 <body id="top">
 
