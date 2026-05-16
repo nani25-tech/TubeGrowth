@@ -28,6 +28,27 @@
     <ul>
       <li>Email: <a href="mailto:support@tubegrowth.com">support@tubegrowth.com</a></li>
     </ul>
+    <h2>Contact form</h2>
+    <form id="contactForm" action="/" method="post" onsubmit="event.preventDefault(); alert('Please email support@tubegrowth.com for faster response.');">
+      <label>
+        Your name
+        <input type="text" name="name" required>
+      </label>
+      <label>
+        Email
+        <input type="email" name="email" required>
+      </label>
+      <label>
+        Message
+        <textarea name="message" rows="4" required></textarea>
+      </label>
+      <div>
+        <button type="submit">Send Message</button>
+      </div>
+    </form>
+
+    <h2>Social</h2>
+    <p>Find us on: <a href="#">Twitter</a> • <a href="#">YouTube</a></p>
     <h2>Best for</h2>
     <ul>
       <li>Account and campaign questions</li>
