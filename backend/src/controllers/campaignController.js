@@ -252,6 +252,12 @@ export const deleteCampaign = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.userId;
 
+    // Validate id is a Mongo ObjectId — local-only numeric IDs should be treated as not found
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      await session.abortTransaction();
+      return res.status(404).json({ message: 'Campaign not found' });
+    }
+
     const campaign = await Campaign.findById(id).session(session);
 
     if (!campaign) {
