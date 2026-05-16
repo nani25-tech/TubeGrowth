@@ -3130,7 +3130,46 @@ function nextPage() {
 }
 
 function deletePromotion(campaignId) {
-  showToast('bi-info-circle-fill', 'Action Disabled', 'Promotion deletion is disabled and no changes were made');
+  if (!campaignId) {
+    showToast('bi-exclamation-triangle-fill', 'Invalid Request', 'Missing promotion id');
+    return;
+  }
+
+  try {
+    const campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
+    const idx = campaigns.findIndex(c => String(c.id) === String(campaignId));
+    if (idx === -1) {
+      showToast('bi-info-circle-fill', 'Not Found', 'Promotion not found');
+      return;
+    }
+
+    const [removed] = campaigns.splice(idx, 1);
+    localStorage.setItem('campaigns', JSON.stringify(campaigns));
+    // Do NOT refund credits when deleting promotions
+    showToast('bi-check-circle-fill', 'Promotion Removed', 'Promotion removed (no refund)');
+    currentPage = 1;
+    loadPromotions();
+
+    // Attempt backend deletion if user is authenticated; failures are non-fatal
+    (async () => {
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) return;
+      try {
+        const resp = await fetch(`${getApiBase()}/campaigns/${encodeURIComponent(removed.id)}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (!resp.ok) {
+          console.warn('Backend campaign delete failed', resp.status, await resp.text().catch(() => ''));
+        }
+      } catch (err) {
+        console.warn('Error deleting campaign on backend', err);
+      }
+    })();
+  } catch (err) {
+    console.error('deletePromotion error', err);
+    showToast('bi-x-circle-fill', 'Delete Failed', err.message || 'Unable to delete promotion');
+  }
 }
 
 // Expose handlers used by inline HTML attributes.
