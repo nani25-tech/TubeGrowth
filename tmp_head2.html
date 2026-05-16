@@ -1,0 +1,201 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TubeGrowth | Creator Tools and Account Management</title>
+  <!-- Runtime API base override to point client to the backend Render service during DNS migration -->
+  <meta name="api-base" content="https://tubegrowth.onrender.com/api">
+<meta name="application-name" content="TubeGrowth">
+<!-- Google AdSense site ownership (verification) -->
+<meta name="google-adsense-account" content="ca-pub-8786593139834578">
+<meta name="apple-mobile-web-app-title" content="TubeGrowth">
+  <meta name="description" content="TubeGrowth provides creator tools, account management, and campaign tracking for YouTube channels.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://tubegrowth.me/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="TubeGrowth">
+<meta property="og:title" content="TubeGrowth | YouTube Growth Tools for Subscribers, Likes & Watch Time">
+<meta property="og:description" content="TubeGrowth is a YouTube growth platform for subscribers, likes, watch time, and credit-based promotion.">
+  <meta property="og:url" content="https://tubegrowth.me/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="TubeGrowth | YouTube Growth Tools for Subscribers, Likes & Watch Time">
+<meta name="twitter:description" content="TubeGrowth is a YouTube growth platform for subscribers, likes, watch time, and credit-based promotion.">
+<!-- Permissions policy removed to avoid browser sensor-permission warnings -->
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<script>
+  (function () {
+    var canonicalHost = 'tubegrowth.me';
+    var currentHost = window.location.hostname || '';
+    var isGithubPages = /github\.io$/i.test(currentHost);
+    var isNotCustomDomain = currentHost !== canonicalHost && currentHost !== 'localhost' && currentHost !== '127.0.0.1';
+    if (isGithubPages || (isNotCustomDomain && currentHost.includes('nani25-tech'))) {
+      window.location.replace('https://' + canonicalHost + window.location.pathname + window.location.search + window.location.hash);
+    }
+  }());
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "TubeGrowth",
+  "url": "https://tubegrowth.me/",
+  "description": "TubeGrowth helps YouTube creators grow with subscribe, like, watch time, and boost promotion tools."
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "TubeGrowth",
+  "url": "https://tubegrowth.me/"
+}
+</script>
+<link rel="stylesheet" href="admin.css"> <!-- fallback to local or custom icons -->
+<link rel="stylesheet" href="style.css?v=20260516-3">
+<!-- Load AdSense script only for real users; skip for crawlers to avoid external robots warnings -->
+<script>
+  (function(){
+    try {
+      var ua = (navigator && navigator.userAgent) || '';
+      if (!/Googlebot|AdsBot-Google/i.test(ua)) {
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8786593139834578';
+        s.crossOrigin = 'anonymous';
+        document.head.appendChild(s);
+      } else {
+        console.log('AdSense skipped for crawler');
+      }
+    } catch (e) { console.warn('ads loader error', e); }
+  })();
+</script>
+</head>
+<body id="top">
+
+<!-- NAV --> 
+<nav>
+  <div class="logo-container">
+    <div class="logo" aria-label="TubeGrowth logo">
+      <img src="/tubegrowth.png" alt="TubeGrowth logo" class="logo-img">
+    </div>
+    <div class="logo-text"><span class="logo-part-1">TUBE</span> <span class="logo-part-2">GROWTH</span></div>
+  </div>
+  <button type="button" class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="site-nav-menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+  <ul class="nav-menu" id="site-nav-menu">
+    <li><a href="#dashboard-preview">Services</a></li>
+    <li><a href="#how-it-works">How It Works</a></li>
+    <li><a href="#testimonials">Reviews</a></li>
+    <li class="credit-display" id="navCredits" style="display: none;">
+      <span class="credit-icon"><i class="bi bi-coin"></i></span>
+      <span class="credit-balance"><strong id="userCredits">0</strong> Credits</span>
+    </li>
+  </ul>
+</nav>
+
+<!-- FREE YOUTUBE BOOST BANNER -->
+<section class="free-boost-section">
+  <div class="free-boost-banner">Earn Free YouTube Subscribers & Likes</div>
+  
+  <div class="free-boost-content reveal">
+    <h1 class="free-boost-title">Grow your YouTube Channel Faster Than Ever Before!</h1>
+    <p class="free-boost-subtitle">TubeGrowth helps you boost your YouTube channel with real subscribers, likes, and watch time.</p>
+    
+    <div class="free-boost-form-box">
+      <p class="form-label">Enter YouTube Channel Link / Channel ID:</p>
+      
+      <div class="free-boost-form">
+        <label for="channelSearchInput" class="sr-only" style="position:absolute;left:-9999px;">Channel ID</label>
+        <input 
+          type="text" 
+          id="channelSearchInput" 
+          class="free-boost-input" 
+          placeholder="Enter your Channel ID"
+          value=""
+        />
+        <div class="free-boost-agreement" style="display:flex;align-items:center;gap:10px;margin-left:6px;">
+          <input type="checkbox" id="agreeTermsAndPrivacy" class="free-boost-agreement-checkbox" aria-describedby="agreeHelp" />
+          <label for="agreeTermsAndPrivacy" class="free-boost-agreement-text">I read and agree to <a href="/privacy.html">privacy policy</a> and <a href="/terms.html">terms and conditions</a></label>
+        </div>
+        <button type="button" class="free-boost-search-btn" onclick="searchAndOpenDashboard()">SEARCH CHANNEL</button>
+      </div>
+      
+      <p class="form-help"><a href="#" class="form-link">Where I can find my YouTube Channel ID</a></p>
+    </div>
+
+    <div class="free-boost-form-box referral-form-box">
+      <p class="form-label">Have a Referral Code? Get Free Credits:</p>
+      <div class="free-boost-form">
+        <input 
+          type="text" 
+          id="referralCodeInput" 
+          class="free-boost-input" 
+          placeholder="Enter referral code (e.g., TGBUCXSX4K)"
+          value=""
+        />
+        <button type="button" class="free-boost-search-btn referral-verify-btn" onclick="verifyAndApplyReferralCode()">APPLY CODE</button>
+      </div>
+      <div id="referralVerifyStatus" class="form-help"></div>
+    </div>
+
+    <div class="free-boost-cta">
+      <button type="button" class="analyze-videos-btn" onclick="scrollToSection('#services')">
+        <i class="bi bi-graph-up-arrow"></i> ANALYZE YOUR YOUTUBE VIDEOS FOR FREE
+      </button>
+    </div>
+
+    <div class="how-it-works-section">
+      <h2 class="how-it-works-title">HOW IT WORKS</h2>
+      <div class="how-it-works-steps">
+        <div class="how-it-works-step">
+          <div class="step-number">STEP 1</div>
+          <p>Paste your YouTube Channel Link / Channel ID above.</p>
+        </div>
+        <div class="how-it-works-step">
+          <div class="step-number">STEP 2</div>
+          <p>Earn credits by Subscribing & Liking other Channels & Videos.</p>
+        </div>
+        <div class="how-it-works-step">
+          <div class="step-number">STEP 3</div>
+          <p>Boost your YouTube Channel using this credits.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DASHBOARD PREVIEW -->
+<section id="dashboard-preview">
+  <div class="dashboard-shell reveal">
+    <div class="section-label">// Dashboard</div>
+    <div class="section-title" style="display: flex; justify-content: center; align-items: center;">DASHBOARD</div>
+    <div class="dashboard-tabs">
+      <a class="dash-tab active" href="#dashboard-preview" aria-current="page" aria-label="Go to dashboard">DASHBOARD</a>
+      <a class="dash-tab" href="#earn-credits" aria-label="Go to earn credits">EARN CREDITS</a>
+      <a class="dash-tab" href="#get-started" aria-label="Go to boost profile form">BOOST PROFILE</a>
+      <a class="dash-tab" href="#services" aria-label="Go to promotions section">VIEW PROMOTIONS</a>
+      <a class="dash-tab" href="#top" aria-label="Back to top">LOGOUT</a>
+      <a class="dash-tab" href="#buy-credits" aria-label="Go to buy credits">BUY CREDITS</a>
+    </div>
+  </div>
+
+  <div class="dashboard-area reveal">
+    <div class="dashboard-layout">
+      <article class="dash-card profile-card">
+        <header class="dash-card-head">PROFILE INFORMATION</header>
+        <div class="dash-card-body profile-body">
+          <div class="profile-avatar" aria-hidden="true">
+            <img id="profileAvatarImg" alt="Channel logo" src="/tubegrowth.png" />
+          </div>
+           <p class="profile-name"></p>
+          <p class="profile-channel"></p>
+          <p class="profile-credits">Your Credits : 0</p>
+          <p class="profile-subscribers">Subscribers : 0</p>
+          <p class="profile-watchtime">Watch Time : 0h</p>
+        </div>
+      </article>
