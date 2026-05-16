@@ -3271,10 +3271,14 @@ function deletePromotion(campaignId) {
     currentPage = 1;
     loadPromotions();
 
-    // Attempt backend deletion if user is authenticated; failures are non-fatal
+    // Attempt backend deletion only for server-created campaigns (Mongo ObjectId)
     (async () => {
       const accessToken = localStorage.getItem('accessToken');
       if (!accessToken) return;
+
+      const isObjectId = /^[a-fA-F0-9]{24}$/.test(String(removed.id));
+      if (!isObjectId) return; // local-only campaign, nothing to delete on backend
+
       try {
         const resp = await fetch(`${getApiBase()}/campaigns/${encodeURIComponent(removed.id)}`, {
           method: 'DELETE',
