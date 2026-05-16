@@ -897,6 +897,14 @@ async function syncCreditsToBackend(balance = userCredits) {
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        // Token invalid/expired — clear stored credentials to avoid repeated bad requests
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        setExplicitLogoutState(true);
+        console.warn('syncCreditsToBackend: received 401, cleared local auth state');
+      }
       return false;
     }
 

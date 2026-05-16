@@ -314,6 +314,10 @@ export const recordEarnAction = async (req, res) => {
 export const syncCredits = async (req, res) => {
   try {
     if (req.user.isGuest) {
+      // If an auth attempt was made (invalid/expired token), return 401 so clients can clear stored tokens.
+      if (req.authAttempted) {
+        return res.status(401).json({ message: 'Invalid or expired token' });
+      }
       return res.status(400).json({ message: 'Please login to sync credits' });
     }
 

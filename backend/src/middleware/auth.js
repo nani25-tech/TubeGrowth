@@ -12,6 +12,7 @@ export const authRequired = async (req, res, next) => {
         isAdmin: false,
         isGuest: true,
       };
+      req.authAttempted = false;
       return next();
     }
 
@@ -19,12 +20,13 @@ export const authRequired = async (req, res, next) => {
     const decoded = verifyToken(token);
 
     if (!decoded) {
-      // Fallback to guest access
+      // Fallback to guest access but mark that an auth attempt was made
       req.user = {
         userId: 'guest',
         isAdmin: false,
         isGuest: true,
       };
+      req.authAttempted = true;
       return next();
     }
 
@@ -44,6 +46,7 @@ export const authRequired = async (req, res, next) => {
       isAdmin: user.isAdmin,
       isGuest: false,
     };
+    req.authAttempted = true;
 
     next();
   } catch (error) {
@@ -54,6 +57,7 @@ export const authRequired = async (req, res, next) => {
       isAdmin: false,
       isGuest: true,
     };
+    req.authAttempted = true;
     next();
   }
 };
