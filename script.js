@@ -446,6 +446,8 @@ async function searchAndOpenDashboard() {
     updateDashboardChannel(resolvedChannelId, finalName, finalLogo);
     await ensureChannelUserInBackend();
     showToast('bi-check-circle-fill', 'Channel Saved', 'Opening your dashboard...');
+    // Show ad units after successful login
+    try { showAdAfterLogin(); } catch (e) { console.warn('showAdAfterLogin error', e); }
     updateCreditsDisplay();
     showSection('dashboard-preview');
   } catch (error) {
@@ -2908,9 +2910,101 @@ async function addPromotion() {
     document.getElementById('creditsNeeded').textContent = '0';
     updateBoostTargetField('', document.getElementById('videoLink'), document.getElementById('videoLinkLabel'));
     updateBoostButtonState(0);
+    // If user selected the special 'ads' promotion type, render an AdSense ad unit
+    if (type === 'ads') {
+      try {
+        showAdUnitNearBoost();
+      } catch (e) {
+        console.warn('showAdUnitNearBoost failed', e);
+      }
+    }
   } catch (error) {
     showToast('bi-x-circle-fill', 'Promotion Failed', error.message || 'Unable to create promotion');
   }
+}
+
+// Renders an AdSense ad unit near the boost panel when requested by user action.
+function showAdUnitNearBoost() {
+  if (!window || !document) return;
+  // Ensure AdSense script is present; if not, it was loaded earlier in head.
+  const containerId = 'boost-ad-container';
+  let container = document.getElementById(containerId);
+  if (!container) {
+    container = document.createElement('div');
+    container.id = containerId;
+    container.style.margin = '12px 0';
+    const boostRight = document.querySelector('.boost-right') || document.body;
+    boostRight.insertBefore(container, boostRight.firstChild);
+  }
+
+  // Create ad ins element
+  const ins = document.createElement('ins');
+  ins.className = 'adsbygoogle';
+  ins.style.display = 'block';
+  ins.setAttribute('data-ad-client', 'ca-pub-8786593139834578');
+  ins.setAttribute('data-ad-slot', '1234567890');
+  ins.setAttribute('data-ad-format', 'auto');
+  ins.setAttribute('data-full-width-responsive', 'true');
+  container.appendChild(ins);
+
+  try {
+    (window.adsbygoogle = window.adsbygoogle || []).push({});
+  } catch (e) {
+    console.warn('adsbygoogle push failed', e);
+  }
+}
+
+// Show ad units after a successful login flow. Inserts ads into dashboard top and promotions area.
+function showAdAfterLogin() {
+  try {
+    showAdUnitInDashboardTop();
+  } catch (e) { console.warn('showAdUnitInDashboardTop failed', e); }
+  try {
+    showAdUnitInPromotions();
+  } catch (e) { console.warn('showAdUnitInPromotions failed', e); }
+}
+
+function showAdUnitInDashboardTop() {
+  const containerId = 'dashboard-ad-container';
+  if (document.getElementById(containerId)) return;
+  const shell = document.querySelector('.dashboard-shell') || document.querySelector('.dashboard-area') || document.body;
+  const container = document.createElement('div');
+  container.id = containerId;
+  container.style.width = '100%';
+  container.style.margin = '12px 0';
+  container.style.display = 'flex';
+  container.style.justifyContent = 'center';
+  const ins = document.createElement('ins');
+  ins.className = 'adsbygoogle';
+  ins.style.display = 'block';
+  ins.style.maxWidth = '728px';
+  ins.setAttribute('data-ad-client', 'ca-pub-8786593139834578');
+  ins.setAttribute('data-ad-slot', '1234567890');
+  ins.setAttribute('data-ad-format', 'auto');
+  container.appendChild(ins);
+  shell.parentNode.insertBefore(container, shell);
+  try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { console.warn('adsbygoogle push failed', e); }
+}
+
+function showAdUnitInPromotions() {
+  const containerId = 'promotions-ad-container';
+  if (document.getElementById(containerId)) return;
+  const promos = document.getElementById('promotions-content') || document.querySelector('.view-promo-layout') || document.body;
+  const container = document.createElement('div');
+  container.id = containerId;
+  container.style.width = '100%';
+  container.style.margin = '12px 0';
+  container.style.display = 'flex';
+  container.style.justifyContent = 'center';
+  const ins = document.createElement('ins');
+  ins.className = 'adsbygoogle';
+  ins.style.display = 'block';
+  ins.setAttribute('data-ad-client', 'ca-pub-8786593139834578');
+  ins.setAttribute('data-ad-slot', '1234567890');
+  ins.setAttribute('data-ad-format', 'auto');
+  container.appendChild(ins);
+  promos.parentNode.insertBefore(container, promos);
+  try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { console.warn('adsbygoogle push failed', e); }
 }
 
 // Initialize boost profile display
