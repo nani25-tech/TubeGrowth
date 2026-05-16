@@ -265,34 +265,15 @@ export const deleteCampaign = async (req, res) => {
       return res.status(403).json({ message: 'You cannot delete this campaign' });
     }
 
-    // Calculate refund amount
-    const refundAmount = campaign.cost;
-
-    // Delete campaign
+    // Delete campaign without refunding credits per current policy
     await Campaign.findByIdAndDelete(id).session(session);
 
-    // Refund credits to user
-    try {
-      const refundResult = await creditOps.refundCredits(
-        userId,
-        refundAmount,
-        'campaign_spend',
-        id,
-        `Campaign deletion: ${campaign.targetCount} ${campaign.type} - ${campaign.channelName}`,
-        session
-      );
+    await session.commitTransaction();
 
-      await session.commitTransaction();
-
-      res.json({
-        message: 'Campaign deleted and credits refunded',
-        refundedCredits: refundAmount,
-        newBalance: refundResult.user.credits,
-      });
-    } catch (creditError) {
-      await session.abortTransaction();
-      throw creditError;
-    }
+    res.json({
+      message: 'Campaign deleted (no refund)',
+      deletedCampaignId: id,
+    });
   } catch (error) {
     await session.abortTransaction();
     console.error('Delete campaign error:', error);
