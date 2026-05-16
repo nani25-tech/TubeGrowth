@@ -172,10 +172,12 @@
   width: auto;
   margin: 0;
   padding: 0;
-  white-space: nowrap;
-  flex-wrap: nowrap;
+  white-space: normal;
+  flex-wrap: wrap;
   cursor: pointer;
   text-align: left;
+  /* Place agreement before inputs on wide screens */
+  order: -1;
 }
 
 /* Checkbox */
@@ -194,8 +196,29 @@
   font-size: 14px;
   line-height: 1.4;
   color: #374151;
-  white-space: nowrap;
+  white-space: normal;
   text-align: left;
+}
+
+/* Responsive: stack the form on small screens and keep agreement full width */
+@media (max-width: 767px) {
+  .free-boost-form {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    white-space: normal;
+  }
+
+  .free-boost-agreement {
+    order: 0;
+    width: 100%;
+    margin: 0 0 6px 0;
+    justify-content: flex-start;
+  }
+
+  .free-boost-agreement-checkbox {
+    margin-right: 8px;
+  }
 }
 
 /* Links */
