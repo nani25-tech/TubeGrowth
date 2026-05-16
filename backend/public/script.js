@@ -879,6 +879,13 @@ async function syncCreditsToBackend(balance = userCredits) {
     return false;
   }
 
+  // Validate credits value before sending
+  const numericCredits = Number(balance);
+  if (!Number.isFinite(numericCredits) || numericCredits < 0) {
+    console.warn('syncCreditsToBackend: invalid credits value', balance);
+    return false;
+  }
+
   try {
     const response = await fetch(`${getApiBase()}/user/credits/sync`, {
       method: 'POST',
@@ -886,7 +893,7 @@ async function syncCreditsToBackend(balance = userCredits) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${accessToken}`,
       },
-      body: JSON.stringify({ credits: balance }),
+      body: JSON.stringify({ credits: Math.floor(numericCredits) }),
     });
 
     if (!response.ok) {
