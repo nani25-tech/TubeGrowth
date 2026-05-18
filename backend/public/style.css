@@ -2414,6 +2414,23 @@ a:hover, a:focus { color: var(--link-hover) !important; text-decoration: underli
 input, textarea, select { color: var(--text) !important; background: #0F2D4D !important; border: 1px solid #444 !important; }
 input::placeholder, textarea::placeholder { color: #888 !important; }
 
+/* Contact form: make inputs light and stacked inside `.shell` for readability */
+.shell form label { display: block; margin-bottom: 12px; font-weight: 700; color: #000; }
+.shell form input, .shell form textarea, .shell form select {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #d1d5db !important;
+  padding: 10px 12px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  border-radius: 6px !important;
+  margin-top: 6px !important;
+}
+.shell form textarea { resize: vertical; min-height: 100px; }
+.shell form button { background: #0b66c3; color: #fff; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 700; }
+.shell form button:disabled { opacity: 0.6; cursor: not-allowed; }
+.shell form div { margin-top: 12px; }
+
 /* Buttons - ensure text contrast */
 button, .btn, .nav-cta { color: #fff !important; }
 
