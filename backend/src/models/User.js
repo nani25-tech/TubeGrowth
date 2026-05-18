@@ -125,6 +125,9 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
 
 // Generate referral code
 userSchema.methods.generateReferralCode = function () {
+  // If a referral code already exists, keep it (single code per user forever)
+  if (this.referralCode) return this.referralCode;
+
   const code = 'TGB' + this._id.toString().slice(-8).toUpperCase();
   this.referralCode = code;
   return code;
