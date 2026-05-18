@@ -500,12 +500,7 @@ async function searchAndOpenDashboard() {
     return;
   }
 
-  // Require agreement to privacy & terms when checkbox is present
-  const agreeEl = document.getElementById('agreeTermsAndPrivacy');
-  if (agreeEl && !agreeEl.checked) {
-    showToast('bi-exclamation-triangle-fill', 'Agreement Required', 'Please read and agree to the privacy policy and terms and conditions');
-    return;
-  }
+  // Agreement checkbox removed — proceed without agreement check
 
   // Save channel info to localStorage for dashboard
   setExplicitLogoutState(false);
