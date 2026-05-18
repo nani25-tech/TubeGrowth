@@ -417,7 +417,7 @@
 /* Make the main content area white with dark text for readability */
 .shell {
   background: #ffffff;
-  color: #111111;
+  color: #000000; /* make main content text black */
   border-radius: 8px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.08);
   padding: 48px 24px 72px;
@@ -431,20 +431,20 @@
 .shell h1 {
   font-size: clamp(2rem, 4vw, 3rem);
   margin-bottom: 16px;
-  color: var(--text);
+  color: #000000;
 }
 
 .shell h2 {
   margin-top: 32px;
   margin-bottom: 12px;
   font-size: clamp(1.25rem, 2.4vw, 1.6rem);
-  color: var(--text);
+  color: #000000;
 }
 
 .shell p,
 .shell li {
   font-size: 1rem;
-  color: var(--text);
+  color: #000000;
 }
 
 .shell ul {
