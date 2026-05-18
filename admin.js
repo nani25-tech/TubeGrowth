@@ -23,6 +23,13 @@ function getApiBase() {
     return 'http://localhost:5000/api';
   }
 
+  // If this admin UI is served from the production domain but the runtime meta is
+  // missing (cached/older copy), prefer the deployed backend service to ensure
+  // admin actions work while DNS/hosting finishes propagation.
+  if (host === 'tubegrowth.me') {
+    return 'https://tubegrowth.onrender.com/api';
+  }
+
   return 'https://tubegrowth.me/api';
 }
 
