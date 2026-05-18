@@ -411,7 +411,7 @@
   max-width: 920px;
   margin: 0 auto;
   padding: 64px 24px 96px;
-  color: #000000;
+  color: var(--text); /* use light text on dark background */
   line-height: 1.7;
 }
 /* Ensure main content sits above subtle overlay */
@@ -423,20 +423,20 @@
 .shell h1 {
   font-size: clamp(2rem, 4vw, 3rem);
   margin-bottom: 16px;
-  color: #000000;
+  color: var(--text);
 }
 
 .shell h2 {
   margin-top: 32px;
   margin-bottom: 12px;
   font-size: clamp(1.25rem, 2.4vw, 1.6rem);
-  color: #000000;
+  color: var(--text);
 }
 
 .shell p,
 .shell li {
   font-size: 1rem;
-  color: #000000;
+  color: var(--text);
 }
 
 .shell ul {
