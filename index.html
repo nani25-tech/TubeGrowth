@@ -110,10 +110,6 @@
       <p class="form-label">Enter YouTube Channel Link / Channel ID:</p>
       
       <div class="free-boost-form">
-        <div class="free-boost-agreement" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-          <input type="checkbox" id="agreeTermsAndPrivacy" class="free-boost-agreement-checkbox" aria-describedby="agreeHelp" />
-          <label for="agreeTermsAndPrivacy" class="free-boost-agreement-text">I read and agree to <a href="/privacy.html">privacy policy</a> and <a href="/terms.html">terms and conditions</a></label>
-        </div>
         <label for="channelSearchInput" class="sr-only" style="position:absolute;left:-9999px;">Channel ID</label>
         <input 
           type="text" 
@@ -122,6 +118,10 @@
           placeholder="Enter your Channel ID"
           value=""
         />
+        <div class="free-boost-agreement" style="display:flex;align-items:center;gap:10px;margin-top:12px;">
+          <input type="checkbox" id="agreeTermsAndPrivacy" class="free-boost-agreement-checkbox" aria-describedby="agreeHelp" />
+          <label for="agreeTermsAndPrivacy" class="free-boost-agreement-text">I read and agree to <a href="/privacy.html">privacy policy</a> and <a href="/terms.html">terms and conditions</a></label>
+        </div>
         <button type="button" class="free-boost-search-btn" onclick="searchAndOpenDashboard()">SEARCH CHANNEL</button>
       </div>
       
