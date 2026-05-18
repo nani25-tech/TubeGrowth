@@ -124,6 +124,7 @@
           <input type="checkbox" id="agreeTermsAndPrivacy" class="free-boost-agreement-checkbox" aria-describedby="agreeHelp" />
           <label for="agreeTermsAndPrivacy" class="free-boost-agreement-text">I read and agree to <a href="/privacy.html">privacy policy</a> and <a href="/terms.html">terms and conditions</a></label>
         </div>
+        
         <button type="button" class="free-boost-search-btn" onclick="searchAndOpenDashboard()">SEARCH CHANNEL</button>
       </div>
       <p class="form-help"><a href="#" class="form-link">Where I can find my YouTube Channel ID</a></p>
@@ -872,21 +873,21 @@
       <article class="boost-info-card">
         <header class="boost-info-head">Important:</header>
         <div class="boost-info-body">
-          <ul>
-            <li>You cannot boost same link more than one time, but you can always increase the required count by editing the promotion in view promotions page.</li>
-            <li>You cannot boost any other profile or any other profile posts by using your credits.</li>
-            <li>No one other than you can use your credits to get likes/subscribers on his/her account.</li>
-            <li>You cannot transfer credits to any other username.</li>
-          </ul>
+      <div class="free-boost-form">
+        <div class="free-boost-agreement" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <input type="checkbox" id="agreeTermsAndPrivacy" class="free-boost-agreement-checkbox" aria-describedby="agreeHelp" />
+          <label for="agreeTermsAndPrivacy" class="free-boost-agreement-text">I read and agree to <a href="/privacy.html">privacy policy</a> and <a href="/terms.html">terms and conditions</a></label>
         </div>
-      </article>
-    </div>
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <div>
+        <label for="channelSearchInput" class="sr-only" style="position:absolute;left:-9999px;">Channel ID</label>
+        <input 
+          type="text" 
+          id="channelSearchInput" 
+          class="free-boost-input" 
+          placeholder="Enter your Channel ID"
+          value=""
+        />
+        <button type="button" class="free-boost-search-btn" onclick="searchAndOpenDashboard()">SEARCH CHANNEL</button>
+      </div>
     <div class="footer-logo-container">
       <div class="footer-logo">TG</div>
       <div class="footer-logo-text"><span class="footer-logo-part-1">TUBE</span> <span class="footer-logo-part-2">GROWTH</span></div>
