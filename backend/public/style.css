@@ -414,6 +414,14 @@
   color: var(--text); /* use light text on dark background */
   line-height: 1.7;
 }
+/* Make the main content area white with dark text for readability */
+.shell {
+  background: #ffffff;
+  color: #111111;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  padding: 48px 24px 72px;
+}
 /* Ensure main content sits above subtle overlay */
 .shell {
   position: relative;
