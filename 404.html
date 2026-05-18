@@ -13,13 +13,10 @@
     var isGithubPages = /github\.io$/i.test(currentHost);
     var path = window.location.pathname + (window.location.search || '') + (window.location.hash || '');
     
-    // Always redirect if on github.io or any other non-canonical domain
+    // Only force-redirect when on a non-canonical domain (example: github.io)
     if (isGithubPages || (currentHost !== canonicalHost && currentHost !== 'localhost' && currentHost !== '127.0.0.1')) {
+      // Preserve path when redirecting to canonical host
       window.location.href = 'https://' + canonicalHost + path;
-    } else if (path && path !== '/') {
-      // If on canonical domain but path exists, redirect to index with path in sessionStorage
-      sessionStorage.redirect = path;
-      window.location.href = '/';
     }
   </script>
 </head>
