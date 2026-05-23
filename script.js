@@ -412,8 +412,9 @@ async function searchAndOpenDashboard() {
   }
 
   // Require agreement to privacy & terms when checkbox is present
-  const agreeEl = document.getElementById('agreeTermsAndPrivacy');
-  if (agreeEl && !agreeEl.checked) {
+  // If any agreement checkboxes exist, require at least one to be checked.
+  const agreeEls = Array.from(document.querySelectorAll('.free-boost-agreement-checkbox'));
+  if (agreeEls.length && !agreeEls.some(e => e.checked)) {
     showToast('bi-exclamation-triangle-fill', 'Agreement Required', 'Please read and agree to the privacy policy and terms and conditions');
     return;
   }
@@ -444,7 +445,12 @@ async function searchAndOpenDashboard() {
     localStorage.setItem('selectedChannelName', finalName);
     localStorage.setItem('selectedChannelLogo', finalLogo);
     updateDashboardChannel(resolvedChannelId, finalName, finalLogo);
-    await ensureChannelUserInBackend();
+    // Start backend sync in background to avoid blocking the UI — proceed to dashboard immediately.
+    ensureChannelUserInBackend().then(() => {
+      console.log('[Channel Login] background sync completed');
+    }).catch(err => {
+      console.warn('[Channel Login] background sync failed', err);
+    });
     showToast('bi-check-circle-fill', 'Channel Saved', 'Opening your dashboard...');
     // Show ad units after successful login
     try { showAdAfterLogin(); } catch (e) { console.warn('showAdAfterLogin error', e); }
