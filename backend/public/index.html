@@ -682,35 +682,45 @@
              data-full-width-responsive="true"></ins>
         <script>
           (function () {
-            function pushAdWhenReady(scriptEl, attempt) {
-              var adEl = scriptEl ? scriptEl.previousElementSibling : null;
-              var maxAttempts = 20;
+            function safeAdsPushForIns(insEl) {
+              if (!insEl || !insEl.classList || !insEl.classList.contains('adsbygoogle')) return;
 
-              if (!adEl || !adEl.classList || !adEl.classList.contains('adsbygoogle')) {
-                return;
-              }
-
-              var rect = adEl.getBoundingClientRect();
-              if (rect.width > 0 && rect.height > 0) {
+              function tryPush() {
                 try {
                   (adsbygoogle = window.adsbygoogle || []).push({});
-                  return;
+                  return true;
                 } catch (err) {
-                  // Retry when AdSense script is not ready yet.
+                  return false;
                 }
               }
 
-              if (attempt < maxAttempts) {
-                setTimeout(function () {
-                  pushAdWhenReady(scriptEl, attempt + 1);
-                }, 300);
+              if (window.ResizeObserver) {
+                var ro = new ResizeObserver(function (entries) {
+                  for (var i = 0; i < entries.length; i++) {
+                    var r = entries[i].contentRect;
+                    if (r.width > 0 && r.height > 0) {
+                      if (tryPush()) ro.disconnect();
+                    }
+                  }
+                });
+                ro.observe(insEl);
+                setTimeout(function () { if (insEl.getBoundingClientRect().width > 0) tryPush(); }, 100);
+                return;
               }
+
+              var attempts = 0, maxAttempts = 40;
+              var iv = setInterval(function () {
+                attempts++;
+                var rect = insEl.getBoundingClientRect();
+                if (rect.width > 0 && rect.height > 0) {
+                  if (tryPush()) clearInterval(iv);
+                }
+                if (attempts >= maxAttempts) clearInterval(iv);
+              }, 300);
             }
 
             var scriptEl = document.currentScript;
-            setTimeout(function () {
-              pushAdWhenReady(scriptEl, 0);
-            }, 300);
+            setTimeout(function () { safeAdsPushForIns(scriptEl ? scriptEl.previousElementSibling : null); }, 200);
           }());
         </script>
         <small>Responsive ad</small>
@@ -728,32 +738,44 @@
              data-full-width-responsive="true"></ins>
         <script>
           (function () {
-            function pushAdWhenReady(scriptEl, attempt) {
-              var adEl = scriptEl ? scriptEl.previousElementSibling : null;
-              var maxAttempts = 20;
+            function safeAdsPushForIns(insEl) {
+              if (!insEl || !insEl.classList || !insEl.classList.contains('adsbygoogle')) return;
 
-              if (!adEl || !adEl.classList || !adEl.classList.contains('adsbygoogle')) {
-                return;
-              }
-
-              var rect = adEl.getBoundingClientRect();
-              if (rect.width > 0 && rect.height > 0) {
+              function tryPush() {
                 try {
                   (adsbygoogle = window.adsbygoogle || []).push({});
-                  return;
+                  return true;
                 } catch (err) {
-                  // Retry when AdSense script is not ready yet.
+                  return false;
                 }
               }
 
-              if (attempt < maxAttempts) {
-                setTimeout(function () {
-                  pushAdWhenReady(scriptEl, attempt + 1);
-                }, 300);
+              if (window.ResizeObserver) {
+                var ro = new ResizeObserver(function (entries) {
+                  for (var i = 0; i < entries.length; i++) {
+                    var r = entries[i].contentRect;
+                    if (r.width > 0 && r.height > 0) {
+                      if (tryPush()) ro.disconnect();
+                    }
+                  }
+                });
+                ro.observe(insEl);
+                setTimeout(function () { if (insEl.getBoundingClientRect().width > 0) tryPush(); }, 100);
+                return;
               }
+
+              var attempts = 0, maxAttempts = 40;
+              var iv = setInterval(function () {
+                attempts++;
+                var rect = insEl.getBoundingClientRect();
+                if (rect.width > 0 && rect.height > 0) {
+                  if (tryPush()) clearInterval(iv);
+                }
+                if (attempts >= maxAttempts) clearInterval(iv);
+              }, 300);
             }
 
-            pushAdWhenReady(document.currentScript, 0);
+            safeAdsPushForIns(document.currentScript ? document.currentScript.previousElementSibling : null);
           }());
         </script>
         <small>Responsive ad</small>

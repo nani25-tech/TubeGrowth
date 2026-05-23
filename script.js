@@ -2924,6 +2924,45 @@ async function addPromotion() {
 }
 
 // Renders an AdSense ad unit near the boost panel when requested by user action.
+// Helper: safely push AdSense when the ad element has a measurable size
+function safeAdsPush(insEl) {
+  if (!insEl) return;
+
+  function tryPush() {
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  if (window.ResizeObserver) {
+    var ro = new ResizeObserver(function (entries) {
+      for (var i = 0; i < entries.length; i++) {
+        var r = entries[i].contentRect;
+        if (r.width > 0 && r.height > 0) {
+          if (tryPush()) ro.disconnect();
+        }
+      }
+    });
+    try { ro.observe(insEl); } catch (e) { /* ignore */ }
+    setTimeout(function () { if (insEl.getBoundingClientRect && insEl.getBoundingClientRect().width > 0) tryPush(); }, 100);
+    return;
+  }
+
+  var attempts = 0, maxAttempts = 40;
+  var iv = setInterval(function () {
+    attempts++;
+    try {
+      var rect = insEl.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        if (tryPush()) clearInterval(iv);
+      }
+    } catch (e) {}
+    if (attempts >= maxAttempts) clearInterval(iv);
+  }, 300);
+}
 function showAdUnitNearBoost() {
   if (!window || !document) return;
   // Ensure AdSense script is present; if not, it was loaded earlier in head.
@@ -2946,12 +2985,8 @@ function showAdUnitNearBoost() {
   ins.setAttribute('data-ad-format', 'auto');
   ins.setAttribute('data-full-width-responsive', 'true');
   container.appendChild(ins);
-
-  try {
-    (window.adsbygoogle = window.adsbygoogle || []).push({});
-  } catch (e) {
-    console.warn('adsbygoogle push failed', e);
-  }
+  // Use safe push helper to wait until the element has a measurable size
+  safeAdsPush(ins);
 }
 
 // Show ad units after a successful login flow. Inserts ads into dashboard top and promotions area.
@@ -2983,7 +3018,7 @@ function showAdUnitInDashboardTop() {
   ins.setAttribute('data-ad-format', 'auto');
   container.appendChild(ins);
   shell.parentNode.insertBefore(container, shell);
-  try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { console.warn('adsbygoogle push failed', e); }
+  safeAdsPush(ins);
 }
 
 function showAdUnitInPromotions() {
@@ -3004,7 +3039,7 @@ function showAdUnitInPromotions() {
   ins.setAttribute('data-ad-format', 'auto');
   container.appendChild(ins);
   promos.parentNode.insertBefore(container, promos);
-  try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { console.warn('adsbygoogle push failed', e); }
+  safeAdsPush(ins);
 }
 
 // Initialize boost profile display
