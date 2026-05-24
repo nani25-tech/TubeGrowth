@@ -56,17 +56,21 @@
   <link rel="stylesheet" href="style.css?v=20260516-3">
 <!-- Load AdSense script only for real users; skip for crawlers to avoid external robots warnings -->
 <script>
+  // Toggle this to true only after AdSense account has been approved and you want ads enabled.
+  window.__LOAD_ADS = false; // set to true to enable loading AdSense scripts
   (function(){
     try {
       var ua = (navigator && navigator.userAgent) || '';
-      if (!/Googlebot|AdsBot-Google/i.test(ua)) {
+      // Only load AdSense when explicitly enabled and when not a crawler
+      if (window.__LOAD_ADS && !/Googlebot|AdsBot-Google/i.test(ua)) {
         var s = document.createElement('script');
         s.async = true;
         s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8786593139834578';
         s.crossOrigin = 'anonymous';
         document.head.appendChild(s);
       } else {
-        console.log('AdSense skipped for crawler');
+        if (!window.__LOAD_ADS) console.log('AdSense loader disabled by site configuration');
+        else console.log('AdSense skipped for crawler');
       }
     } catch (e) { console.warn('ads loader error', e); }
   })();
