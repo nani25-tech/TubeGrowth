@@ -76,7 +76,7 @@ try {
   await session.abortTransaction(); // Both rollback or both commit
 }
 ```
-✅ **Result:** All-or-nothing operations guaranteed
+✅ **Result:** All-or-nothing operations are enforced
 
 ---
 

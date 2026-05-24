@@ -2,7 +2,7 @@
 
 ## Summary of Changes
 
-This document outlines all the fixes implemented to make the credit system production-ready and bulletproof.
+This document outlines all the fixes implemented to make the credit system production-ready and robust.
 
 ---
 

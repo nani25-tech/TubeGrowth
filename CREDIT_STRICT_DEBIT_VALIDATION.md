@@ -313,8 +313,8 @@ db.credittransactions.find({ type: 'spend' }).forEach(tx => {
 
 ## Summary
 
-| Aspect | Guarantee |
-|--------|-----------|
+| Aspect | Status |
+|--------|--------|
 | **Decimals** | ❌ Rejected |
 | **Floating Point** | ❌ Rejected |
 | **Math** | ✅ Verified (before ± amount = after) |
@@ -324,4 +324,4 @@ db.credittransactions.find({ type: 'spend' }).forEach(tx => {
 | **Audit Trail** | ✅ Every change verified |
 | **Duplicates** | ❌ Prevented |
 
-**Status:** ✅ Bulletproof credit system with strict validation
+**Status:** ✅ Robust credit system with strict validation
