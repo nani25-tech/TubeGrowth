@@ -3744,6 +3744,15 @@ document.addEventListener('DOMContentLoaded', () => {
   trackReferralReward();
   
   // Close modal on overlay click
+
+    // Try to sync promotions from backend on load so guests see active campaigns
+    if (typeof syncPromotionsFromBackend === 'function') {
+      try {
+        syncPromotionsFromBackend().then((ok) => {
+          if (ok) console.info('[init] Promotions synced from backend');
+        }).catch((e) => console.warn('[init] syncPromotionsFromBackend failed', e));
+      } catch (e) { console.warn('[init] syncPromotionsFromBackend error', e); }
+    }
   const modal = document.getElementById('earnModal');
   if (modal) {
     modal.addEventListener('click', (e) => {
