@@ -2194,6 +2194,14 @@ function getSubscribePromotions(campaigns) {
   });
 }
 
+function getBoostProfileStorage() {
+  try {
+    return JSON.parse(localStorage.getItem('boostProfileStorage')) || {};
+  } catch (e) {
+    return {};
+  }
+}
+
 function getSubscribePromotionLabel(campaign) {
   return campaign?.channelName || getChannelDisplayName(getCampaignReference(campaign)) || campaign?.channelId || 'Promoted Channel';
 }
@@ -2264,6 +2272,22 @@ function renderSubscribePromotionList(campaigns, subscribeVerifyBtn, subscribeVe
     emptyState.style.cssText = 'padding:12px 14px; border:1px dashed rgba(255,255,255,0.25); border-radius:12px; color:#cfcfcf; font-size:13px;';
     emptyState.textContent = 'No promoted channels are available right now.';
     listEl.appendChild(emptyState);
+    // Also populate subscribe modal link/name from boost profile storage if available
+    try {
+      const boost = getBoostProfileStorage();
+      const linkEl = document.getElementById('subscribe-link');
+      const nameEl = document.getElementById('subscribe-channel-name');
+      if (linkEl && nameEl) {
+        const href = promotionVideoLinkToHref(boost.channelLink || boost.videoLink || '');
+        linkEl.href = href || '#';
+        linkEl.onclick = (event) => openEarnLink('subscribe', href, linkEl) ? undefined : event.preventDefault();
+        nameEl.textContent = boost.channelLink || boost.channelName || 'Channel: Add a promotion in Boost Profile';
+      }
+      if (subscribeVerifyBtn) {
+        subscribeVerifyBtn.disabled = true;
+        subscribeVerifyBtn.innerHTML = subscribeVerifyOriginal || '<i class="bi bi-check2-circle"></i> Verify';
+      }
+    } catch (e) { /* ignore */ }
     return [];
   }
 
@@ -2573,9 +2597,13 @@ function showEarnModal(taskType) {
         savePromotionHistory(historyKey, history);
       }
     } else if (linkEl && nameEl) {
-      linkEl.href = 'https://youtube.com/@TubeGrowth';
+      // Fallback to boost profile storage if available
+      const boost = getBoostProfileStorage();
+      const fallbackLink = boost.videoLink || boost.channelLink || 'https://youtube.com/@TubeGrowth';
+      linkEl.href = promotionVideoLinkToHref(fallbackLink);
       linkEl.onclick = (event) => openEarnLink(taskType, linkEl.href, linkEl) ? undefined : event.preventDefault();
-      nameEl.textContent = 'Channel: Add a promotion in Boost Profile';
+      const channelLabel = boost.channelLink || boost.channelName || 'Add a promotion in Boost Profile';
+      nameEl.textContent = `Channel: ${channelLabel}`;
     }
   }
 }
@@ -3228,6 +3256,17 @@ async function addPromotion() {
       progress: 0,
     };
 
+    // Save boost profile details for quick access in earn flows
+    try {
+      const boostStorage = {
+        channelLink: campaign.channelId || campaign.channelName || '',
+        videoLink: type === 'subs' ? (campaign.channelId || campaign.channelName || '') : campaign.videoLink || '',
+        lastUpdated: new Date().toISOString(),
+      };
+      localStorage.setItem('boostProfileStorage', JSON.stringify(boostStorage));
+    } catch (e) {
+      console.warn('Failed to save boostProfileStorage', e);
+    }
     const campaigns = getStoredPromotions();
     campaigns.unshift(campaign);
     localStorage.setItem('campaigns', JSON.stringify(campaigns));
