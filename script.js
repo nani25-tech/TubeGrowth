@@ -975,10 +975,20 @@ function getApiBase() {
   const host = window.location.hostname;
   const port = window.location.port;
   const protocol = window.location.protocol;
+
+  // Local development
   if (protocol === 'file:' || host === '' || host === 'localhost' || host === '127.0.0.1' || port === '5000') {
     return 'http://localhost:5000/api';
   }
-  return 'https://tubegrowth.me/api';
+
+  // When the static site is served from tubegrowth.me (DNS static hosting),
+  // prefer the backend Render service which hosts the API.
+  if (host === 'tubegrowth.me' || host.endsWith('.tubegrowth.me')) {
+    return 'https://tubegrowth.onrender.com/api';
+  }
+
+  // Default to same-origin API for other hosts
+  return protocol + '//' + host + (port ? ':' + port : '') + '/api';
 }
 
 function applyServerCreditBalance(balance) {

@@ -13,12 +13,19 @@ if (typeof getApiBase !== 'function') {
 
       const host = window.location.hostname || '';
       const protocol = window.location.protocol || 'https:';
+
+      // Local development
       if (protocol === 'file:' || host === '' || host === 'localhost' || host === '127.0.0.1') {
         return 'http://localhost:5000/api';
       }
-      // Default origin (may be intercepted by static hosting/CDN if DNS points to GitHub Pages)
-      const backendOrigin = 'https://tubegrowth.me';
-      return backendOrigin + '/api';
+
+      // When served from tubegrowth.me, prefer the backend Render API which hosts the real API
+      if (host === 'tubegrowth.me' || host.endsWith('.tubegrowth.me')) {
+        return 'https://tubegrowth.onrender.com/api';
+      }
+
+      // Default to same-origin API for other hosts
+      return protocol + '//' + host + (window.location.port ? ':' + window.location.port : '') + '/api';
     } catch (err) {
       return '/api';
     }
