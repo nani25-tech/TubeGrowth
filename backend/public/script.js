@@ -3483,7 +3483,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // VIEW PROMOTIONS FUNCTIONS
 let currentPage = 1;
-const itemsPerPage = 4;
+// Increase itemsPerPage so view promotions shows more campaigns per page
+const itemsPerPage = 100;
 
 async function initializeViewPromotions() {
   currentPage = 1;
