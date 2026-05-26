@@ -1,5 +1,5 @@
 ﻿// Automatically register/login user with channel ID and name
-async function ensureChannelUserInBackend() {
+async function ensureChannelUserInBackend(forceRefresh = false) {
   let channelId = restoreSelectedChannelSession();
   if (!channelId) return;
 
@@ -20,7 +20,7 @@ async function ensureChannelUserInBackend() {
   localStorage.setItem('selectedChannelName', channelName);
   const syncSignature = `${channelId}::${channelName.toLowerCase()}`;
   const existingToken = localStorage.getItem('accessToken') || '';
-  if (existingToken && localStorage.getItem(CHANNEL_SYNC_SIGNATURE_KEY) === syncSignature) {
+  if (!forceRefresh && existingToken && localStorage.getItem(CHANNEL_SYNC_SIGNATURE_KEY) === syncSignature) {
     return;
   }
 
@@ -72,14 +72,6 @@ try {
   console.warn('Corrupt localStorage.user found, clearing it to avoid syntax errors');
   try { localStorage.removeItem('user'); } catch (e) {}
 }
-// DEFAULT SUBSCRIBE CHANNELS FOR EARN CREDITS
-const DEFAULT_SUBSCRIBE_CHANNELS = [
-  'UCmam8Q0LmXbyjU4ZuOln-Zg',
-  'UCKCt8T9Z5MbnOgbxA3PYJNQ',
-  'UCXsx4kQEJsIMrdAtm-mayuw',
-  'UC38mFaJiTacvINx-QdQnpOw'
-];
-
 const PROTECTED_SECTION_IDS = new Set(['dashboard-preview', 'earn-credits', 'get-started', 'services']);
 const LOGOUT_STATE_KEY = 'isExplicitlyLoggedOut';
 const CHANNEL_SYNC_SIGNATURE_KEY = 'lastSyncedChannelSignature';
@@ -814,7 +806,18 @@ async function syncCreditsToBackend(balance = userCredits) {
 
     if (!response.ok) {
       if (response.status === 401) {
-        // Token invalid/expired — clear stored credentials to avoid repeated bad requests
+        // Try to restore the channel session before clearing state. This avoids
+        // treating a stale token as a manual logout after refresh.
+        try {
+          await ensureChannelUserInBackend(true);
+          const refreshedToken = localStorage.getItem('accessToken');
+          if (refreshedToken) {
+            return true;
+          }
+        } catch (reauthError) {
+          console.warn('syncCreditsToBackend: reauth after 401 failed', reauthError);
+        }
+
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
@@ -975,7 +978,7 @@ function getApiBase() {
   if (protocol === 'file:' || host === '' || host === 'localhost' || host === '127.0.0.1' || port === '5000') {
     return 'http://localhost:5000/api';
   }
-  return 'https://tubegrowth.me/api';
+  return 'https://tubegrowth.zone.id/api';
 }
 
 function applyServerCreditBalance(balance) {
@@ -2007,6 +2010,292 @@ function normalizeChannelReference(value) {
   return trimmed.replace(/^https?:\/\//, '').replace(/^www\./, '');
 }
 
+function normalizeCampaignStatus(status) {
+  return String(status || '').trim().toLowerCase();
+}
+
+function isPromotableCampaign(campaign) {
+  const status = normalizeCampaignStatus(campaign?.status);
+  return status === 'active' || status === 'in progress';
+}
+
+function isCompletedCampaign(campaign) {
+  return normalizeCampaignStatus(campaign?.status) === 'completed';
+}
+
+function getCampaignReference(campaign) {
+  return String(campaign?.videoLink || campaign?.channelId || campaign?.channelName || '').trim();
+}
+
+function normalizePromotionCampaign(campaign) {
+  const quantity = Number(campaign?.quantity ?? campaign?.targetCount ?? 0);
+  const progress = Number(campaign?.progress);
+  const currentCount = Number(campaign?.currentCount ?? 0);
+  const normalizedQuantity = Number.isFinite(quantity) && quantity > 0 ? quantity : 0;
+
+  return {
+    id: String(campaign?.id || campaign?._id || Date.now()),
+    type: String(campaign?.type || '').trim(),
+    videoLink: String(campaign?.videoLink || campaign?.channelId || '').trim(),
+    channelId: String(campaign?.channelId || '').trim(),
+    channelName: String(campaign?.channelName || '').trim(),
+    targetLabel: String(campaign?.targetLabel || '').trim(),
+    quantity: normalizedQuantity,
+    costPaid: Number(campaign?.costPaid ?? campaign?.cost ?? 0) || 0,
+    status: normalizeCampaignStatus(campaign?.status || 'active') || 'active',
+    dateCreated: String(
+      campaign?.dateCreated ||
+      (campaign?.createdAt ? new Date(campaign.createdAt).toLocaleDateString() : '')
+    ),
+    progress: Number.isFinite(progress)
+      ? Math.max(0, Math.min(100, progress))
+      : (normalizedQuantity > 0 && Number.isFinite(currentCount)
+        ? Math.max(0, Math.min(100, Math.round((currentCount / normalizedQuantity) * 100)))
+        : 0),
+  };
+}
+
+function getStoredPromotions() {
+  const campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
+  const normalizedCampaigns = campaigns.map(normalizePromotionCampaign);
+  if (JSON.stringify(campaigns) !== JSON.stringify(normalizedCampaigns)) {
+    localStorage.setItem('campaigns', JSON.stringify(normalizedCampaigns));
+  }
+  return normalizedCampaigns;
+}
+
+function getPromotionTargetLabel(campaign) {
+  if (!campaign) return '—';
+
+  if (campaign.type === 'subs') {
+    return campaign.channelName || campaign.channelId || campaign.videoLink || 'Promoted Channel';
+  }
+
+  if (campaign.type === 'likes' || campaign.type === 'views' || campaign.type === 'comments') {
+    return campaign.videoLink || campaign.targetLabel || campaign.channelName || 'Promoted Video';
+  }
+
+  return campaign.targetLabel || campaign.channelName || campaign.videoLink || campaign.channelId || '—';
+}
+
+function getPromotionLinkLabel(campaign) {
+  if (!campaign) return '—';
+  const rawLink = campaign.videoLink || campaign.channelId || '';
+
+  if (!rawLink) return '—';
+  if (rawLink.length > 52) {
+    return `${rawLink.slice(0, 49)}...`;
+  }
+
+  return rawLink;
+}
+
+function getSubscribePromotions(campaigns) {
+  const currentChannel = normalizeChannelReference(localStorage.getItem('selectedChannelId') || localStorage.getItem('selectedChannelName'));
+  const seen = new Set();
+
+  return campaigns.filter((campaign) => {
+    if (campaign.type !== 'subs' || !isPromotableCampaign(campaign)) {
+      return false;
+    }
+
+    const ref = normalizeChannelReference(getCampaignReference(campaign));
+    if (!ref || (currentChannel && ref === currentChannel) || seen.has(ref)) {
+      return false;
+    }
+
+    seen.add(ref);
+    return true;
+  });
+}
+
+function getSubscribePromotionLabel(campaign) {
+  return campaign?.channelName || getChannelDisplayName(getCampaignReference(campaign)) || campaign?.channelId || 'Promoted Channel';
+}
+
+let subscribePromoSelectionToken = 0;
+
+function setSubscribePromoSelection(campaign, subscribeVerifyBtn, subscribeVerifyOriginal) {
+  const linkEl = document.getElementById('subscribe-link');
+  const nameEl = document.getElementById('subscribe-channel-name');
+  if (!campaign || !linkEl || !nameEl) return;
+
+  const selectionToken = ++subscribePromoSelectionToken;
+  const campaignRef = getCampaignReference(campaign);
+  const href = promotionVideoLinkToHref(campaignRef);
+  const displayLabel = getSubscribePromotionLabel(campaign);
+
+  linkEl.href = href;
+  linkEl.onclick = (event) => openEarnLink('subscribe', href, linkEl) ? undefined : event.preventDefault();
+  nameEl.textContent = `Channel: ${displayLabel}`;
+
+  if (subscribeVerifyBtn) {
+    subscribeVerifyBtn.disabled = true;
+    subscribeVerifyBtn.innerHTML = '<i class="bi bi-clock-fill"></i> Preparing...';
+  }
+
+  (async () => {
+    const startCount = await fetchChannelSubscriberCount(campaignRef);
+    const title = await fetchChannelTitle(campaignRef);
+
+    if (selectionToken !== subscribePromoSelectionToken) {
+      return;
+    }
+
+    if (title) {
+      nameEl.textContent = `Channel: ${title}`;
+    }
+
+    const pending = {
+      type: 'subscribe',
+      campaignId: getCampaignStorageId(campaign),
+      channelReference: campaignRef,
+      startCount,
+    };
+    localStorage.setItem('pendingVerify', JSON.stringify(pending));
+
+    const history = getSubscribeHistory();
+    if (!history.includes(campaignRef)) {
+      history.push(campaignRef);
+      saveSubscribeHistory(history.slice(-12));
+    }
+
+    if (subscribeVerifyBtn) {
+      subscribeVerifyBtn.disabled = false;
+      subscribeVerifyBtn.innerHTML = subscribeVerifyOriginal || '<i class="bi bi-check2-circle"></i> Verify';
+    }
+  })();
+}
+
+function renderSubscribePromotionList(campaigns, subscribeVerifyBtn, subscribeVerifyOriginal) {
+  const listEl = document.getElementById('subscribe-promo-list');
+  if (!listEl) return [];
+
+  listEl.innerHTML = '';
+  const promos = getSubscribePromotions(campaigns);
+
+  if (!promos.length) {
+    const emptyState = document.createElement('div');
+    emptyState.style.cssText = 'padding:12px 14px; border:1px dashed rgba(255,255,255,0.25); border-radius:12px; color:#cfcfcf; font-size:13px;';
+    emptyState.textContent = 'No promoted channels are available right now.';
+    listEl.appendChild(emptyState);
+    return [];
+  }
+
+  const buttons = [];
+  promos.forEach((campaign, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.style.cssText = 'width:100%; text-align:left; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.06); color:#fff; cursor:pointer; display:flex; flex-direction:column; gap:4px;';
+    button.dataset.campaignId = getCampaignStorageId(campaign);
+
+    const title = document.createElement('span');
+    title.style.cssText = 'font-weight:700;';
+    title.textContent = getSubscribePromotionLabel(campaign);
+
+    const meta = document.createElement('span');
+    meta.style.cssText = 'font-size:12px; color:#cfcfcf;';
+    meta.textContent = campaign.channelId ? `Channel ID: ${campaign.channelId}` : 'Promoted channel';
+
+    button.appendChild(title);
+    button.appendChild(meta);
+    button.addEventListener('click', () => {
+      buttons.forEach((item) => {
+        item.style.borderColor = 'rgba(255,255,255,0.14)';
+        item.style.background = 'rgba(255,255,255,0.06)';
+      });
+      button.style.borderColor = '#39b54a';
+      button.style.background = 'rgba(57,181,74,0.18)';
+      setSubscribePromoSelection(campaign, subscribeVerifyBtn, subscribeVerifyOriginal);
+    });
+
+    listEl.appendChild(button);
+    buttons.push(button);
+    if (index === 0) {
+      button.style.borderColor = '#39b54a';
+      button.style.background = 'rgba(57,181,74,0.18)';
+    }
+  });
+
+  setSubscribePromoSelection(promos[0], subscribeVerifyBtn, subscribeVerifyOriginal);
+  return promos;
+}
+
+function getCampaignStorageId(campaign) {
+  return String(campaign?.id || campaign?._id || '').trim();
+}
+
+function mapBackendCampaignToStoredCampaign(campaign) {
+  const targetCount = Number(campaign?.targetCount || campaign?.quantity || 0);
+  const currentCount = Number(campaign?.currentCount || 0);
+
+  return {
+    id: getCampaignStorageId(campaign),
+    type: String(campaign?.type || '').trim(),
+    videoLink: String(campaign?.channelId || campaign?.videoUrl || campaign?.videoLink || '').trim(),
+    channelId: String(campaign?.channelId || '').trim(),
+    channelName: String(campaign?.channelName || '').trim(),
+    quantity: Number.isFinite(targetCount) ? targetCount : 0,
+    costPaid: Number(campaign?.cost || 0),
+    status: normalizeCampaignStatus(campaign?.status || 'active') || 'active',
+    dateCreated: campaign?.createdAt ? new Date(campaign.createdAt).toLocaleDateString() : '',
+    progress: Number.isFinite(targetCount) && targetCount > 0
+      ? Math.min(100, Math.round((currentCount / targetCount) * 100))
+      : 0,
+  };
+}
+
+function mergeStoredCampaigns(localCampaigns, backendCampaigns) {
+  const merged = [];
+  const seen = new Set();
+
+  const addCampaign = (campaign) => {
+    const campaignId = getCampaignStorageId(campaign);
+    if (!campaignId || seen.has(campaignId)) {
+      return;
+    }
+    seen.add(campaignId);
+    merged.push(campaign);
+  };
+
+  backendCampaigns.forEach(addCampaign);
+  localCampaigns.forEach(addCampaign);
+
+  return merged;
+}
+
+async function syncPromotionsFromBackend() {
+  const accessToken = localStorage.getItem('accessToken');
+  if (!accessToken) {
+    return false;
+  }
+
+  try {
+    const response = await fetch(`${getApiBase()}/campaigns/list?limit=100&page=1`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const data = await response.json().catch(() => ({}));
+    const backendCampaigns = Array.isArray(data?.campaigns)
+      ? data.campaigns.map((campaign) => normalizePromotionCampaign(mapBackendCampaignToStoredCampaign(campaign))).filter((campaign) => Boolean(campaign.id))
+      : [];
+    const localCampaigns = getStoredPromotions();
+    const mergedCampaigns = mergeStoredCampaigns(localCampaigns, backendCampaigns);
+
+    localStorage.setItem('campaigns', JSON.stringify(mergedCampaigns));
+    return true;
+  } catch (error) {
+    console.warn('syncPromotionsFromBackend failed', error);
+    return false;
+  }
+}
+
 function getSubscribeHistory() {
   return JSON.parse(localStorage.getItem('subscribeHistory')) || [];
 }
@@ -2040,8 +2329,8 @@ function getAvailableEarnTasks() {
     { type: 'subscribe', promoType: 'subs' }
   ];
 
-  return taskMap.filter(({ type, promoType }) => {
-    const promo = campaigns.find(c => c.type === promoType && (c.status === 'Active' || c.status === 'In Progress') && normalizeChannelReference(c.videoLink) !== currentChannel);
+  return taskMap.filter(({ promoType }) => {
+    const promo = campaigns.find(c => c.type === promoType && isPromotableCampaign(c) && normalizeChannelReference(getCampaignReference(c)) !== currentChannel);
     return !!promo;
   }).map(item => item.type);
 }
@@ -2116,14 +2405,14 @@ function promotionVideoLinkToHref(reference) {
 }
 
 function pickNextPromotionForTask(campaigns, type, historyKey, currentChannel) {
-  const activePromos = campaigns.filter(c => c.type === type && (c.status === 'Active' || c.status === 'In Progress'));
+  const activePromos = campaigns.filter(c => c.type === type && isPromotableCampaign(c));
   if (activePromos.length === 0) return null;
 
   const history = getPromotionHistory(historyKey);
   const seen = new Set(history.map(normalizeChannelReference));
 
   const eligible = activePromos.filter(promo => {
-    const ref = normalizeChannelReference(promo.videoLink);
+    const ref = normalizeChannelReference(getCampaignReference(promo));
     if (!ref) return false;
     if (currentChannel && ref === currentChannel) return false;
     if (seen.has(ref)) return false;
@@ -2135,7 +2424,7 @@ function pickNextPromotionForTask(campaigns, type, historyKey, currentChannel) {
   }
 
   const resetEligible = activePromos.filter(promo => {
-    const ref = normalizeChannelReference(promo.videoLink);
+    const ref = normalizeChannelReference(getCampaignReference(promo));
     return ref && (!currentChannel || ref !== currentChannel);
   });
 
@@ -2177,76 +2466,7 @@ function showEarnModal(taskType) {
   // If subscribe modal, try to populate with a promotion channel
   if (taskType === 'subscribe') {
     const campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
-    const promo = pickNextSubscribePromotion(campaigns);
-    const linkEl = document.getElementById('subscribe-link');
-    const nameEl = document.getElementById('subscribe-channel-name');
-
-    if (promo && linkEl && nameEl) {
-      const promoRef = normalizeChannelReference(promo.videoLink);
-      // Normalize link for display: convert raw channel ID or handle to full URL
-      const ref = promo.videoLink;
-      let href = ref;
-      if (/^UC[A-Za-z0-9_-]{10,}$/.test(ref)) {
-        href = `https://www.youtube.com/channel/${ref}`;
-      } else if (/^@/.test(ref)) {
-        href = `https://www.youtube.com/${ref}`;
-      } else if (!/^https?:\/\//.test(ref)) {
-        // assume it's a handle or id fragment
-        href = `https://www.youtube.com/${ref}`;
-      }
-
-      linkEl.href = href;
-      linkEl.onclick = (event) => openEarnLink(taskType, href, linkEl) ? undefined : event.preventDefault();
-      nameEl.textContent = `Channel: ${ref}`;
-
-      const history = getSubscribeHistory();
-      if (!history.includes(promoRef)) {
-        history.push(promoRef);
-        saveSubscribeHistory(history);
-      }
-
-      // Start verification: store pending verify with start subscriber count and fetch channel title
-      (async () => {
-        const channelRef = promo.videoLink;
-        const startCount = await fetchChannelSubscriberCount(channelRef);
-        const title = await fetchChannelTitle(channelRef);
-        if (title) nameEl.textContent = `Channel: ${title}`;
-          const pending = { type: 'subscribe', campaignId: promo.id, channelReference: promo.videoLink, startCount: startCount };
-          localStorage.setItem('pendingVerify', JSON.stringify(pending));
-          if (subscribeVerifyBtn) {
-            subscribeVerifyBtn.disabled = false;
-            subscribeVerifyBtn.innerHTML = _subscribeVerifyOriginal || '<i class="bi bi-check2-circle"></i> Verify';
-          }
-      })();
-    } else if (linkEl && nameEl) {
-      // Fallback: rotate through default subscribe channels
-      const defaultChannelHistory = JSON.parse(localStorage.getItem('defaultSubscribeHistory') || '[]');
-      const lastUsedIndex = (defaultChannelHistory.length > 0) ? (DEFAULT_SUBSCRIBE_CHANNELS.indexOf(defaultChannelHistory[defaultChannelHistory.length - 1])) : -1;
-      const nextIndex = (lastUsedIndex + 1) % DEFAULT_SUBSCRIBE_CHANNELS.length;
-      const selectedChannel = DEFAULT_SUBSCRIBE_CHANNELS[nextIndex];
-      
-      // Update history
-      defaultChannelHistory.push(selectedChannel);
-      localStorage.setItem('defaultSubscribeHistory', JSON.stringify(defaultChannelHistory.slice(-12)));
-      
-      const href = `https://www.youtube.com/channel/${selectedChannel}`;
-      linkEl.href = href;
-      linkEl.onclick = (event) => openEarnLink(taskType, href, linkEl) ? undefined : event.preventDefault();
-      nameEl.textContent = `Channel: ${selectedChannel}`;
-      
-      // Start verification with default channel
-      (async () => {
-        const startCount = await fetchChannelSubscriberCount(selectedChannel);
-        const title = await fetchChannelTitle(selectedChannel);
-        if (title) nameEl.textContent = `Channel: ${title}`;
-          const pending = { type: 'subscribe', channelReference: selectedChannel, startCount: startCount };
-          localStorage.setItem('pendingVerify', JSON.stringify(pending));
-          if (subscribeVerifyBtn) {
-            subscribeVerifyBtn.disabled = false;
-            subscribeVerifyBtn.innerHTML = _subscribeVerifyOriginal || '<i class="bi bi-check2-circle"></i> Verify';
-          }
-      })();
-    }
+    renderSubscribePromotionList(campaigns, subscribeVerifyBtn, _subscribeVerifyOriginal);
   } else if (taskType === 'like' || taskType === 'watch') {
     const campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
     const currentChannel = normalizeChannelReference(localStorage.getItem('selectedChannelId') || localStorage.getItem('selectedChannelName'));
@@ -2888,20 +3108,21 @@ async function addPromotion() {
       videoLink,
       channelId: registeredChannelId,
       channelName: registeredChannelName,
+      targetLabel: type === 'subs' ? registeredChannelName || registeredChannelId : videoLink,
       quantity,
       costPaid: creditsNeeded,
-      status: responseData?.campaign?.status || 'Active',
+      status: normalizeCampaignStatus(responseData?.campaign?.status || 'Active') || 'active',
       dateCreated: new Date().toLocaleDateString(),
       progress: 0,
     };
 
-    const campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
+    const campaigns = getStoredPromotions();
     campaigns.unshift(campaign);
     localStorage.setItem('campaigns', JSON.stringify(campaigns));
     console.log('[addPromotion] Campaign saved to localStorage. Total campaigns:', campaigns.length, 'Campaign:', campaign);
     currentPage = 1;
     loadPromotions();
-    initializeViewPromotions();
+    await initializeViewPromotions();
 
     // Deduct credits locally only if backend failed to create campaign
     if (!backendSuccess) {
@@ -3160,7 +3381,7 @@ document.addEventListener('DOMContentLoaded', () => {
 let currentPage = 1;
 const itemsPerPage = 4;
 
-function initializeViewPromotions() {
+async function initializeViewPromotions() {
   currentPage = 1;
   userCredits = getStoredCredits();
   // Update credits display in promotions section
@@ -3170,11 +3391,12 @@ function initializeViewPromotions() {
   }
   
   // Load promotions from localStorage
+  await syncPromotionsFromBackend();
   loadPromotions();
 }
 
 function loadPromotions() {
-  const campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
+  const campaigns = getStoredPromotions();
   console.log('[loadPromotions] Loaded campaigns from localStorage. Count:', campaigns.length, 'Campaigns:', campaigns);
   const tableBody = document.getElementById('promoTableBody');
   
@@ -3202,21 +3424,24 @@ function loadPromotions() {
       views: 'Youtube Video Views',
       comments: 'Youtube Comments'
     };
+    const promotedLabel = getPromotionTargetLabel(campaign);
+    const linkLabel = getPromotionLinkLabel(campaign);
     
-    const statusClass = campaign.status === 'Completed' ? 'status-completed' : 'status-inprogress';
-    const statusText = campaign.status === 'Completed' ? 'Completed' : 'In Progress';
-    const boostBtn = campaign.status === 'Completed' ? 'NA' : '<span class="boost-speed-btn">BOOST SPEED</span>';
+    const isCompleted = isCompletedCampaign(campaign);
+    const statusClass = isCompleted ? 'status-completed' : 'status-inprogress';
+    const statusText = isCompleted ? 'Completed' : 'In Progress';
+    const boostBtn = isCompleted ? 'NA' : '<span class="boost-speed-btn">BOOST SPEED</span>';
     
     return `
       <tr>
         <td>${campaign.id}</td>
         <td>${typeMap[campaign.type] || campaign.type}</td>
-        <td><a href="#" class="link-btn">${campaign.videoLink}</a> <span class="open-link-btn">OPEN LINK</span></td>
+        <td><a href="#" class="link-btn">${linkLabel}</a> <span class="open-link-btn">OPEN LINK</span></td>
         <td>${campaign.quantity}</td>
         <td>${Math.floor(campaign.quantity * campaign.progress / 100)}</td>
         <td>${campaign.costPaid}</td>
         <td><span class="${statusClass}">${statusText}</span></td>
-        <td>${campaign.dateCreated}</td>
+        <td>${promotedLabel}</td>
         <td>${boostBtn}</td>
         <td><button class="manage-btn delete-promo-btn" type="button" data-campaign-id="${String(campaign.id).replace(/&/g, '&amp;').replace(/\"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}" aria-label="Delete promotion">&#128465;</button></td>
       </tr>

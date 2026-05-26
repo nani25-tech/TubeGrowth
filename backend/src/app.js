@@ -22,8 +22,8 @@ const configuredOrigins = [
   'http://localhost:5000',
   'http://127.0.0.1:5000',
   'http://localhost:5173',
-  'https://tubegrowth.me',
-  'https://www.tubegrowth.me',
+  'https://tubegrowth.zone.id',
+  'https://www.tubegrowth.zone.id',
   'https://nani25-tech.github.io',
   'https://nani25-tech.github.io/TubeGrowth',
   ...(process.env.CORS_ORIGIN

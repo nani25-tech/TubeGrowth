@@ -5,7 +5,7 @@ const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const YOUTUBE_API_URL = 'https://www.googleapis.com/youtube/v3';
 const YOUTUBE_CLIENT_ID = process.env.YOUTUBE_CLIENT_ID;
 const YOUTUBE_CLIENT_SECRET = process.env.YOUTUBE_CLIENT_SECRET;
-const YOUTUBE_REDIRECT_URI = process.env.YOUTUBE_REDIRECT_URI || 'https://tubegrowth.me/api/user/youtube/callback';
+const YOUTUBE_REDIRECT_URI = process.env.YOUTUBE_REDIRECT_URI || 'https://tubegrowth.zone.id/api/user/youtube/callback';
 const YOUTUBE_ANALYTICS_URL = 'https://youtubeanalytics.googleapis.com/v2';
 
 export const getYouTubeOAuthClient = () => {

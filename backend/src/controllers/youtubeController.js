@@ -45,7 +45,7 @@ export const youtubeCallback = async (req, res) => {
     const { code, state, error } = req.query;
 
     if (error) {
-      return res.redirect(`${process.env.FRONTEND_URL || 'https://tubegrowth.me'}?youtube=error`);
+      return res.redirect(`${process.env.FRONTEND_URL || 'https://tubegrowth.zone.id'}?youtube=error`);
     }
 
     if (!code || !state) {
@@ -75,10 +75,10 @@ export const youtubeCallback = async (req, res) => {
 
     await syncSingleUserYouTubeStats(user._id);
 
-    return res.redirect(`${process.env.FRONTEND_URL || 'https://tubegrowth.me'}/dashboard?youtube=connected`);
+    return res.redirect(`${process.env.FRONTEND_URL || 'https://tubegrowth.zone.id'}/dashboard?youtube=connected`);
   } catch (error) {
     console.error('YouTube callback error:', error);
-    return res.redirect(`${process.env.FRONTEND_URL || 'https://tubegrowth.me'}/dashboard?youtube=error`);
+    return res.redirect(`${process.env.FRONTEND_URL || 'https://tubegrowth.zone.id'}/dashboard?youtube=error`);
   }
 };
 
