@@ -2266,15 +2266,13 @@ function mergeStoredCampaigns(localCampaigns, backendCampaigns) {
 
 async function syncPromotionsFromBackend() {
   const accessToken = localStorage.getItem('accessToken');
-  if (!accessToken) {
-    return false;
-  }
 
   try {
+    const headers = {};
+    if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+
     const response = await fetch(`${getApiBase()}/campaigns/list?limit=100&page=1`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
+      headers,
     });
 
     if (!response.ok) {
