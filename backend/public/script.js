@@ -17,7 +17,7 @@ if (typeof getApiBase !== 'function') {
         return 'http://localhost:5000/api';
       }
       // Default origin (may be intercepted by static hosting/CDN if DNS points to GitHub Pages)
-      const backendOrigin = 'https://tubegrowth.zone.id';
+      const backendOrigin = 'https://tubegrowth.me';
       return backendOrigin + '/api';
     } catch (err) {
       return '/api';
