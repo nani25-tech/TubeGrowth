@@ -1032,13 +1032,26 @@ async function createCampaignOnBackend({ channelUrl, type, targetCount }) {
     throw new Error('Please login to create campaigns');
   }
 
+  // If page includes a reCAPTCHA sitekey, attempt to execute it and include token
+  let recaptchaToken = undefined;
+  try {
+    const meta = document.querySelector('meta[name="recaptcha-sitekey"]');
+    const siteKey = meta ? meta.content : null;
+    if (siteKey && window.grecaptcha && typeof window.grecaptcha.execute === 'function') {
+      // grecaptcha.execute may require an action param; use 'create_campaign' as default
+      recaptchaToken = await window.grecaptcha.execute(siteKey, { action: 'create_campaign' });
+    }
+  } catch (err) {
+    console.warn('reCAPTCHA execute failed', err);
+  }
+
   const response = await fetch(`${getApiBase()}/campaigns/create`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${accessToken}`,
     },
-    body: JSON.stringify({ channelUrl, type, targetCount }),
+    body: JSON.stringify({ channelUrl, type, targetCount, recaptchaToken }),
   });
 
   const data = await response.json().catch(() => ({}));

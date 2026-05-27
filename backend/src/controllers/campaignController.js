@@ -184,6 +184,33 @@ export const updateCampaign = async (req, res) => {
     const { id } = req.params;
     const { targetCount } = req.body;
 
+    // Optional reCAPTCHA verification: only if RECAPTCHA_SECRET is configured
+    const recaptchaSecret = process.env.RECAPTCHA_SECRET;
+    const recaptchaToken = req.body?.recaptchaToken;
+    if (recaptchaSecret) {
+      if (!recaptchaToken) {
+        await session.abortTransaction();
+        return res.status(400).json({ message: 'reCAPTCHA token missing' });
+      }
+
+      try {
+        const verifyRes = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `secret=${encodeURIComponent(recaptchaSecret)}&response=${encodeURIComponent(recaptchaToken)}`,
+        });
+        const verifyJson = await verifyRes.json();
+        if (!verifyJson.success) {
+          await session.abortTransaction();
+          return res.status(400).json({ message: 'reCAPTCHA verification failed' });
+        }
+      } catch (err) {
+        console.error('reCAPTCHA verification error', err);
+        await session.abortTransaction();
+        return res.status(500).json({ message: 'reCAPTCHA verification error' });
+      }
+    }
+
     const campaign = await Campaign.findByIdAndUpdate(
       id,
       { targetCount },
