@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import path from 'path';
+import mongoose from 'mongoose';
 import { fileURLToPath } from 'url';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
@@ -127,26 +128,66 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/feedback', feedbackRoutes);
 
-// Health check
+// Health check with DB state
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK' });
+  const mongoState = mongoose && mongoose.connection ? mongoose.connection.readyState : null;
+  const mongoStateMap = {
+    0: 'disconnected',
+    1: 'connected',
+    2: 'connecting',
+    3: 'disconnecting',
+  };
+
+  res.json({
+    status: 'OK',
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    mongodb: {
+      state: mongoStateMap[mongoState] || 'unknown',
+      readyState: mongoState,
+    }
+  });
 });
 
-// Diagnostic endpoint (for debugging only)
+// Diagnostic endpoint (for debugging and monitoring)
 app.get('/api/health', (req, res) => {
+  const mongoState = mongoose && mongoose.connection ? mongoose.connection.readyState : null;
+  const mongoStateMap = {
+    0: 'disconnected',
+    1: 'connected',
+    2: 'connecting',
+    3: 'disconnecting',
+  };
+
   res.json({
     status: 'OK',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
     mongodb: {
-      connected: true,
+      state: mongoStateMap[mongoState] || 'unknown',
+      readyState: mongoState,
     },
     uptime: process.uptime(),
   });
 });
 
-// Static files AFTER API routes
-app.use(express.static(publicDir));
+// Static files AFTER API routes with cache-control headers
+app.use(express.static(publicDir, {
+  setHeaders: (res, filePath) => {
+    try {
+      if (/\.html?$/.test(filePath)) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      } else if (/\.(?:js|css|svg|png|jpg|jpeg|gif|webp|woff2?)$/.test(filePath)) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      } else {
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+      }
+      res.setHeader('Vary', 'Accept-Encoding');
+    } catch (e) {
+      // ignore
+    }
+  }
+}));
 
 app.get(['/admin', '/admin.html'], (req, res) => {
   res.sendFile(path.join(publicDir, 'admin.html'));
