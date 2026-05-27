@@ -2038,6 +2038,43 @@ async function trackReferralReward() {
   }
 }
 
+async function handleYouTubeConnectionStatus() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const youtubeStatus = params.get('youtube');
+
+    if (!youtubeStatus) {
+      return;
+    }
+
+    const isConnected = youtubeStatus === 'connected';
+    const isError = youtubeStatus === 'error';
+
+    if (!isConnected && !isError) {
+      return;
+    }
+
+    showSection('dashboard-preview');
+
+    const selectedChannelId = restoreSelectedChannelSession();
+    const selectedChannelName = localStorage.getItem('selectedChannelName') || '';
+
+    if (selectedChannelId) {
+      await loadDashboardProfile(selectedChannelId, selectedChannelName);
+    }
+
+    if (isConnected) {
+      showToast('bi-check-circle-fill', 'YouTube Connected', 'Your YouTube channel is linked and your dashboard is ready.');
+    } else {
+      showToast('bi-exclamation-triangle-fill', 'YouTube Connection Failed', 'Please try connecting your YouTube account again.');
+    }
+
+    window.history.replaceState({}, document.title, window.location.pathname + '#dashboard-preview');
+  } catch (err) {
+    console.warn('[handleYouTubeConnectionStatus] Error:', err);
+  }
+}
+
 async function verifyAndApplyReferralCode() {
   try {
     const codeInput = document.getElementById('referralCodeInput');
@@ -3761,6 +3798,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize referral system
   updateReferralUI();
   trackReferralReward();
+  handleYouTubeConnectionStatus();
   
   // Close modal on overlay click
 
