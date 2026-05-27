@@ -2413,16 +2413,14 @@ function saveEarnTaskHistory(history) {
 function getAvailableEarnTasks() {
   const campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
   const currentChannel = normalizeChannelReference(localStorage.getItem('selectedChannelId') || localStorage.getItem('selectedChannelName'));
-  const taskMap = [
-    { type: 'like', promoType: 'like' },
-    { type: 'watch', promoType: 'watch' },
-    { type: 'subscribe', promoType: 'subscribe' }
-  ];
+  const hasSubscribePromo = campaigns.some(c => normalizeEarnTaskType(c.type) === 'subscribe' && isPromotableCampaign(c) && normalizeChannelReference(getCampaignReference(c)) !== currentChannel);
 
-  return taskMap.filter(({ promoType }) => {
-    const promo = campaigns.find(c => normalizeEarnTaskType(c.type) === promoType && isPromotableCampaign(c) && normalizeChannelReference(getCampaignReference(c)) !== currentChannel);
-    return !!promo;
-  }).map(item => item.type);
+  const availableTasks = ['like', 'watch'];
+  if (hasSubscribePromo) {
+    availableTasks.push('subscribe');
+  }
+
+  return availableTasks;
 }
 
 function getNextEarnTask() {
