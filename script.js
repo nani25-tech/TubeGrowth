@@ -2083,6 +2083,14 @@ function isCompletedCampaign(campaign) {
   return normalizeCampaignStatus(campaign?.status) === 'completed';
 }
 
+function normalizeEarnTaskType(type) {
+  const value = String(type || '').trim().toLowerCase();
+  if (['subs', 'subscriber', 'subscribers'].includes(value)) return 'subscribe';
+  if (['like', 'likes'].includes(value)) return 'like';
+  if (['watch', 'view', 'views'].includes(value)) return 'watch';
+  return value;
+}
+
 function getCampaignReference(campaign) {
   return String(campaign?.videoLink || campaign?.channelId || campaign?.channelName || '').trim();
 }
@@ -2406,13 +2414,13 @@ function getAvailableEarnTasks() {
   const campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
   const currentChannel = normalizeChannelReference(localStorage.getItem('selectedChannelId') || localStorage.getItem('selectedChannelName'));
   const taskMap = [
-    { type: 'like', promoType: 'likes' },
-    { type: 'watch', promoType: 'views' },
-    { type: 'subscribe', promoType: 'subs' }
+    { type: 'like', promoType: 'like' },
+    { type: 'watch', promoType: 'watch' },
+    { type: 'subscribe', promoType: 'subscribe' }
   ];
 
   return taskMap.filter(({ promoType }) => {
-    const promo = campaigns.find(c => c.type === promoType && isPromotableCampaign(c) && normalizeChannelReference(getCampaignReference(c)) !== currentChannel);
+    const promo = campaigns.find(c => normalizeEarnTaskType(c.type) === promoType && isPromotableCampaign(c) && normalizeChannelReference(getCampaignReference(c)) !== currentChannel);
     return !!promo;
   }).map(item => item.type);
 }
@@ -2420,7 +2428,7 @@ function getAvailableEarnTasks() {
 function getNextEarnTask() {
   const availableTasks = getAvailableEarnTasks();
   if (availableTasks.length === 0) {
-    return 'subscribe';
+    return 'like';
   }
 
   const history = getEarnTaskHistory();
@@ -2437,7 +2445,7 @@ function getNextEarnTask() {
     }
   }
 
-  const fallback = availableTasks[0];
+  const fallback = availableTasks[0] || 'like';
   history.push(fallback);
   saveEarnTaskHistory(history.slice(-12));
   return fallback;
