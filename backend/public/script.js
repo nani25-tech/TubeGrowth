@@ -2611,6 +2611,15 @@ function pickNextSubscribePromotion(campaigns) {
 }
 
 function showEarnModal(taskType) {
+  if (taskType === 'subscribe') {
+    const campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
+    const promos = getSubscribePromotions(campaigns);
+    if (!promos.length) {
+      showStatus('subscribe', 'No promoted channels are available right now. Add one in Boost Profile.', 'error');
+      return;
+    }
+  }
+
   const modal = document.getElementById('earnModal');
   modal.classList.add('active');
   bindEarnSettingsToggle();
