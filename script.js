@@ -2448,18 +2448,21 @@ function getAvailableEarnTasks() {
   const campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
   const currentChannel = normalizeChannelReference(localStorage.getItem('selectedChannelId') || localStorage.getItem('selectedChannelName'));
   const hasSubscribePromo = campaigns.some(c => normalizeEarnTaskType(c.type) === 'subscribe' && isPromotableCampaign(c) && normalizeChannelReference(getCampaignReference(c)) !== currentChannel);
+  const hasLikePromo = campaigns.some(c => normalizeEarnTaskType(c.type) === 'like' && isPromotableCampaign(c) && normalizeChannelReference(getCampaignReference(c)) !== currentChannel);
+  const hasWatchPromo = campaigns.some(c => normalizeEarnTaskType(c.type) === 'watch' && isPromotableCampaign(c) && normalizeChannelReference(getCampaignReference(c)) !== currentChannel);
 
-  if (hasSubscribePromo) {
-    return ['subscribe'];
-  }
+  const availableTasks = [];
+  if (hasSubscribePromo) availableTasks.push('subscribe');
+  if (hasLikePromo) availableTasks.push('like');
+  if (hasWatchPromo) availableTasks.push('watch');
 
-  return ['like', 'watch'];
+  return availableTasks;
 }
 
 function getNextEarnTask() {
   const availableTasks = getAvailableEarnTasks();
   if (availableTasks.length === 0) {
-    return 'like';
+    return null;
   }
 
   const history = getEarnTaskHistory();
@@ -2493,6 +2496,18 @@ function renderEarnMainTask() {
 
   if (!copyEl || !openBtn || !verifyBtn) return;
 
+  if (!taskType) {
+    copyEl.innerHTML = '<strong>No promotions are available right now.</strong> Add a channel or video in Boost Profile to populate the earn queue.';
+    openBtn.textContent = 'SUBSCRIBE';
+    openBtn.disabled = true;
+    verifyBtn.textContent = 'VERIFY & NEXT PROMOTION';
+    verifyBtn.disabled = true;
+    if (promoListEl) {
+      promoListEl.style.display = 'none';
+    }
+    return;
+  }
+
   const labels = {
     subscribe: { action: 'SUBSCRIBE', credits: 2, text: 'Subscribe the registered channel' },
     like: { action: 'LIKE VIDEO', credits: 1, text: 'Like the registered video' },
@@ -2501,11 +2516,13 @@ function renderEarnMainTask() {
 
   const task = labels[taskType] || labels.subscribe;
   const taskMessage = taskType === 'subscribe'
-    ? 'a promoted channel from Boost Profile'
-    : 'a promoted video from Boost Profile';
-  copyEl.innerHTML = `<strong>${task.action}</strong> on ${taskMessage} to earn ${task.credits} ${task.credits === 1 ? 'credit' : 'credits'}.`;
+    ? 'the next user channel in the promotion queue'
+    : 'the next user video in the promotion queue';
+  copyEl.innerHTML = `<strong>${task.action}</strong> on ${taskMessage} to earn ${task.credits} ${task.credits === 1 ? 'credit' : 'credits'}. Subscribe or like, then verify to move to the next item.`;
   openBtn.textContent = task.action;
   verifyBtn.textContent = 'VERIFY & NEXT PROMOTION';
+  openBtn.disabled = false;
+  verifyBtn.disabled = false;
   openBtn.onclick = () => openEarnMainTask(taskType);
   verifyBtn.onclick = () => verifyTask(taskType);
 
