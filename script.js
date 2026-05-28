@@ -2281,7 +2281,7 @@ function setSubscribePromoSelection(campaign, subscribeVerifyBtn, subscribeVerif
     }
 
     if (subscribeVerifyBtn) {
-      subscribeVerifyBtn.disabled = false;
+      subscribeVerifyBtn.disabled = true;
       subscribeVerifyBtn.innerHTML = subscribeVerifyOriginal || '<i class="bi bi-check2-circle"></i> Verify';
     }
   })();
@@ -2522,7 +2522,7 @@ function renderEarnMainTask() {
   openBtn.textContent = task.action;
   verifyBtn.textContent = 'VERIFY & NEXT PROMOTION';
   openBtn.disabled = false;
-  verifyBtn.disabled = false;
+  verifyBtn.disabled = taskType === 'subscribe';
   openBtn.onclick = () => openEarnMainTask(taskType);
   verifyBtn.onclick = () => verifyTask(taskType);
 
@@ -2564,6 +2564,10 @@ function openEarnMainTask(taskType) {
     } catch (e) {
       showStatus('subscribe', 'Popup was blocked. Allow popups and try again.', 'error');
       return;
+    }
+    const verifyBtn = document.getElementById('earn-main-verify-btn');
+    if (verifyBtn) {
+      verifyBtn.disabled = false;
     }
     showStatus('subscribe', 'Opened the promoted channel. Subscribe there, then click Verify.', 'success');
     return;
@@ -2748,6 +2752,11 @@ function verifyTask(taskType) {
   
   // Special handling for subscribe: verify subscriber count increase
   if (taskType === 'subscribe') {
+    if (window.__tgEarnUnlockedType !== 'subscribe') {
+      showStatus(taskType, 'Click SUBSCRIBE first to unlock Verify.', 'error');
+      return;
+    }
+
     const pendingRaw = localStorage.getItem('pendingVerify');
     if (!pendingRaw) {
       console.log('[verifyTask] no pendingVerify in localStorage');
