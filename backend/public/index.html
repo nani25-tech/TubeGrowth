@@ -996,6 +996,21 @@
             } catch (e) { /* ignore */ }
           };
         }
+        // Additional defensive fallbacks in case older cached bundles expect these globals
+        if (!window.verifyReferralCode) {
+          window.verifyReferralCode = function(ref) {
+            try {
+              if (!ref || typeof ref !== 'string') return { valid: false, error: 'Invalid referral code' };
+              return { valid: true };
+            } catch (e) { return { valid: false, error: 'Error' }; }
+          };
+        }
+        if (!window.awardReferralCredits) {
+          window.awardReferralCredits = async function() { return false; };
+        }
+        if (!window.verifyAndApplyReferralCode) {
+          window.verifyAndApplyReferralCode = function(){ try{ var s = document.getElementById('referralVerifyStatus'); if(s){ s.textContent='Please try again shortly'; s.style.color='#e74c3c' } }catch(e){} };
+        }
       } catch (e) {}
     })();
   </script>
