@@ -2496,12 +2496,8 @@ function getAvailableEarnTasks() {
   const currentChannel = normalizeChannelReference(localStorage.getItem('selectedChannelId') || localStorage.getItem('selectedChannelName'));
   const hasSubscribePromo = campaigns.some(c => normalizeEarnTaskType(c.type) === 'subscribe' && isPromotableCampaign(c) && normalizeChannelReference(getCampaignReference(c)) !== currentChannel);
 
-  const availableTasks = ['like', 'watch'];
-  if (hasSubscribePromo) {
-    availableTasks.push('subscribe');
-  }
-
-  return availableTasks;
+  const availableTasks = ['subscribe', 'like', 'watch'];
+  return hasSubscribePromo ? availableTasks : availableTasks;
 }
 
 function getNextEarnTask() {
@@ -2512,7 +2508,7 @@ function getNextEarnTask() {
 
   const history = getEarnTaskHistory();
   const lastTask = history[history.length - 1];
-  const preferredOrder = ['like', 'watch', 'subscribe'];
+  const preferredOrder = ['subscribe', 'like', 'watch'];
 
   // Try to pick the next task in shuffle order without repeating the last one.
   for (let i = 0; i < preferredOrder.length; i++) {
