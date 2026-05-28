@@ -2539,33 +2539,17 @@ function showEarnModal(taskType) {
     }
   }
 
-  const modal = document.getElementById('earnModal');
-  modal.classList.add('active');
-  bindEarnSettingsToggle();
-  syncEarnAutoVerifyToggle();
-  
-  // Ensure subscribe verify button is disabled until pending verification is prepared
   const subscribeVerifyBtn = document.querySelector('#subscribe-modal .modal-verify-btn');
   const _subscribeVerifyOriginal = subscribeVerifyBtn ? subscribeVerifyBtn.innerHTML : null;
-  if (subscribeVerifyBtn) {
-    subscribeVerifyBtn.disabled = true;
-    subscribeVerifyBtn.innerHTML = '<i class="bi bi-clock-fill"></i> Preparing...';
-  }
+  const campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
 
-  // Hide all views
-  document.getElementById('subscribe-modal').style.display = 'none';
-  document.getElementById('like-modal').style.display = 'none';
-  document.getElementById('watch-modal').style.display = 'none';
-  
-  // Show selected view
-  document.getElementById(`${taskType}-modal`).style.display = 'block';
-
-  // If subscribe modal, try to populate with a promotion channel
   if (taskType === 'subscribe') {
-    const campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
     renderSubscribePromotionList(campaigns, subscribeVerifyBtn, _subscribeVerifyOriginal);
+    const linkEl = document.getElementById('subscribe-link');
+    if (linkEl) {
+      linkEl.click();
+    }
   } else if (taskType === 'like' || taskType === 'watch') {
-    const campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
     const currentChannel = normalizeChannelReference(localStorage.getItem('selectedChannelId') || localStorage.getItem('selectedChannelName'));
     const promoType = taskType === 'like' ? 'likes' : 'views';
     const historyKey = taskType === 'like' ? 'likeHistory' : 'watchHistory';
@@ -2594,6 +2578,10 @@ function showEarnModal(taskType) {
       linkEl.onclick = (event) => openEarnLink(taskType, linkEl.href, linkEl) ? undefined : event.preventDefault();
       const channelLabel = boost.channelLink || boost.channelName || 'Add a promotion in Boost Profile';
       nameEl.textContent = `Channel: ${channelLabel}`;
+    }
+
+    if (linkEl) {
+      linkEl.click();
     }
   }
 }
