@@ -13,6 +13,16 @@
     (function(){
       try {
         window.__API_BASE__ = window.__API_BASE__ || 'https://tubegrowth.onrender.com/api';
+        var hasLoggedInChannel = false;
+        try {
+          hasLoggedInChannel = Boolean(localStorage.getItem('selectedChannelId') || localStorage.getItem('selectedChannelName'));
+        } catch (storageError) {
+          hasLoggedInChannel = false;
+        }
+        if (hasLoggedInChannel && location.hash !== '#earn-credits' && location.hash !== '#dashboard-preview') {
+          location.replace('/index.html#earn-credits');
+          return;
+        }
         // Best-effort: fetch campaigns and populate localStorage so guests see promotions
         fetch(window.__API_BASE__ + '/campaigns/list?limit=100&page=1', { mode: 'cors' })
           .then(r => r.json())
