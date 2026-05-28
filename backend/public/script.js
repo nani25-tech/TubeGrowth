@@ -2300,33 +2300,29 @@ function setSubscribePromoSelection(campaign, subscribeVerifyBtn, subscribeVerif
 
 function renderSubscribePromotionList(campaigns, subscribeVerifyBtn, subscribeVerifyOriginal) {
   const listEl = document.getElementById('subscribe-promo-list');
+  const selectionPanel = document.querySelector('.subscribe-promo-panel > div:nth-of-type(2)');
   if (!listEl) return [];
 
   listEl.innerHTML = '';
   const promos = getSubscribePromotions(campaigns);
 
   if (!promos.length) {
+    if (selectionPanel) {
+      selectionPanel.style.display = 'none';
+    }
     const emptyState = document.createElement('div');
     emptyState.style.cssText = 'margin-top:12px; color:#f7b27e; font-size:16px; font-weight:700; text-align:center; line-height:1.4;';
     emptyState.textContent = 'No promoted channels are available right now.';
     listEl.appendChild(emptyState);
-    // Also populate subscribe modal link/name from boost profile storage if available
-    try {
-      const boost = getBoostProfileStorage();
-      const linkEl = document.getElementById('subscribe-link');
-      const nameEl = document.getElementById('subscribe-channel-name');
-      if (linkEl && nameEl) {
-        const href = promotionVideoLinkToHref(boost.channelLink || boost.videoLink || '');
-        linkEl.href = href || '#';
-        linkEl.onclick = (event) => openEarnLink('subscribe', href, linkEl) ? undefined : event.preventDefault();
-        nameEl.textContent = boost.channelLink || boost.channelName || 'Channel: Add a promotion in Boost Profile';
-      }
-      if (subscribeVerifyBtn) {
-        subscribeVerifyBtn.disabled = true;
-        subscribeVerifyBtn.innerHTML = subscribeVerifyOriginal || '<i class="bi bi-check2-circle"></i> Verify';
-      }
-    } catch (e) { /* ignore */ }
+    if (subscribeVerifyBtn) {
+      subscribeVerifyBtn.disabled = true;
+      subscribeVerifyBtn.innerHTML = subscribeVerifyOriginal || '<i class="bi bi-check2-circle"></i> Verify';
+    }
     return [];
+  }
+
+  if (selectionPanel) {
+    selectionPanel.style.display = '';
   }
 
   const buttons = [];
