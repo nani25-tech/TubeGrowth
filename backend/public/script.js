@@ -2218,7 +2218,9 @@ function getSubscribePromotions(campaigns) {
   const seen = new Set();
 
   return campaigns.filter((campaign) => {
-    if (campaign.type !== 'subs' || !isPromotableCampaign(campaign)) {
+    // Normalize task type so we accept 'subs', 'subscribe', etc.
+    const taskType = normalizeEarnTaskType(campaign.type);
+    if (taskType !== 'subscribe' || !isPromotableCampaign(campaign)) {
       return false;
     }
 
