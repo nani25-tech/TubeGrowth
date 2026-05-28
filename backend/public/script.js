@@ -2156,12 +2156,13 @@ function normalizePromotionCampaign(campaign) {
   const normalizedQuantity = Number.isFinite(quantity) && quantity > 0 ? quantity : 0;
 
   return {
-    id: String(campaign?.id || campaign?._id || Date.now()),
-    type: String(campaign?.type || '').trim(),
-    videoLink: String(campaign?.videoLink || campaign?.channelId || '').trim(),
-    channelId: String(campaign?.channelId || '').trim(),
-    channelName: String(campaign?.channelName || '').trim(),
-    targetLabel: String(campaign?.targetLabel || '').trim(),
+  id: String(campaign?.id || campaign?._id || Date.now()),
+  type: String(campaign?.type || '').trim(),
+  // Accept legacy/boot-sync `link` field as fallback for stored promotions
+  videoLink: String(campaign?.videoLink || campaign?.channelId || campaign?.link || '').trim(),
+  channelId: String(campaign?.channelId || '').trim(),
+  channelName: String(campaign?.channelName || campaign?.targetLabel || '').trim(),
+  targetLabel: String(campaign?.targetLabel || campaign?.channelName || '').trim(),
     quantity: normalizedQuantity,
     costPaid: Number(campaign?.costPaid ?? campaign?.cost ?? 0) || 0,
     status: normalizeCampaignStatus(campaign?.status || 'active') || 'active',
@@ -2256,7 +2257,18 @@ function setSubscribePromoSelection(campaign, subscribeVerifyBtn, subscribeVerif
   const displayLabel = getSubscribePromotionLabel(campaign);
 
   linkEl.href = href;
-  linkEl.onclick = (event) => openEarnLink('subscribe', href, linkEl) ? undefined : event.preventDefault();
+  const isUnlocked = window.__tgEarnUnlockedType === 'subscribe';
+  linkEl.style.pointerEvents = isUnlocked ? '' : 'none';
+  linkEl.style.opacity = isUnlocked ? '' : '0.55';
+  linkEl.setAttribute('aria-disabled', String(!isUnlocked));
+  linkEl.onclick = (event) => {
+    if (window.__tgEarnUnlockedType !== 'subscribe') {
+      event.preventDefault();
+      showStatus('subscribe', 'Click SUBSCRIBE first to open the promoted channel.', 'error');
+      return false;
+    }
+    return openEarnLink('subscribe', href, linkEl) ? undefined : event.preventDefault();
+  };
   nameEl.textContent = `Channel: ${displayLabel}`;
 
   if (subscribeVerifyBtn) {
@@ -2504,6 +2516,9 @@ function renderEarnMainTask() {
   const verifyBtn = document.getElementById('earn-main-verify-btn');
   const promoListEl = document.getElementById('subscribe-promo-list');
 
+  // Reset earned-link unlock state when rendering main task
+  try { window.__tgEarnUnlockedType = null; } catch (e) { /* ignore */ }
+
   if (!copyEl || !openBtn || !verifyBtn) return;
 
   const labels = {
@@ -2545,6 +2560,9 @@ function renderEarnMainTask() {
 
 function openEarnMainTask(taskType) {
   const campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
+
+  // Mark which earn action was explicitly opened so links can be unlocked
+  try { window.__tgEarnUnlockedType = taskType; } catch (e) { /* ignore */ }
 
   if (taskType === 'subscribe') {
     const promo = pickNextSubscribePromotion(campaigns);
