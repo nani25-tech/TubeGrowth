@@ -20,11 +20,15 @@
               if (body && Array.isArray(body.campaigns) && body.campaigns.length) {
                 const normalized = body.campaigns.map(c => ({
                   id: c._id || c.id || Date.now(),
-                  type: (c.type || c.campaignType || 'subs').toLowerCase(),
-                  link: c.link || c.channelUrl || c.videoUrl || c.targetUrl || '',
+                  type: String(c.type || c.campaignType || 'subs').toLowerCase(),
+                  link: c.link || c.channelId || c.channelUrl || c.videoUrl || c.targetUrl || '',
+                  videoLink: c.videoUrl || c.link || c.channelId || c.targetUrl || '',
+                  channelId: c.channelId || c.targetChannelId || c.channelUrl || c.link || c.videoUrl || '',
+                  channelName: c.channelName || c.targetChannelName || c.videoTitle || c.title || c.targetLabel || '',
+                  targetLabel: c.targetLabel || c.videoTitle || c.channelName || c.targetChannelName || '',
                   target: Number(c.target || c.targetCount || c.required || 0) || 0,
                   delivered: Number(c.delivered || c.deliveredCount || 0) || 0,
-                  status: (c.status || 'active').toLowerCase(),
+                  status: String(c.status || 'active').toLowerCase(),
                   createdAt: c.createdAt || c.created || new Date().toISOString()
                 }));
                 localStorage.setItem('campaigns', JSON.stringify(normalized));
