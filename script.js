@@ -1812,6 +1812,49 @@ function saveReferralData(data) {
   localStorage.setItem('referralData', JSON.stringify(data));
 }
 
+function copyReferralCode() {
+  const codeInput = document.getElementById('referralCode');
+  if (!codeInput) return;
+
+  try {
+    codeInput.select();
+    document.execCommand('copy');
+    showToast('bi-check-circle-fill', 'Copied!', 'Referral code copied to clipboard');
+  } catch (err) {
+    // Fallback: copy by creating a temporary textarea
+    const textarea = document.createElement('textarea');
+    textarea.value = codeInput.value || '';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(textarea);
+    showToast('bi-check-circle-fill', 'Copied!', 'Referral code copied to clipboard');
+  }
+}
+
+function shareReferralCode() {
+  const data = getReferralData();
+  const shareUrl = `${window.location.origin}/?ref=${data.code}`;
+
+  if (navigator.share) {
+    navigator.share({
+      title: 'Join TubeGrowth',
+      text: 'Get 30 credits when you join with my referral code!',
+      url: shareUrl
+    }).catch(() => {
+      copyReferralCode();
+    });
+  } else {
+    const textarea = document.createElement('textarea');
+    textarea.value = shareUrl;
+    document.body.appendChild(textarea);
+    textarea.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(textarea);
+    showToast('bi-link-45deg', 'Link Copied!', 'Share this link to earn referral credits');
+  }
+}
+
 // Award referral credits to new user
 async function awardReferralCredits(referralCode) {
   try {
