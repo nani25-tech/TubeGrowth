@@ -969,6 +969,36 @@
   </div>
 </div>
 
+  <script>
+    // Defensive fallback for older cached bundles: ensure functions exist
+    (function(){
+      try {
+        if (!window.copyReferralCode) {
+          window.copyReferralCode = function(){
+            try {
+              var codeInput = document.getElementById('referralCode');
+              if (!codeInput) return;
+              codeInput.select();
+              document.execCommand('copy');
+            } catch (e) { /* ignore */ }
+          };
+        }
+        if (!window.shareReferralCode) {
+          window.shareReferralCode = function(){
+            try {
+              var data = (function(){ try{ return JSON.parse(localStorage.getItem('referralData')||'{}'); }catch(e){return{};} })();
+              var shareUrl = window.location.origin + '/?ref=' + ((data.code||'')+ '');
+              if (navigator.share) {
+                navigator.share({ title: 'Join TubeGrowth', text: 'Get 30 credits when you join with my referral code!', url: shareUrl }).catch(function(){ try{ window.copyReferralCode(); }catch(e){} });
+                return;
+              }
+              var ta = document.createElement('textarea'); ta.value = shareUrl; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+            } catch (e) { /* ignore */ }
+          };
+        }
+      } catch (e) {}
+    })();
+  </script>
   <script src="script.js?v=20260528-inlinecopy3"></script>
 </body>
 </html>
