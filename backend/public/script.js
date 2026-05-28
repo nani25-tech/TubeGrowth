@@ -2479,8 +2479,11 @@ function getAvailableEarnTasks() {
   const currentChannel = normalizeChannelReference(localStorage.getItem('selectedChannelId') || localStorage.getItem('selectedChannelName'));
   const hasSubscribePromo = campaigns.some(c => normalizeEarnTaskType(c.type) === 'subscribe' && isPromotableCampaign(c) && normalizeChannelReference(getCampaignReference(c)) !== currentChannel);
 
-  const availableTasks = ['subscribe', 'like', 'watch'];
-  return hasSubscribePromo ? availableTasks : availableTasks;
+  if (hasSubscribePromo) {
+    return ['subscribe'];
+  }
+
+  return ['like', 'watch'];
 }
 
 function getNextEarnTask() {
