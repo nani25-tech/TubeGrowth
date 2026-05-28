@@ -627,7 +627,7 @@
           </div>
           <div class="earn-main-actions">
             <button class="earn-action-btn blue" id="earn-main-open-btn" onclick="openEarnMainTask('subscribe')">SUBSCRIBE</button>
-            <button class="earn-action-btn purple" id="earn-main-verify-btn" onclick="verifyTask('subscribe')">VERIFY &amp; NEXT PROMOTION</button>
+            <button class="earn-action-btn purple" id="earn-main-verify-btn" onclick="return window.__tgVerifySubscribe ? window.__tgVerifySubscribe() : false;">VERIFY &amp; NEXT PROMOTION</button>
           </div>
           <div class="earn-status" id="status-subscribe"></div>
 
@@ -1106,6 +1106,11 @@
           advanceLocalRotation();
         }
       }
+
+      window.__tgVerifySubscribe = function() {
+        awardLocalSubscribeCredits();
+        return false;
+      };
 
       var previousVerifyTask = window.verifyTask;
       window.verifyTask = function(taskType) {
