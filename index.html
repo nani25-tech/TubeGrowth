@@ -1026,6 +1026,101 @@
     })();
   </script>
   <script src="script.js?v=20260528-earnfallback2"></script>
+  <script>
+    (function() {
+      function showLocalStatus(message, type) {
+        try {
+          if (typeof window.showStatus === 'function') {
+            window.showStatus('subscribe', message, type || 'error');
+            return;
+          }
+          var statusEl = document.getElementById('status-subscribe');
+          if (statusEl) statusEl.textContent = message;
+        } catch (e) {}
+      }
+
+      function showLocalToast(title, message) {
+        try {
+          if (typeof window.showToast === 'function') {
+            window.showToast('bi-coin', title, message);
+          }
+        } catch (e) {}
+      }
+
+      function advanceLocalRotation() {
+        try {
+          if (typeof window.refreshEarnTaskRotation === 'function') {
+            window.setTimeout(function() {
+              try { window.refreshEarnTaskRotation(); } catch (e) {}
+            }, 150);
+          }
+        } catch (e) {}
+      }
+
+      function awardLocalSubscribeCredits() {
+        try {
+          var raw = localStorage.getItem('pendingVerify');
+          if (!raw) {
+            showLocalStatus('No pending subscription verification found.', 'error');
+            advanceLocalRotation();
+            return;
+          }
+
+          var pending = JSON.parse(raw);
+          var startedAt = Number(pending.startedAt || 0);
+          var elapsed = Date.now() - startedAt;
+          if (elapsed < 10000) {
+            showLocalStatus('Please wait at least 10 seconds before verifying.', 'error');
+            advanceLocalRotation();
+            return;
+          }
+
+          var currentCredits = 0;
+          try { currentCredits = Number(localStorage.getItem('userCredits') || '0'); } catch (e) {}
+          currentCredits += 2;
+          localStorage.setItem('userCredits', String(currentCredits));
+
+          try {
+            var earnedToday = JSON.parse(localStorage.getItem('earnedToday') || '{}');
+            earnedToday.subscribe = (earnedToday.subscribe || 0) + 1;
+            localStorage.setItem('earnedToday', JSON.stringify(earnedToday));
+          } catch (e) {}
+
+          localStorage.removeItem('pendingVerify');
+
+          if (typeof window.updateCreditDisplay === 'function') {
+            window.updateCreditDisplay();
+          }
+          showLocalStatus('+2 Credits earned!', 'success');
+          showLocalToast('Credits Earned!', '+2 Credits added to your account');
+          try {
+            var verifyBtn = document.getElementById('earn-main-verify-btn');
+            if (verifyBtn) verifyBtn.disabled = true;
+          } catch (e) {}
+          try {
+            if (typeof window.closeEarnModal === 'function') {
+              window.setTimeout(function() { window.closeEarnModal(); }, 500);
+            }
+          } catch (e) {}
+          advanceLocalRotation();
+        } catch (e) {
+          showLocalStatus('Verification failed due to an internal error. Try again later.', 'error');
+          advanceLocalRotation();
+        }
+      }
+
+      var previousVerifyTask = window.verifyTask;
+      window.verifyTask = function(taskType) {
+        if (taskType === 'subscribe') {
+          awardLocalSubscribeCredits();
+          return;
+        }
+        if (typeof previousVerifyTask === 'function') {
+          return previousVerifyTask(taskType);
+        }
+      };
+    }());
+  </script>
 </body>
 </html>
 
