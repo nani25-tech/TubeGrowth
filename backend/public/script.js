@@ -2504,6 +2504,7 @@ function renderEarnMainTask() {
   const copyEl = document.getElementById('earn-main-copy');
   const openBtn = document.getElementById('earn-main-open-btn') || document.getElementById('earn-main-open-btn-alt');
   const verifyBtn = document.getElementById('earn-main-verify-btn');
+  const promoListEl = document.getElementById('subscribe-promo-list');
 
   if (!copyEl || !openBtn || !verifyBtn) return;
 
@@ -2522,6 +2523,26 @@ function renderEarnMainTask() {
   verifyBtn.textContent = 'VERIFY & NEXT PROMOTION';
   openBtn.onclick = () => openEarnMainTask(taskType);
   verifyBtn.onclick = () => verifyTask(taskType);
+
+  if (promoListEl) {
+    promoListEl.style.display = taskType === 'subscribe' ? '' : 'none';
+  }
+
+  if (taskType === 'subscribe') {
+    const campaigns = getStoredPromotions();
+    const subscribeVerifyOriginal = verifyBtn.innerHTML;
+    renderSubscribePromotionList(campaigns, verifyBtn, subscribeVerifyOriginal);
+  } else {
+    const currentLink = document.getElementById('subscribe-link');
+    const currentName = document.getElementById('subscribe-channel-name');
+    if (currentLink) {
+      currentLink.href = '#';
+      currentLink.onclick = null;
+    }
+    if (currentName) {
+      currentName.textContent = 'Channel: Add a promotion in Boost Profile';
+    }
+  }
 }
 
 function openEarnMainTask(taskType) {

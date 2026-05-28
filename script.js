@@ -332,7 +332,22 @@ function showSection(sectionId) {
     if (dashboardContent) dashboardContent.classList.add('active');
     if (promotionsContent) promotionsContent.classList.remove('active');
   } else if (normalizedId === 'earn-credits') {
-    refreshEarnTaskRotation();
+    // Ensure promotions are synced from backend before rendering earn tasks
+    try {
+      if (typeof syncPromotionsFromBackend === 'function') {
+        syncPromotionsFromBackend().then(() => {
+          try { refreshEarnTaskRotation(); } catch (e) { console.warn('refreshEarnTaskRotation failed', e); }
+        }).catch((e) => {
+          console.warn('syncPromotionsFromBackend failed', e);
+          try { refreshEarnTaskRotation(); } catch (e2) { console.warn('refreshEarnTaskRotation failed', e2); }
+        });
+      } else {
+        refreshEarnTaskRotation();
+      }
+    } catch (e) {
+      console.warn('Error preparing earn-credits section', e);
+      refreshEarnTaskRotation();
+    }
   } else if (normalizedId === 'services') {
     const dashboardContent = document.getElementById('dashboard-content');
     const promotionsContent = document.getElementById('promotions-content');
@@ -1812,6 +1827,17 @@ function saveReferralData(data) {
   localStorage.setItem('referralData', JSON.stringify(data));
 }
 
+function updateReferralUI() {
+  const data = getReferralData();
+  const codeInput = document.getElementById('referralCode');
+  const countEl = document.getElementById('referralCount');
+  const earningsEl = document.getElementById('referralEarnings');
+  
+  if (codeInput) codeInput.value = data.code;
+  if (countEl) countEl.textContent = data.referred || 0;
+  if (earningsEl) earningsEl.textContent = (data.earnings || 0) + ' Credits';
+}
+
 function copyReferralCode() {
   const codeInput = document.getElementById('referralCode');
   if (!codeInput) return;
@@ -1853,6 +1879,25 @@ function shareReferralCode() {
     document.body.removeChild(textarea);
     showToast('bi-link-45deg', 'Link Copied!', 'Share this link to earn referral credits');
   }
+}
+
+// Verify referral code format and usage
+function verifyReferralCode(referralCode) {
+  if (!referralCode || typeof referralCode !== 'string') {
+    return { valid: false, error: 'Invalid referral code format' };
+  }
+
+  const normalizedCode = referralCode.trim().toUpperCase();
+  if (!/^(TGB|TB)[A-Z0-9]{5,}$/.test(normalizedCode)) {
+    return { valid: false, error: 'Invalid referral code - use your own referral code from Refer & Earn' };
+  }
+
+  const usedCode = localStorage.getItem('usedReferralCode');
+  if (usedCode === normalizedCode) {
+    return { valid: false, error: 'You already used this referral code' };
+  }
+
+  return { valid: true };
 }
 
 // Award referral credits to new user
@@ -2429,6 +2474,7 @@ function renderEarnMainTask() {
   const copyEl = document.getElementById('earn-main-copy');
   const openBtn = document.getElementById('earn-main-open-btn') || document.getElementById('earn-main-open-btn-alt');
   const verifyBtn = document.getElementById('earn-main-verify-btn');
+  const promoListEl = document.getElementById('subscribe-promo-list');
 
   if (!copyEl || !openBtn || !verifyBtn) return;
 
@@ -2447,6 +2493,26 @@ function renderEarnMainTask() {
   verifyBtn.textContent = 'VERIFY & NEXT PROMOTION';
   openBtn.onclick = () => openEarnMainTask(taskType);
   verifyBtn.onclick = () => verifyTask(taskType);
+
+  if (promoListEl) {
+    promoListEl.style.display = taskType === 'subscribe' ? '' : 'none';
+  }
+
+  if (taskType === 'subscribe') {
+    const campaigns = getStoredPromotions();
+    const subscribeVerifyOriginal = verifyBtn.innerHTML;
+    renderSubscribePromotionList(campaigns, verifyBtn, subscribeVerifyOriginal);
+  } else {
+    const currentLink = document.getElementById('subscribe-link');
+    const currentName = document.getElementById('subscribe-channel-name');
+    if (currentLink) {
+      currentLink.href = '#';
+      currentLink.onclick = null;
+    }
+    if (currentName) {
+      currentName.textContent = 'Channel: Add a promotion in Boost Profile';
+    }
+  }
 }
 
 function openEarnMainTask(taskType) {
@@ -3650,6 +3716,16 @@ document.addEventListener('DOMContentLoaded', () => {
   updateCreditDisplay();
   syncCreditsFromBackend();
   updateEarnedUI();
+  // Ensure earn auto-verify default enabled for parity with MyToolsTown
+  try {
+    if (localStorage.getItem(EARN_AUTO_VERIFY_KEY) === null) {
+      // default to enabled so users get the same auto-verify behavior
+      setEarnAutoVerifyEnabled(true);
+    } else {
+      syncEarnAutoVerifyToggle();
+    }
+  } catch (e) { console.warn('earn auto-verify init failed', e); }
+
   bindEarnSettingsToggle();
   
   // Initialize daily bonus UI
