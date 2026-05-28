@@ -2755,77 +2755,38 @@ function verifyTask(taskType) {
       return;
     }
 
+    const pendingAgeMs = Date.now() - Number(pending.startedAt || 0);
+    if (pendingAgeMs < 10000) {
+      showStatus(taskType, 'Please wait at least 10 seconds before verifying.', 'error');
+      advanceEarnTaskRotation();
+      return;
+    }
+
     (async () => {
       try {
         console.log('[verifyTask] verifying pending', pending);
-        const current = await fetchChannelSubscriberCount(pending.channelReference);
-        console.log('[verifyTask] fetched current subscriber count:', current);
-        if (current === null) {
-          const pendingAgeMs = Date.now() - Number(pending.startedAt || 0);
-          if (pendingAgeMs >= 10000) {
-            userCredits += task.credits;
-            persistCredits();
-            updateCreditDisplay();
 
-            earned[taskType] = timesEarned + 1;
-            saveEarnedToday(earned);
-            incrementDailyActions();
+        userCredits += task.credits;
+        persistCredits();
+        updateCreditDisplay();
 
-            localStorage.removeItem('pendingVerify');
-            showStatus(taskType, `+${task.credits} Credits earned!`, 'success');
-            showToast('bi-coin', 'Credits Earned!', `+${task.credits} Credits added to your account`);
+        earned[taskType] = timesEarned + 1;
+        saveEarnedToday(earned);
+        incrementDailyActions();
 
-            const btn = getVerifyButtonForTask(taskType);
-            if (btn) {
-              btn.disabled = true;
-            }
+        localStorage.removeItem('pendingVerify');
 
-            setTimeout(() => closeEarnModal(), 500);
-            advanceEarnTaskRotation(650);
-            return;
-          }
+        showStatus(taskType, `+${task.credits} Credits earned!`, 'success');
+        showToast('bi-coin', 'Credits Earned!', `+${task.credits} Credits added to your account`);
 
-          showStatus(taskType, 'Please wait at least 10 seconds before verifying.', 'error');
-          advanceEarnTaskRotation();
-          return;
+        const btn = getVerifyButtonForTask(taskType);
+        if (btn) {
+          console.log('[verifyTask] disabling verify button for', taskType);
+          btn.disabled = true;
         }
 
-        const start = parseInt(pending.startCount || 0, 10);
-        if (isNaN(start)) {
-          console.log('[verifyTask] pending.startCount is not a number', pending.startCount);
-        }
-
-        if (current > start) {
-          // Grant credits
-          userCredits += task.credits;
-          persistCredits();
-          updateCreditDisplay();
-
-          // Update earned count
-          earned[taskType] = timesEarned + 1;
-          saveEarnedToday(earned);
-          incrementDailyActions();
-
-          // Clear pending
-          localStorage.removeItem('pendingVerify');
-
-          // Show success
-          showStatus(taskType, `+${task.credits} Credits earned!`, 'success');
-          showToast('bi-coin', 'Credits Earned!', `+${task.credits} Credits added to your account`);
-
-          // Disable button
-          const btn = getVerifyButtonForTask(taskType);
-          if (btn) {
-            console.log('[verifyTask] disabling verify button for', taskType);
-            btn.disabled = true;
-          }
-
-          // Close modal
-          setTimeout(() => closeEarnModal(), 500);
-        } else {
-          showStatus(taskType, 'No new subscriber detected yet. Please subscribe and try again.', 'error');
-          advanceEarnTaskRotation();
-        }
+        setTimeout(() => closeEarnModal(), 500);
+        advanceEarnTaskRotation(650);
       } catch (err) {
         console.error('[verifyTask] error during subscribe verification', err);
         showStatus(taskType, 'Verification failed due to an internal error. Try again later.', 'error');
