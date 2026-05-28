@@ -2239,7 +2239,12 @@ function setSubscribePromoSelection(campaign, subscribeVerifyBtn, subscribeVerif
       showStatus('subscribe', 'Click SUBSCRIBE first to open the promoted channel.', 'error');
       return false;
     }
-    return openEarnLink('subscribe', href, linkEl) ? undefined : event.preventDefault();
+    try {
+      window.open(href, '_blank', 'noopener,noreferrer');
+    } catch (e) {
+      showStatus('subscribe', 'Popup was blocked. Allow popups and try again.', 'error');
+    }
+    return false;
   };
   nameEl.textContent = `Channel: ${displayLabel}`;
 
@@ -2534,11 +2539,13 @@ function openEarnMainTask(taskType) {
       return;
     }
     const href = promotionVideoLinkToHref(getCampaignReference(promo));
-    const opened = openEarnLink('subscribe', href, null);
-    if (opened) {
-      // auto-verify disabled; open in new tab
-      try { window.open(href, '_blank', 'noopener'); } catch (e) { /* ignore */ }
+    try {
+      window.open(href, '_blank', 'noopener,noreferrer');
+    } catch (e) {
+      showStatus('subscribe', 'Popup was blocked. Allow popups and try again.', 'error');
+      return;
     }
+    showStatus('subscribe', 'Opened the promoted channel. Subscribe there, then click Verify.', 'success');
     return;
   }
 
