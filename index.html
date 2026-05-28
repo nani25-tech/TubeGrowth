@@ -962,55 +962,6 @@
   </div>
 </footer>
 
-<!-- EARN MODALS -->
-<div class="modal-overlay" id="earnModal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h3 id="modalTitle">Earn Credits</h3>
-      <button class="modal-close" onclick="closeEarnModal()" aria-label="Close modal"><i class="bi bi-x-lg"></i></button>
-    </div>
-    <div class="modal-body">
-      <div id="subscribe-modal" class="modal-view">
-        <div class="modal-icon"><i class="bi bi-person-plus-fill"></i></div>
-        <h4>Subscribe to TubeGrowth</h4>
-        <p>Visit the channel below and subscribe to get <strong>+2 Credits</strong></p>
-        <p id="subscribe-channel-name" style="font-weight:600; margin:8px 0;">Channel: TubeGrowth</p>
-        <div id="subscribe-promo-list" style="display:flex; flex-direction:column; gap:8px; width:100%; max-width:420px; margin:8px 0 12px;"></div>
-        <a id="subscribe-link" href="https://youtube.com/@TubeGrowth" target="_blank" class="modal-link-btn">
-          <i class="bi bi-youtube"></i> Open Channel
-        </a>
-        <button class="modal-verify-btn" onclick="verifyTask('subscribe')"><i class="bi bi-check2-circle"></i> Verify</button>
-      </div>
-
-      <div id="like-modal" class="modal-view" style="display:none;">
-        <div class="modal-icon"><i class="bi bi-hand-thumbs-up-fill"></i></div>
-        <h4>Like One of Our Videos</h4>
-        <p>Visit the registered promotion channel and like the video to get <strong>+1 Credit</strong></p>
-        <p id="like-channel-name" style="font-weight:600; margin:8px 0;">Channel: TubeGrowth</p>
-        <a id="like-link" href="https://youtube.com/@TubeGrowth" target="_blank" class="modal-link-btn">
-          <i class="bi bi-play-btn-fill"></i> Open Video
-        </a>
-        <button class="modal-verify-btn" onclick="verifyTask('like')"><i class="bi bi-check2-circle"></i> Verify</button>
-      </div>
-
-      <div id="watch-modal" class="modal-view" style="display:none;">
-        <div class="modal-icon"><i class="bi bi-stopwatch-fill"></i></div>
-        <h4>Watch a Video for 5 Minutes</h4>
-        <p>Watch the registered promotion video for 5 minutes to earn <strong>+3 Credits</strong></p>
-        <p id="watch-channel-name" style="font-weight:600; margin:8px 0;">Channel: TubeGrowth</p>
-        <a id="watch-link" href="https://youtube.com/@TubeGrowth" target="_blank" class="modal-link-btn">
-          <i class="bi bi-play-btn-fill"></i> Open Video
-        </a>
-        <button class="modal-verify-btn" onclick="startWatchTimer()"><i class="bi bi-play-circle-fill"></i> Start & Verify</button>
-        <div id="watch-timer-modal" style="display:none; margin-top: 20px;">
-          <div class="timer-text">Time remaining: <span id="timer-modal">5:00</span></div>
-          <div class="timer-bar"><div class="timer-fill" id="timer-fill-modal"></div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- TOAST -->
 <div class="toast" id="toast">
   <div class="toast-icon" id="toastIcon"><i class="bi bi-bell-fill"></i></div>

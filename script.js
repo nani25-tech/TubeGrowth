@@ -2600,6 +2600,7 @@ function getVerifyButtonForTask(taskType) {
 
 function closeEarnModal() {
   const modal = document.getElementById('earnModal');
+  if (!modal) return;
   modal.classList.remove('active');
   
   // Stop any running timers
