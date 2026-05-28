@@ -2643,6 +2643,16 @@ function refreshEarnTaskRotation() {
   renderEarnMainTask();
 }
 
+function advanceEarnTaskRotation(delayMs = 150) {
+  window.setTimeout(() => {
+    try {
+      refreshEarnTaskRotation();
+    } catch (error) {
+      console.warn('advanceEarnTaskRotation failed', error);
+    }
+  }, Math.max(0, Number(delayMs) || 0));
+}
+
 function getVerifyButtonForTask(taskType) {
   if (!taskType) return null;
   const inlineBtn = document.getElementById('earn-main-verify-btn');
@@ -2691,12 +2701,14 @@ function verifyTask(taskType) {
     const watchSession = JSON.parse(localStorage.getItem('watchSession') || 'null');
     if (!watchSession || !watchSession.completed) {
       showStatus(taskType, 'Watch the full 5 minutes before claiming credits.', 'error');
+      advanceEarnTaskRotation();
       return;
     }
 
     const watchedSeconds = Math.max(0, Math.floor((watchSession.duration || 300) - (watchSession.timeLeft || 0)));
     if (watchedSeconds < 300) {
       showStatus(taskType, `You watched ${watchedSeconds} seconds. Complete the full watch time to earn credits.`, 'error');
+      advanceEarnTaskRotation();
       return;
     }
 
@@ -2749,6 +2761,7 @@ function verifyTask(taskType) {
         console.log('[verifyTask] fetched current subscriber count:', current);
         if (current === null) {
           showStatus(taskType, 'Unable to verify at this time. Try again later.', 'error');
+          advanceEarnTaskRotation();
           return;
         }
 
@@ -2786,10 +2799,12 @@ function verifyTask(taskType) {
           setTimeout(() => closeEarnModal(), 500);
         } else {
           showStatus(taskType, 'No new subscriber detected yet. Please subscribe and try again.', 'error');
+          advanceEarnTaskRotation();
         }
       } catch (err) {
         console.error('[verifyTask] error during subscribe verification', err);
         showStatus(taskType, 'Verification failed due to an internal error. Try again later.', 'error');
+        advanceEarnTaskRotation();
       }
     })();
 
@@ -2821,6 +2836,8 @@ function verifyTask(taskType) {
   setTimeout(() => {
     closeEarnModal();
   }, 500);
+
+  advanceEarnTaskRotation(650);
 }
 
 function startWatchTimer() {
