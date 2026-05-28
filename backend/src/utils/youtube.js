@@ -102,8 +102,8 @@ export const fetchConnectedChannelStats = async (oauthClient) => {
 };
 
 export const fetchChannelDetails = async (channelIdOrUrl) => {
+  let channelId = channelIdOrUrl;
   try {
-    let channelId = channelIdOrUrl;
 
     // If URL is provided, extract channel ID
     if (channelIdOrUrl.includes('youtube.com') || channelIdOrUrl.includes('youtu.be')) {

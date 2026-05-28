@@ -1,36 +1,6 @@
-﻿/* global localStorage, document, window, MutationObserver, navigator, IntersectionObserver */
+﻿/* eslint-env browser */
+/* eslint-disable no-useless-catch, no-empty, no-unused-vars, no-useless-escape */
 // Automatically register/login user with channel ID and name
-// Ensure API base is available when frontend is served from static host
-if (typeof getApiBase !== 'function') {
-  function getApiBase() {
-    try {
-      // Runtime override support
-      if (typeof window !== 'undefined') {
-        if (window.__API_BASE__) return window.__API_BASE__;
-        const meta = document.querySelector && document.querySelector('meta[name="api-base"]');
-        if (meta && meta.content) return meta.content.replace(/\/+$/, '');
-      }
-
-      const host = window.location.hostname || '';
-      const protocol = window.location.protocol || 'https:';
-
-      // Local development
-      if (protocol === 'file:' || host === '' || host === 'localhost' || host === '127.0.0.1') {
-        return 'http://localhost:5000/api';
-      }
-
-      // When served from tubegrowth.me, prefer the backend Render API which hosts the real API
-      if (host === 'tubegrowth.me' || host.endsWith('.tubegrowth.me')) {
-        return 'https://tubegrowth.onrender.com/api';
-      }
-
-      // Default to same-origin API for other hosts
-      return protocol + '//' + host + (window.location.port ? ':' + window.location.port : '') + '/api';
-    } catch (err) {
-      return '/api';
-    }
-  }
-}
 async function ensureChannelUserInBackend(forceRefresh = false) {
   let channelId = restoreSelectedChannelSession();
   if (!channelId) return;
@@ -56,43 +26,46 @@ async function ensureChannelUserInBackend(forceRefresh = false) {
     return;
   }
 
-  // Validate before sending to backend
-  if (!channelId || !channelId.trim()) {
-    throw new Error('Channel ID is required but was not provided. Please try again.');
-  }
-  if (!channelName || !channelName.trim()) {
-    throw new Error('Channel Name is required but was not provided. Please try again.');
-  }
-
-  console.log('[Channel Login] Syncing with backend:', { channelId, channelName });
-
-  const apiBase = typeof getApiBase === 'function' ? getApiBase() : '';
-  const response = await fetch(`${apiBase}/auth/channel-login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ youtubeChannelId: channelId, youtubeChannelTitle: channelName })
-  });
-  if (response.ok) {
-    const data = await response.json();
-    localStorage.setItem('accessToken', data.accessToken);
-    localStorage.setItem('user', JSON.stringify(data.user));
-    localStorage.setItem(CHANNEL_SYNC_SIGNATURE_KEY, syncSignature);
-    if (data?.user && typeof data.user.credits === 'number') {
-      localStorage.setItem(getCreditStorageKey(), String(data.user.credits));
-      // Update the global userCredits variable and refresh UI immediately
-      userCredits = data.user.credits;
-      persistCredits();
-      updateCreditDisplay();
+  try {
+    // Validate before sending to backend
+    if (!channelId || !channelId.trim()) {
+      throw new Error('Channel ID is required but was not provided. Please try again.');
     }
-    console.log('[Channel Login] Successfully synced with backend');
-    return data;
-  }
-  const errorPayload = await response.json().catch(() => ({}));
-  const errorMsg = errorPayload.message || `Channel sync failed (${response.status})`;
-  console.error('[Channel Login] Backend error:', errorMsg, errorPayload);
-  throw new Error(errorMsg);
-}
+    if (!channelName || !channelName.trim()) {
+      throw new Error('Channel Name is required but was not provided. Please try again.');
+    }
 
+    console.log('[Channel Login] Syncing with backend:', { channelId, channelName });
+
+    const apiBase = typeof getApiBase === 'function' ? getApiBase() : '';
+    const response = await fetch(`${apiBase}/auth/channel-login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ youtubeChannelId: channelId, youtubeChannelTitle: channelName })
+    });
+    if (response.ok) {
+      const data = await response.json();
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem(CHANNEL_SYNC_SIGNATURE_KEY, syncSignature);
+      if (data?.user && typeof data.user.credits === 'number') {
+        localStorage.setItem(getCreditStorageKey(), String(data.user.credits));
+        // Update the global userCredits variable and refresh UI immediately
+        userCredits = data.user.credits;
+        persistCredits();
+        updateCreditDisplay();
+      }
+      console.log('[Channel Login] Successfully synced with backend');
+      return data;
+    }
+    const errorPayload = await response.json().catch(() => ({}));
+    const errorMsg = errorPayload.message || `Channel sync failed (${response.status})`;
+    console.error('[Channel Login] Backend error:', errorMsg, errorPayload);
+    throw new Error(errorMsg);
+  } catch (err) {
+    throw err;
+  }
+}
 // Sanitize stored `user` JSON to avoid uncaught SyntaxError on page load
 try {
   const _u = localStorage.getItem('user');
@@ -2547,8 +2520,42 @@ function renderEarnMainTask() {
   copyEl.innerHTML = `<strong>${task.action}</strong> on ${taskMessage} to earn ${task.credits} ${task.credits === 1 ? 'credit' : 'credits'}.`;
   openBtn.textContent = task.action;
   verifyBtn.textContent = 'VERIFY & NEXT PROMOTION';
-  openBtn.onclick = () => showEarnModal(taskType);
+  openBtn.onclick = () => openEarnMainTask(taskType);
   verifyBtn.onclick = () => verifyTask(taskType);
+}
+
+function openEarnMainTask(taskType) {
+  const campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
+
+  if (taskType === 'subscribe') {
+    const promo = pickNextSubscribePromotion(campaigns);
+    if (!promo) {
+      showStatus('subscribe', 'No promoted channels are available right now. Add one in Boost Profile.', 'error');
+      return;
+    }
+    const href = promotionVideoLinkToHref(getCampaignReference(promo));
+    const opened = openEarnLink('subscribe', href, null);
+    if (opened) {
+      try { window.open(href, '_blank', 'noopener'); } catch (e) {}
+    }
+    return;
+  }
+
+  if (taskType === 'like' || taskType === 'watch') {
+    const currentChannel = normalizeChannelReference(localStorage.getItem('selectedChannelId') || localStorage.getItem('selectedChannelName'));
+    const promoType = taskType === 'like' ? 'likes' : 'views';
+    const historyKey = taskType === 'like' ? 'likeHistory' : 'watchHistory';
+    const promo = pickNextPromotionForTask(campaigns, promoType, historyKey, currentChannel);
+    if (!promo) {
+      showStatus(taskType, 'No promoted videos are available right now. Add one in Boost Profile.', 'error');
+      return;
+    }
+    const href = promotionVideoLinkToHref(promo.videoLink);
+    const opened = openEarnLink(taskType, href, null);
+    if (opened) {
+      try { window.open(href, '_blank', 'noopener'); } catch (e) {}
+    }
+  }
 }
 
 function promotionVideoLinkToHref(reference) {
@@ -2607,60 +2614,8 @@ function pickNextSubscribePromotion(campaigns) {
 }
 
 function showEarnModal(taskType) {
-  if (taskType === 'subscribe') {
-    const campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
-    const promos = getSubscribePromotions(campaigns);
-    if (!promos.length) {
-      showStatus('subscribe', 'No promoted channels are available right now. Add one in Boost Profile.', 'error');
-      return;
-    }
-  }
-
-  const subscribeVerifyBtn = document.querySelector('#subscribe-modal .modal-verify-btn');
-  const _subscribeVerifyOriginal = subscribeVerifyBtn ? subscribeVerifyBtn.innerHTML : null;
-  const campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
-
-  if (taskType === 'subscribe') {
-    renderSubscribePromotionList(campaigns, subscribeVerifyBtn, _subscribeVerifyOriginal);
-    const linkEl = document.getElementById('subscribe-link');
-    if (linkEl) {
-      linkEl.click();
-    }
-  } else if (taskType === 'like' || taskType === 'watch') {
-    const currentChannel = normalizeChannelReference(localStorage.getItem('selectedChannelId') || localStorage.getItem('selectedChannelName'));
-    const promoType = taskType === 'like' ? 'likes' : 'views';
-    const historyKey = taskType === 'like' ? 'likeHistory' : 'watchHistory';
-    const promo = pickNextPromotionForTask(campaigns, promoType, historyKey, currentChannel);
-    const linkEl = document.getElementById(taskType === 'like' ? 'like-link' : 'watch-link');
-    const nameEl = document.getElementById(taskType === 'like' ? 'like-channel-name' : 'watch-channel-name');
-
-    if (promo && linkEl && nameEl) {
-      const promoRef = normalizeChannelReference(promo.videoLink);
-      linkEl.href = promotionVideoLinkToHref(promo.videoLink);
-      const promoHref = promotionVideoLinkToHref(promo.videoLink);
-      linkEl.onclick = (event) => openEarnLink(taskType, promoHref, linkEl) ? undefined : event.preventDefault();
-      const channelLabel = promo.channelName || promo.channelId || getChannelDisplayName(promo.videoLink);
-      nameEl.textContent = `Channel: ${channelLabel}`;
-
-      const history = getPromotionHistory(historyKey);
-      if (!history.includes(promoRef)) {
-        history.push(promoRef);
-        savePromotionHistory(historyKey, history);
-      }
-    } else if (linkEl && nameEl) {
-      // Fallback to boost profile storage if available
-      const boost = getBoostProfileStorage();
-      const fallbackLink = boost.videoLink || boost.channelLink || 'https://youtube.com/@TubeGrowth';
-      linkEl.href = promotionVideoLinkToHref(fallbackLink);
-      linkEl.onclick = (event) => openEarnLink(taskType, linkEl.href, linkEl) ? undefined : event.preventDefault();
-      const channelLabel = boost.channelLink || boost.channelName || 'Add a promotion in Boost Profile';
-      nameEl.textContent = `Channel: ${channelLabel}`;
-    }
-
-    if (linkEl) {
-      linkEl.click();
-    }
-  }
+  // Modal UI removed; forward to inline handler
+  try { openEarnMainTask(taskType); } catch (e) { console.warn('openEarnMainTask error', e); }
 }
 
 function refreshEarnTaskRotation() {
@@ -2669,6 +2624,8 @@ function refreshEarnTaskRotation() {
 
 function getVerifyButtonForTask(taskType) {
   if (!taskType) return null;
+  const inlineBtn = document.getElementById('earn-main-verify-btn');
+  if (inlineBtn) return inlineBtn;
   if (taskType === 'subscribe') return document.querySelector('#subscribe-modal .modal-verify-btn');
   if (taskType === 'like') return document.querySelector('#like-modal .modal-verify-btn');
   if (taskType === 'watch') return document.querySelector('#watch-modal .modal-verify-btn');
@@ -2677,17 +2634,16 @@ function getVerifyButtonForTask(taskType) {
 
 function closeEarnModal() {
   const modal = document.getElementById('earnModal');
-  if (!modal) return;
-  modal.classList.remove('active');
+  if (modal) modal.classList.remove('active');
   
-  // Stop any running timers
+  // Stop any running timers and cleanup even when modal markup is absent
   if (window.watchTimerInterval) {
     clearInterval(window.watchTimerInterval);
     window.watchTimerInterval = null;
   }
 
   if (window.earnPopupInterval) {
-    clearInterval(window.earnPopupInterval);
+     clearInterval(window.earnPopupInterval);
     window.earnPopupInterval = null;
   }
 

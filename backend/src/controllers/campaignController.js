@@ -189,7 +189,6 @@ export const updateCampaign = async (req, res) => {
     const recaptchaToken = req.body?.recaptchaToken;
     if (recaptchaSecret) {
       if (!recaptchaToken) {
-        await session.abortTransaction();
         return res.status(400).json({ message: 'reCAPTCHA token missing' });
       }
 
@@ -201,12 +200,10 @@ export const updateCampaign = async (req, res) => {
         });
         const verifyJson = await verifyRes.json();
         if (!verifyJson.success) {
-          await session.abortTransaction();
           return res.status(400).json({ message: 'reCAPTCHA verification failed' });
         }
       } catch (err) {
         console.error('reCAPTCHA verification error', err);
-        await session.abortTransaction();
         return res.status(500).json({ message: 'reCAPTCHA verification error' });
       }
     }

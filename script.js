@@ -1812,70 +1812,6 @@ function saveReferralData(data) {
   localStorage.setItem('referralData', JSON.stringify(data));
 }
 
-function updateReferralUI() {
-  const data = getReferralData();
-  const codeInput = document.getElementById('referralCode');
-  const countEl = document.getElementById('referralCount');
-  const earningsEl = document.getElementById('referralEarnings');
-  
-  if (codeInput) codeInput.value = data.code;
-  if (countEl) countEl.textContent = data.referred || 0;
-  if (earningsEl) earningsEl.textContent = (data.earnings || 0) + ' Credits';
-}
-
-function copyReferralCode() {
-  const codeInput = document.getElementById('referralCode');
-  if (!codeInput) return;
-  
-  codeInput.select();
-  document.execCommand('copy');
-  showToast('bi-check-circle-fill', 'Copied!', 'Referral code copied to clipboard');
-}
-
-function shareReferralCode() {
-  const data = getReferralData();
-  const shareUrl = `${window.location.origin}/?ref=${data.code}`;
-  
-  if (navigator.share) {
-    navigator.share({
-      title: 'Join TubeGrowth',
-      text: 'Get 30 credits when you join with my referral code!',
-      url: shareUrl
-    }).catch(() => {
-      // Fallback if share fails
-      copyReferralCode();
-    });
-  } else {
-    // Fallback: copy to clipboard
-    const textarea = document.createElement('textarea');
-    textarea.value = shareUrl;
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand('copy');
-    document.body.removeChild(textarea);
-    showToast('bi-link-45deg', 'Link Copied!', 'Share this link to earn referral credits');
-  }
-}
-
-// Verify and process referral code
-function verifyReferralCode(referralCode) {
-  if (!referralCode || typeof referralCode !== 'string') {
-    return { valid: false, error: 'Invalid referral code format' };
-  }
-
-  const normalizedCode = referralCode.trim().toUpperCase();
-  if (!/^(TGB|TB)[A-Z0-9]{5,}$/.test(normalizedCode)) {
-    return { valid: false, error: 'Invalid referral code - use your own referral code from Refer & Earn' };
-  }
-
-  const usedCode = localStorage.getItem('usedReferralCode');
-  if (usedCode === normalizedCode) {
-    return { valid: false, error: 'You already used this referral code' };
-  }
-
-  return { valid: true };
-}
-
 // Award referral credits to new user
 async function awardReferralCredits(referralCode) {
   try {
@@ -2466,8 +2402,44 @@ function renderEarnMainTask() {
   copyEl.innerHTML = `<strong>${task.action}</strong> on ${taskMessage} to earn ${task.credits} ${task.credits === 1 ? 'credit' : 'credits'}.`;
   openBtn.textContent = task.action;
   verifyBtn.textContent = 'VERIFY & NEXT PROMOTION';
-  openBtn.onclick = () => showEarnModal(taskType);
+  openBtn.onclick = () => openEarnMainTask(taskType);
   verifyBtn.onclick = () => verifyTask(taskType);
+}
+
+function openEarnMainTask(taskType) {
+  // Inline behavior: pick a promotion and open its link (no modal required)
+  const campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
+
+  if (taskType === 'subscribe') {
+    const promo = pickNextSubscribePromotion(campaigns);
+    if (!promo) {
+      showStatus('subscribe', 'No promoted channels are available right now. Add one in Boost Profile.', 'error');
+      return;
+    }
+    const href = promotionVideoLinkToHref(getCampaignReference(promo));
+    const opened = openEarnLink('subscribe', href, null);
+    if (opened) {
+      // auto-verify disabled; open in new tab
+      try { window.open(href, '_blank', 'noopener'); } catch (e) { /* ignore */ }
+    }
+    return;
+  }
+
+  if (taskType === 'like' || taskType === 'watch') {
+    const currentChannel = normalizeChannelReference(localStorage.getItem('selectedChannelId') || localStorage.getItem('selectedChannelName'));
+    const promoType = taskType === 'like' ? 'likes' : 'views';
+    const historyKey = taskType === 'like' ? 'likeHistory' : 'watchHistory';
+    const promo = pickNextPromotionForTask(campaigns, promoType, historyKey, currentChannel);
+    if (!promo) {
+      showStatus(taskType, 'No promoted videos are available right now. Add one in Boost Profile.', 'error');
+      return;
+    }
+    const href = promotionVideoLinkToHref(promo.videoLink);
+    const opened = openEarnLink(taskType, href, null);
+    if (opened) {
+      try { window.open(href, '_blank', 'noopener'); } catch (e) { /* ignore */ }
+    }
+  }
 }
 
 function promotionVideoLinkToHref(reference) {
@@ -2526,60 +2498,8 @@ function pickNextSubscribePromotion(campaigns) {
 }
 
 function showEarnModal(taskType) {
-  if (taskType === 'subscribe') {
-    const campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
-    const promos = getSubscribePromotions(campaigns);
-    if (!promos.length) {
-      showStatus('subscribe', 'No promoted channels are available right now. Add one in Boost Profile.', 'error');
-      return;
-    }
-  }
-
-  const subscribeVerifyBtn = document.querySelector('#subscribe-modal .modal-verify-btn');
-  const _subscribeVerifyOriginal = subscribeVerifyBtn ? subscribeVerifyBtn.innerHTML : null;
-  const campaigns = JSON.parse(localStorage.getItem('campaigns')) || [];
-
-  if (taskType === 'subscribe') {
-    renderSubscribePromotionList(campaigns, subscribeVerifyBtn, _subscribeVerifyOriginal);
-    const linkEl = document.getElementById('subscribe-link');
-    if (linkEl) {
-      linkEl.click();
-    }
-  } else if (taskType === 'like' || taskType === 'watch') {
-    const currentChannel = normalizeChannelReference(localStorage.getItem('selectedChannelId') || localStorage.getItem('selectedChannelName'));
-    const promoType = taskType === 'like' ? 'likes' : 'views';
-    const historyKey = taskType === 'like' ? 'likeHistory' : 'watchHistory';
-    const promo = pickNextPromotionForTask(campaigns, promoType, historyKey, currentChannel);
-    const linkEl = document.getElementById(taskType === 'like' ? 'like-link' : 'watch-link');
-    const nameEl = document.getElementById(taskType === 'like' ? 'like-channel-name' : 'watch-channel-name');
-
-    if (promo && linkEl && nameEl) {
-      const promoRef = normalizeChannelReference(promo.videoLink);
-      linkEl.href = promotionVideoLinkToHref(promo.videoLink);
-      const promoHref = promotionVideoLinkToHref(promo.videoLink);
-      linkEl.onclick = (event) => openEarnLink(taskType, promoHref, linkEl) ? undefined : event.preventDefault();
-      const channelLabel = promo.channelName || promo.channelId || getChannelDisplayName(promo.videoLink);
-      nameEl.textContent = `Channel: ${channelLabel}`;
-
-      const history = getPromotionHistory(historyKey);
-      if (!history.includes(promoRef)) {
-        history.push(promoRef);
-        savePromotionHistory(historyKey, history);
-      }
-    } else if (linkEl && nameEl) {
-      // Fallback to boost profile storage if available
-      const boost = getBoostProfileStorage();
-      const fallbackLink = boost.videoLink || boost.channelLink || 'https://youtube.com/@TubeGrowth';
-      linkEl.href = promotionVideoLinkToHref(fallbackLink);
-      linkEl.onclick = (event) => openEarnLink(taskType, linkEl.href, linkEl) ? undefined : event.preventDefault();
-      const channelLabel = boost.channelLink || boost.channelName || 'Add a promotion in Boost Profile';
-      nameEl.textContent = `Channel: ${channelLabel}`;
-    }
-
-    if (linkEl) {
-      linkEl.click();
-    }
-  }
+  // Modal overlay removed; use inline open handler instead
+  try { openEarnMainTask(taskType); } catch (e) { console.warn('openEarnMainTask error', e); }
 }
 
 function refreshEarnTaskRotation() {
@@ -2588,6 +2508,9 @@ function refreshEarnTaskRotation() {
 
 function getVerifyButtonForTask(taskType) {
   if (!taskType) return null;
+  // Prefer inline verify button if present, otherwise fall back to modal selectors for compatibility
+  const inlineBtn = document.getElementById('earn-main-verify-btn');
+  if (inlineBtn) return inlineBtn;
   if (taskType === 'subscribe') return document.querySelector('#subscribe-modal .modal-verify-btn');
   if (taskType === 'like') return document.querySelector('#like-modal .modal-verify-btn');
   if (taskType === 'watch') return document.querySelector('#watch-modal .modal-verify-btn');
@@ -2596,10 +2519,9 @@ function getVerifyButtonForTask(taskType) {
 
 function closeEarnModal() {
   const modal = document.getElementById('earnModal');
-  if (!modal) return;
-  modal.classList.remove('active');
-  
-  // Stop any running timers
+  if (modal) modal.classList.remove('active');
+
+  // Stop any running timers and cleanup even when modal markup is absent
   if (window.watchTimerInterval) {
     clearInterval(window.watchTimerInterval);
     window.watchTimerInterval = null;
