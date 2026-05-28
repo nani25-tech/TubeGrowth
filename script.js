@@ -2310,42 +2310,35 @@ function renderSubscribePromotionList(campaigns, subscribeVerifyBtn, subscribeVe
     selectionPanel.style.display = '';
   }
 
-  const buttons = [];
-  promos.forEach((campaign, index) => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.style.cssText = 'width:100%; text-align:left; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.06); color:#fff; cursor:pointer; display:flex; flex-direction:column; gap:4px;';
-    button.dataset.campaignId = getCampaignStorageId(campaign);
+  const campaign = pickNextSubscribePromotion(promos) || promos[0];
+  if (!campaign) return promos;
 
-    const title = document.createElement('span');
-    title.style.cssText = 'font-weight:700;';
-    title.textContent = getSubscribePromotionLabel(campaign);
+  const card = document.createElement('button');
+  card.type = 'button';
+  card.style.cssText = 'width:100%; text-align:left; padding:12px 14px; border-radius:12px; border:1px solid #39b54a; background:rgba(57,181,74,0.18); color:#fff; cursor:pointer; display:flex; flex-direction:column; gap:4px;';
+  card.dataset.campaignId = getCampaignStorageId(campaign);
 
-    const meta = document.createElement('span');
-    meta.style.cssText = 'font-size:12px; color:#cfcfcf;';
-    meta.textContent = campaign.channelId ? `Channel ID: ${campaign.channelId}` : 'Promoted channel';
+  const title = document.createElement('span');
+  title.style.cssText = 'font-weight:700;';
+  title.textContent = getSubscribePromotionLabel(campaign);
 
-    button.appendChild(title);
-    button.appendChild(meta);
-    button.addEventListener('click', () => {
-      buttons.forEach((item) => {
-        item.style.borderColor = 'rgba(255,255,255,0.14)';
-        item.style.background = 'rgba(255,255,255,0.06)';
-      });
-      button.style.borderColor = '#39b54a';
-      button.style.background = 'rgba(57,181,74,0.18)';
-      setSubscribePromoSelection(campaign, subscribeVerifyBtn, subscribeVerifyOriginal);
-    });
+  const meta = document.createElement('span');
+  meta.style.cssText = 'font-size:12px; color:#cfcfcf;';
+  meta.textContent = campaign.channelId ? `Channel ID: ${campaign.channelId}` : 'Promoted channel';
 
-    listEl.appendChild(button);
-    buttons.push(button);
-    if (index === 0) {
-      button.style.borderColor = '#39b54a';
-      button.style.background = 'rgba(57,181,74,0.18)';
-    }
+  const hint = document.createElement('span');
+  hint.style.cssText = 'font-size:12px; color:#b7d9ff;';
+  hint.textContent = 'Click SUBSCRIBE to open this channel, then VERIFY to move to the next one.';
+
+  card.appendChild(title);
+  card.appendChild(meta);
+  card.appendChild(hint);
+  card.addEventListener('click', () => {
+    setSubscribePromoSelection(campaign, subscribeVerifyBtn, subscribeVerifyOriginal);
   });
 
-  setSubscribePromoSelection(promos[0], subscribeVerifyBtn, subscribeVerifyOriginal);
+  listEl.appendChild(card);
+  setSubscribePromoSelection(campaign, subscribeVerifyBtn, subscribeVerifyOriginal);
   return promos;
 }
 
