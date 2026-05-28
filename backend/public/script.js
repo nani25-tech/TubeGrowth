@@ -2333,7 +2333,7 @@ function renderSubscribePromotionList(campaigns, subscribeVerifyBtn, subscribeVe
 
   if (!promos.length) {
     const emptyState = document.createElement('div');
-    emptyState.style.cssText = 'padding:12px 14px; border:1px dashed rgba(255,255,255,0.25); border-radius:12px; color:#cfcfcf; font-size:13px;';
+    emptyState.style.cssText = 'margin-top:12px; color:#f7b27e; font-size:16px; font-weight:700; text-align:center; line-height:1.4;';
     emptyState.textContent = 'No promoted channels are available right now.';
     listEl.appendChild(emptyState);
     // Also populate subscribe modal link/name from boost profile storage if available
