@@ -2314,6 +2314,27 @@ function renderSubscribePromotionList(campaigns, subscribeVerifyBtn, subscribeVe
     emptyState.style.cssText = 'margin-top:12px; color:#f7b27e; font-size:16px; font-weight:700; text-align:center; line-height:1.4;';
     emptyState.textContent = 'No promoted channels are available right now.';
     listEl.appendChild(emptyState);
+
+    try {
+      const boost = getBoostProfileStorage();
+      const linkEl = document.getElementById('subscribe-link');
+      const nameEl = document.getElementById('subscribe-channel-name');
+      if (linkEl && nameEl && (boost.channelLink || boost.videoLink || boost.channelName)) {
+        const href = promotionVideoLinkToHref(boost.channelLink || boost.videoLink || boost.channelName || '');
+        linkEl.href = href || '#';
+        linkEl.onclick = (event) => {
+          event.preventDefault();
+          return false;
+        };
+        nameEl.textContent = `Channel: ${boost.channelName || boost.channelLink || boost.videoLink || 'Your added promotion'}`;
+        if (selectionPanel) {
+          selectionPanel.style.display = '';
+        }
+      }
+    } catch (error) {
+      // ignore fallback rendering errors
+    }
+
     if (subscribeVerifyBtn) {
       subscribeVerifyBtn.disabled = true;
       subscribeVerifyBtn.innerHTML = subscribeVerifyOriginal || '<i class="bi bi-check2-circle"></i> Verify';
