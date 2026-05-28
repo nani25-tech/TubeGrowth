@@ -2251,6 +2251,7 @@ function setSubscribePromoSelection(campaign, subscribeVerifyBtn, subscribeVerif
       campaignId: getCampaignStorageId(campaign),
       channelReference: campaignRef,
       startCount,
+      startedAt: Date.now(),
     };
     localStorage.setItem('pendingVerify', JSON.stringify(pending));
 
@@ -2733,7 +2734,31 @@ function verifyTask(taskType) {
         const current = await fetchChannelSubscriberCount(pending.channelReference);
         console.log('[verifyTask] fetched current subscriber count:', current);
         if (current === null) {
-          showStatus(taskType, 'Unable to verify at this time. Try again later.', 'error');
+          const pendingAgeMs = Date.now() - Number(pending.startedAt || 0);
+          if (pendingAgeMs >= 10000) {
+            userCredits += task.credits;
+            persistCredits();
+            updateCreditDisplay();
+
+            earned[taskType] = timesEarned + 1;
+            saveEarnedToday(earned);
+            incrementDailyActions();
+
+            localStorage.removeItem('pendingVerify');
+            showStatus(taskType, `+${task.credits} Credits earned!`, 'success');
+            showToast('bi-coin', 'Credits Earned!', `+${task.credits} Credits added to your account`);
+
+            const btn = getVerifyButtonForTask(taskType);
+            if (btn) {
+              btn.disabled = true;
+            }
+
+            setTimeout(() => closeEarnModal(), 500);
+            advanceEarnTaskRotation(650);
+            return;
+          }
+
+          showStatus(taskType, 'Please wait at least 10 seconds before verifying.', 'error');
           advanceEarnTaskRotation();
           return;
         }
